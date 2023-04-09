@@ -1,0 +1,12 @@
+2023-03-19 16:58:57
+EquimentID: 5
+IP is set to: 192.168.1.120
+Gateway is set to: 192.168.1.1
+Port is set to: 6001
+
+2023-03-19 16:59:32
+EquimentID: 5
+IP is set to: 192.168.1.120
+Gateway is set to: 192.168.1.1
+Port is set to: 6003
+
