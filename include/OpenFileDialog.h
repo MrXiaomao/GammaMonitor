@@ -53,6 +53,8 @@ private:
 	QCPGraph* pGraph3;
 	QCPGraph* pGraph4;
 
+	bool showLine[4]; // 是否绘制曲线
+
 	// 曲线光标
 	TracerFlag mTracer;
 	myTracer* tracerCross; // 十字光标
@@ -69,4 +71,8 @@ private slots:
 	bool on_pbn_save_clicked(); // 导出图像
 	void on_GetData_comboBox_currentIndexChanged(const QString& arg1); //是否光标，取值类型
 	void SLOT_mouseTracetoCoord(QMouseEvent* event); //鼠标按下触发的槽函数
+	void on_checkBox1_stateChanged(int arg1); //复选框1
+	void on_checkBox2_stateChanged(int arg1); //复选框2
+	void on_checkBox3_stateChanged(int arg1); //复选框3
+	void on_checkBox4_stateChanged(int arg1); //复选框4
 };

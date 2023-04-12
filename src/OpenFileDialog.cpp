@@ -23,6 +23,8 @@ OpenFileDialog::OpenFileDialog(QString fileName, QWidget *parent)
     ui.YAxis_right_Edit->installEventFilter(this);
     ui.customPlot->installEventFilter(this);
     
+    showLine[0] = true;
+
     pPlot = ui.customPlot; // 给customPlot绘图控件，设置个别名，方便书写
 
     // 曲线光标相关变量
@@ -30,7 +32,7 @@ OpenFileDialog::OpenFileDialog(QString fileName, QWidget *parent)
     tracerCross = Q_NULLPTR;
     lineTracer = Q_NULLPTR;
     for (int i = 0; i < 4; i++) {
-        tracerX[i] = Q_NULLPTR;
+        tracerX[i] = Q_NULLPTR; 
     }
     lastPos = 0;
 
@@ -80,10 +82,10 @@ void OpenFileDialog::QPlot_init(QCustomPlot* customPlot)
     pGraph3 = customPlot->addGraph();
     pGraph4 = customPlot->addGraph();
 
-    //ui->checkBox1->setCheckState(Qt::Checked);  //设置复选框初始状态 Unchecked
-    //ui->checkBox2->setCheckState(Qt::Checked);
-    //ui->checkBox3->setCheckState(Qt::Checked);
-    //ui->checkBox4->setCheckState(Qt::Checked);
+    ui.checkBox1->setCheckState(Qt::Checked);  //设置复选框初始状态 Unchecked
+    ui.checkBox2->setCheckState(Qt::Checked);
+    ui.checkBox3->setCheckState(Qt::Checked);
+    ui.checkBox4->setCheckState(Qt::Checked);
     //ui->rescaleAxesCheckBox->setCheckState(Qt::Checked); // 坐标轴自适应
     //ui->refreshPlotCheckBox->setCheckState(Qt::Checked); // 图像刷新
 
@@ -111,10 +113,10 @@ void OpenFileDialog::QPlot_init(QCustomPlot* customPlot)
     pGraph4->setName("探测器4");
 
     // 设置波形曲线的复选框字体颜色
-    //ui->checkBox1->setStyleSheet("QCheckBox{color:red}");//设定前景颜色,就是字体颜色
-    //ui->checkBox2->setStyleSheet("QCheckBox{color:darkRed}");
-    //ui->checkBox3->setStyleSheet("QCheckBox{color:green}");
-    //ui->checkBox4->setStyleSheet("QCheckBox{color:blue}");
+    ui.checkBox1->setStyleSheet("QCheckBox{color:red}");//设定前景颜色,就是字体颜色
+    ui.checkBox2->setStyleSheet("QCheckBox{color:darkRed}");
+    ui.checkBox3->setStyleSheet("QCheckBox{color:green}");
+    ui.checkBox4->setStyleSheet("QCheckBox{color:blue}");
 
     // 允许用户用鼠标拖动轴范围，用鼠标滚轮缩放，点击选择图形:
     customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
@@ -397,26 +399,30 @@ void OpenFileDialog::DoCurveTracer(QMouseEvent* event)
 
     for (int i = pPlot->graphCount() - 1; i >= 0; --i)
     {
-        // 获取x轴值对应的曲线中的y轴值
-        float y_value = pPlot->graph(i)->data()->at(x_value)->value;
-        //定义标签格式
-        QString tip;
-        if (x_value > xLow && x_value<xUp && y_value>yLow && y_value < yUp) {   // 直线、游标范围限制
-            lastPos = x_value; //记录本次的游标取值位置
-            lineTracer->updatePosition(x_value, y_value); //只需要绘制一次直线
-            tracerX[i]->updatePosition(x_value, y_value);
-            lineTracer->setVisible(true);
-            tracerX[i]->setVisible(true);
+        if (showLine[i]) {
+            // 获取x轴值对应的曲线中的y轴值
+            float y_value = pPlot->graph(i)->data()->at(x_value)->value;
             //定义标签格式
             QString tip;
-            tip = QString::number(x_value) + "," + QString::number(y_value);
-            tracerX[i]->setText(tip);
+            if (x_value > xLow && x_value<xUp && y_value>yLow && y_value < yUp) {   // 直线、游标范围限制
+                lastPos = x_value; //记录本次的游标取值位置
+                lineTracer->updatePosition(x_value, y_value); //只需要绘制一次直线
+                tracerX[i]->updatePosition(x_value, y_value);
+                lineTracer->setVisible(true);
+                tracerX[i]->setVisible(true);
+                //定义标签格式
+                QString tip;
+                tip = QString::number(x_value) + "," + QString::number(y_value);
+                tracerX[i]->setText(tip);
+            }
+            else {
+                lineTracer->setVisible(false);
+                tracerX[i]->setVisible(false);
+            }
         }
-        else {
-            lineTracer->setVisible(false);
+        else{
             tracerX[i]->setVisible(false);
         }
-
         //更新曲线
         pPlot->replot(QCustomPlot::rpQueuedReplot);
     }
@@ -511,4 +517,65 @@ void OpenFileDialog::SLOT_mouseTracetoCoord(QMouseEvent* event)
     default:
         break;
     }
+}
+
+/// 隐藏曲线有两种方法：1.设置为透明色，但也会影响图例中的颜色    2.设置可见性属性
+// 1. setPen设置为透明色的方法，隐藏曲线，但也会影响图例中的颜色。不建议使用。
+// 2. setVisible设置可见性属性，隐藏曲线，不会对图例有任何影响。推荐使用。
+// 复选框1
+
+// 是否绘制曲线1
+void OpenFileDialog::on_checkBox1_stateChanged(int arg1)
+{
+    if (arg1 == Qt::Checked) {
+        pGraph1->setVisible(true);
+        showLine[0] = true;
+    }
+    else {
+        pGraph1->setVisible(false);//void QCPLayerable::setVisible(bool on)
+        showLine[0] = false;
+    }
+    pPlot->replot();
+}
+
+// 是否绘制曲线2
+void OpenFileDialog::on_checkBox2_stateChanged(int arg1)
+{
+    if (arg1) {
+        pGraph2->setVisible(true);
+        showLine[1] = true;
+    }
+    else {
+        pGraph2->setVisible(false);//void QCPLayerable::setVisible(bool on)
+        showLine[1] = false;
+    }
+    pPlot->replot();
+}
+
+// 是否绘制曲线3
+void OpenFileDialog::on_checkBox3_stateChanged(int arg1)
+{
+    if (arg1) {
+        pGraph3->setVisible(true);
+        showLine[2] = TRUE;
+    }
+    else {
+        pGraph3->setVisible(false);//void QCPLayerable::setVisible(bool on)
+        showLine[2] = false;
+    }
+    pPlot->replot();
+}
+
+// 是否绘制曲线4
+void OpenFileDialog::on_checkBox4_stateChanged(int arg1)
+{
+    if (arg1 == Qt::Checked) { //选中
+        pGraph4->setVisible(true);
+        showLine[3] = true;
+    }
+    else { //未选中
+        pGraph4->setVisible(false);//void QCPLayerable::setVisible(bool on)
+        showLine[3] = false;
+    }
+    pPlot->replot();
 }
