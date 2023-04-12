@@ -171,25 +171,16 @@ void OpenFileDialog::ShowPlot()
 // Qt::Key_Down = 0x01000015,
 bool OpenFileDialog::eventFilter(QObject* watched, QEvent* event)
 {
-    if (watched == ui.XAxis_left_Edit){
-        if (event->type() == QEvent::KeyPress && 
-            ((QKeyEvent*)event)->key() == Qt::Key_Enter){ //按键Enter按下
-            setAxisRange();
+    if (watched == ui.XAxis_left_Edit || watched == ui.XAxis_right_Edit
+        || watched == ui.YAxis_left_Edit || watched == ui.YAxis_right_Edit)
+    {
+        if (event->type() == QEvent::KeyPress) {
+            QKeyEvent* myKey = static_cast<QKeyEvent*>(event);
+            if (myKey->key() == Qt::Key_Return || myKey->key() == Qt::Key_Enter){ // 按键Enter按下,Qt::Key_Enter是小键盘（数字键盘）的Enter，Qt::Key_Return是大键盘区的Enter
+                setAxisRange();
+            }
         }
-    }
-    if (watched == ui.XAxis_right_Edit) {
-        if ((event->type() == QEvent::FocusOut) || (event->type() == QEvent::KeyPress)){
-            setAxisRange();
-        }
-    }
-    if (watched == ui.YAxis_left_Edit) {
-        if (event->type() == QEvent::KeyPress && 
-            ((QKeyEvent*)event)->key() == Qt::Key_Enter) { //按键Enter按下
-            setAxisRange();
-        }
-    }
-    if (watched == ui.YAxis_right_Edit) {
-        if ((event->type() == QEvent::FocusOut) || (event->type() == QEvent::KeyPress)){
+        if (event->type() == QEvent::FocusOut) {
             setAxisRange();
         }
     }
@@ -217,10 +208,12 @@ void OpenFileDialog::setAxisRange() {
 
     if (xMin > xMax) {
         QMessageBox::information(this, "坐标轴范围设置失败", "请确保输入的左边界小于右边界");
+        UpdateAxisRange(); //变回原来的坐标轴范围
         return;
     }
     if (yMin > yMax) {
         QMessageBox::information(this, "坐标轴范围设置失败", "请确保输入的左边界小于右边界");
+        UpdateAxisRange(); //变回原来的坐标轴范围
         return;
     }
 
