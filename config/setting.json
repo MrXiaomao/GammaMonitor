@@ -9,9 +9,9 @@
         ]
     },
     "Gateway_Detector": "192.168.1.1",
-    "IP_Detector": "192.168.1.120",
+    "IP_Detector": "192.168.1.126",
     "IP_Relay": "192.168.1.120",
-    "Port_Detector": "6003",
+    "Port_Detector": "6006",
     "Port_Relay": "192.168.1.1",
     "SaveDir": "C:/Users/DELL/Desktop/工作事项/12-辐射气路监测/4-软件界面资料/QT界面",
     "SavePictureDir": "C:/Users/DELL/Desktop/工作事项/12-辐射气路监测/4-软件界面资料/QT界面/GammaMonitor",

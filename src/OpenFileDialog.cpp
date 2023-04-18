@@ -9,6 +9,11 @@ OpenFileDialog::OpenFileDialog(QString fileName, QWidget *parent)
 	ui.setupUi(this);
     setWindowTitle(fileName);
 
+    ///添加最大化最小化按钮
+    Qt::WindowFlags flag = windowFlags();
+    Qt::WindowFlags flags = flag | Qt::WindowMinMaxButtonsHint;
+    setWindowFlags(flags);
+      
     // 限定输入为浮点数
     QDoubleValidator* doubleValidator = new QDoubleValidator();//QDoubleValidator 限定输入浮点数 ，QIntValidator – 只让用户输入整数
     ui.XAxis_left_Edit->setValidator(doubleValidator);
@@ -176,7 +181,9 @@ bool OpenFileDialog::eventFilter(QObject* watched, QEvent* event)
     {
         if (event->type() == QEvent::KeyPress) {
             QKeyEvent* myKey = static_cast<QKeyEvent*>(event);
-            if (myKey->key() == Qt::Key_Return || myKey->key() == Qt::Key_Enter){ // 按键Enter按下,Qt::Key_Enter是小键盘（数字键盘）的Enter，Qt::Key_Return是大键盘区的Enter
+            int keyValue = myKey->key();
+            if (keyValue == Qt::Key_Return || keyValue == Qt::Key_Enter
+                || keyValue == Qt::Key_Tab){ // 按键Enter按下,Qt::Key_Enter是小键盘（数字键盘）的Enter，Qt::Key_Return是大键盘区的Enter
                 setAxisRange();
             }
         }

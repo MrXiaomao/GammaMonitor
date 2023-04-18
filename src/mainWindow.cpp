@@ -26,6 +26,7 @@ mainWindow::mainWindow(QWidget *parent)
     experimentName = "测试1";
     autofilePath = "";
     ui->experimentNameEdit->setText(experimentName);
+
     // 读取配置文件：json文件
     QJsonObject jsonSetting = ReadSetting();
     tcpIp = jsonSetting["IP_Detector"].toString();
@@ -722,7 +723,7 @@ void mainWindow::on_Measure_Button_clicked()
 
         //===============②生成默认路径字符串====================
         QString EquipmentID = ui->equipmentID_label->text();
-        experimentName = ui->experimentNameEdit->text();
+        experimentName = ui->experimentNameEdit->toPlainText();
         QString Filepath = QCoreApplication::applicationDirPath(); // 获取当前exe文件所在路径
         QString dirName = Filepath + "/" + "GMCOUNTER";
         autofilePath = dirName + "/" +  + "设备" + EquipmentID + "_" + experimentName 
@@ -782,6 +783,7 @@ void mainWindow::on_Measure_Button_clicked()
         }
         // 恢复使用
         ui->Measure_Button->setText(QString("开始测量")); //按钮翻转
+        ui->experimentNameEdit->setEnabled(true);//恢复输入状态
     }
 }
 

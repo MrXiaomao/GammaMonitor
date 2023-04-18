@@ -108,7 +108,9 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\..\..\..\picture1.png" />
     <Image Include="..\..\..\picture1.png" />
+    <Image Include="images\picture1.png" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="mainWindow.rc" />
@@ -129,6 +131,7 @@
     <ClInclude Include="include\mytracerline.h" />
     <ClInclude Include="include\order.h" />
     <ClInclude Include="include\resource.h" />
+    <ClInclude Include="resource.h" />
     <QtMoc Include="include\SetThreshlod.h" />
     <QtMoc Include="include\ResetNetwork.h" />
     <QtMoc Include="include\RelayDialog.h" />
