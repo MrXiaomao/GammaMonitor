@@ -66,14 +66,14 @@ mainWindow::mainWindow(QWidget *parent)
     }
 
     // 给customPlot绘图控件，设置个别名，方便书写
-    pPlot1 = ui->customPlot;
+    pPlot = ui->customPlot;
 
     // 状态栏指针
     sBar = statusBar();
     // 初始化图表1
-    QPlot_init(pPlot1);
+    QPlot_init(pPlot);
     //m_pCpTip = new QCPToolTip(ui->customPlot);
-    //connect(pPlot1, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(myMoveMouseEvent(QMouseEvent*)));
+    //connect(pPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(myMoveMouseEvent(QMouseEvent*)));
 }
 
 
@@ -192,8 +192,16 @@ void mainWindow::QPlot_init(QCustomPlot* customPlot)
     ui->checkBox2->setCheckState(Qt::Checked);  
     ui->checkBox3->setCheckState(Qt::Checked);  
     ui->checkBox4->setCheckState(Qt::Checked); 
+    for (int i = 0; i < 4; i++) {
+        isShowLine[i] = true;
+    }
+
     ui->rescaleAxesCheckBox->setCheckState(Qt::Checked); // 坐标轴自适应
     ui->refreshPlotCheckBox->setCheckState(Qt::Checked); // 图像刷新
+    
+    ui->GetData_comboBox->setCurrentIndex(2);
+    ui->TimeLen_ComboBox->setCurrentIndex(0);
+    showTimeType = 0; // 绘图时长，全部时长，10min，5min,默认10min
 
     // 设置曲线颜色
     pGraph1_1->setPen(QPen(Qt::red));
@@ -205,8 +213,9 @@ void mainWindow::QPlot_init(QCustomPlot* customPlot)
     customPlot->xAxis->setLabel("时间/s");
     customPlot->yAxis->setLabel("计数率/cps");
 
-    // 设置y坐标轴显示范围
-    customPlot->xAxis->setRange(0, 120);
+    // 设置x坐标轴显示范围
+    customPlot->xAxis->setRange(0, 1000);
+    customPlot->yAxis->setRange(0, 100);
 
     // 显示图表的图例
     customPlot->legend->setBrush(QColor(255, 255, 255, 0));//legend背景色设为白色但背景透明，允许图像在legend区域可见
@@ -561,7 +570,7 @@ void mainWindow::readMassage()
                     counter4.push_back(Num4);
                     temperatue.push_back(temp);
                     plotCount++; 
-                    Show_Plot(pPlot1, Num1 * 1.0, Num2 * 1.0, Num3 * 1.0, Num4 * 1.0);
+                    Show_Plot(pPlot, Num1 * 1.0, Num2 * 1.0, Num3 * 1.0, Num4 * 1.0);
                 }        
                 // 自动保存数据 每镉10秒保存一次数据，防止软件意外崩溃，
 				//    因为保存数据(读写I/O口)比较费时间，所以不能每秒都进行保存，
@@ -698,7 +707,7 @@ void mainWindow::on_Measure_Button_clicked()
         int count = ui->customPlot->graphCount();//获取曲线条数
         for (int i = 0; i < count; ++i)
         {
-            pPlot1->graph(i)->data().data()->clear();
+            pPlot->graph(i)->data().data()->clear();
         }
 
         //====================重置部分变量，以及控件=====================
@@ -834,19 +843,7 @@ void mainWindow::PlotData(const QVector<double>& x, const QVector<double>& y, QC
 
     ui->customPlot->xAxis->setLabel("x");//给曲线的横纵坐标命名
     ui->customPlot->yAxis->setLabel("y");
-    /*
-    auto minX = min_element(begin(x), end(x));
-    auto maxX = max_element(begin(x), end(x));
-    if (*maxX - *minX > 1.0)
-        ui->customPlot->xAxis->setRange(*minX, *maxX);//设置横坐标的范围
-
-    auto minY = min_element(begin(y), end(y));
-    auto maxY = max_element(begin(y), end(y));
-    if (*maxY - *minY > 1.0)
-        ui->customPlot->yAxis->setRange(*minY-1, *maxY); //设置纵坐标的范围
-    else 
-        ui->customPlot->yAxis->setRange(-1, 10);
-    */
+    
     ui->customPlot->xAxis2->setVisible(true);//显示上方X轴
     ui->customPlot->xAxis2->setTickLabels(false);//不显示上方X轴 刻度
     ui->customPlot->yAxis2->setVisible(true);//显示右侧Y轴
@@ -854,7 +851,6 @@ void mainWindow::PlotData(const QVector<double>& x, const QVector<double>& y, QC
     ui->customPlot->graph()->rescaleAxes(true); //自动调整坐标轴范围
     ui->customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);//放大拖拽选中等
     //iRangeDrag 左键点击可拖动; iRangeZoom 范围可通过鼠标滚轮缩放; iSelectPlottables 线条可选中
-
 }
 
 // 绘制曲线
@@ -879,7 +875,7 @@ void mainWindow::Show_Plot(QCustomPlot* customPlot, double num1, double num2, do
 
     // 更新绘图，这种方式在高填充下太浪费资源。有另一种方式rpQueuedReplot，可避免重复绘图。
     // 最好的方法还是将数据填充、和更新绘图分隔开。将更新绘图单独用定时器更新。例程数据量较少没用单独定时器更新，实际工程中建议大家加上。
-    if(refreshPlotFlag) customPlot->replot(QCustomPlot::rpQueuedReplot);
+    if (refreshPlotFlag) { adjustXRange(); customPlot->replot(QCustomPlot::rpQueuedReplot); }
 
     //=================计算帧数============
     static QTime time(QTime::currentTime());
@@ -909,48 +905,88 @@ void mainWindow::Show_Plot(QCustomPlot* customPlot, double num1, double num2, do
 void mainWindow::on_checkBox1_stateChanged(int arg1)
 {
     if (arg1 == Qt::Checked) {
+        isShowLine[0] = true;
         pGraph1_1->setVisible(true);
+        // 若存在曲线取值
+        if (tracerX[0] != Q_NULLPTR) {
+            tracerX[0]->setVisible(true);
+        }
     }
     else {
+        isShowLine[0] = false;
         pGraph1_1->setVisible(false);//void QCPLayerable::setVisible(bool on)
+        // 若存在曲线取值
+        if (tracerX[0] != Q_NULLPTR) {
+            tracerX[0]->setVisible(false);
+        }
     }
-    pPlot1->replot();
+    pPlot->replot();
 }
 
 // 是否绘制曲线2
 void mainWindow::on_checkBox2_stateChanged(int arg1)
 {
     if (arg1) {
+        isShowLine[1] = true;
         pGraph1_2->setVisible(true);
+        // 若存在曲线取值
+        if (tracerX[1] != Q_NULLPTR) {
+            tracerX[1]->setVisible(true);
+        }
     }
     else {
+        isShowLine[1] = false;
         pGraph1_2->setVisible(false);//void QCPLayerable::setVisible(bool on)
+        // 若存在曲线取值
+        if (tracerX[1] != Q_NULLPTR) {
+            tracerX[1]->setVisible(false);
+        }
     }
-    pPlot1->replot();
+    pPlot->replot();
 }
 
 // 是否绘制曲线3
 void mainWindow::on_checkBox3_stateChanged(int arg1)
 {
     if (arg1) {
+        isShowLine[2] = true;
         pGraph1_3->setVisible(true);
+        // 若存在曲线取值
+        if (tracerX[2] != Q_NULLPTR) {
+            tracerX[2]->setVisible(true);
+        }
     }
     else {
+        isShowLine[2] = false;
         pGraph1_3->setVisible(false);//void QCPLayerable::setVisible(bool on)
+        // 若存在曲线取值
+        if (tracerX[2] != Q_NULLPTR) {
+            tracerX[2]->setVisible(false);
+        }
     }
-    pPlot1->replot();
+    pPlot->replot();
 }
 
 // 是否绘制曲线4
 void mainWindow::on_checkBox4_stateChanged(int arg1)
 {
     if (arg1 == Qt::Checked) { //选中
+        isShowLine[3] = true;
         pGraph1_4->setVisible(true);
+        // 若存在曲线取值
+        if (tracerX[3] != Q_NULLPTR) {
+            tracerX[3]->setVisible(true);
+        }
     }
     else { //未选中
+        isShowLine[3] = false;
         pGraph1_4->setVisible(false);//void QCPLayerable::setVisible(bool on)
+        // 若存在曲线取值
+        if (tracerX[3] != Q_NULLPTR) {
+            tracerX[3]->setVisible(false);
+        }
     }
-    pPlot1->replot();
+    pPlot->replot();
 }
 
 // 鼠标左键点击图像取值
@@ -976,31 +1012,32 @@ void mainWindow::SLOT_mouseTracetoCoord(QMouseEvent* event)
 void mainWindow::DoCurveTracer(QMouseEvent* event)
 {
     //直线范围限制
-    double xLow = pPlot1->xAxis->range().lower;
-    double yLow = pPlot1->yAxis->range().lower;
-    double xUp = pPlot1->xAxis->range().upper;
-    double yUp = pPlot1->yAxis->range().upper;
+    double xLow = pPlot->xAxis->range().lower;
+    double yLow = pPlot->yAxis->range().lower;
+    double xUp = pPlot->xAxis->range().upper;
+    double yUp = pPlot->yAxis->range().upper;
 
     //获取坐标,窗体鼠标的位置，不是曲线x轴的值
     int x_pos = event->pos().x();
     //    int y_pos = e->pos().y();
     // 
     //将鼠标坐标值换成曲线x轴的值
-    int x_value = round(pPlot1->xAxis->pixelToCoord(x_pos));
-    for (int i = pPlot1->graphCount() - 1; i >= 0; --i)
+    int x_value = round(pPlot->xAxis->pixelToCoord(x_pos));
+    for (int i = pPlot->graphCount() - 1; i >= 0; --i)
     {
         // 获取x轴值对应的曲线中的y轴值
-        float y_value = pPlot1->graph(i)->data()->at(x_value)->value;
+        float y_value = pPlot->graph(i)->data()->at(x_value)->value;
         //定义标签格式
         QString tip;
         if (x_value > xLow && x_value<xUp && y_value>yLow && y_value < yUp) {   // 直线、游标范围限制
             lineTracer->updatePosition(x_value, y_value); //只需要绘制一次直线
             tracerX[i]->updatePosition(x_value, y_value);
-            lineTracer->setVisible(true);
-            tracerX[i]->setVisible(true);
+            
+            lineTracer->setVisible(isShowLine[i]);
+            tracerX[i]->setVisible(isShowLine[i]);
             //定义标签格式
             QString tip;
-            tip = QString::number(x_value) + "," + QString::number(y_value);
+            tip = QString::number(i+1) + "," + QString::number(x_value) + "," + QString::number(y_value);
             tracerX[i]->setText(tip);
         }
         else
@@ -1008,57 +1045,23 @@ void mainWindow::DoCurveTracer(QMouseEvent* event)
             lineTracer->setVisible(false);
             tracerX[i]->setVisible(false);
         }
-        //================================浮标=========================
-        //////按照x轴的值进行追踪
-        //plottracer[i]->setGraphKey(x_value);
-        ////更新追踪位置
-        //plottracer[i]->updatePosition();
+
+        //更新曲线
+        pPlot->replot(QCustomPlot::rpQueuedReplot);
     }
-    /*
-    float y_value1 = pPlot1->graph(0)->data()->at(x_value)->value;
-    float y_value2 = pPlot1->graph(1)->data()->at(x_value)->value;
-    float y_value3 = pPlot1->graph(2)->data()->at(x_value)->value;
-    float y_value4 = pPlot1->graph(3)->data()->at(x_value)->value;
-    //定义标签格式
-    QString tip;
-    if (x_value > xLow && x_value<xUp && y_value1>yLow && y_value1 < yUp) {   // 直线、游标范围限制
-        lineTracer->updatePosition(x_value, y_value1); //只需要绘制一次直线
-        //定义标签格式
-        tip = QString::number(x_value) + "," + QString::number(y_value1);
-        QToolTip::showText(cursor().pos(), tip, pPlot1);
-    }
-    if (x_value > xLow && x_value<xUp && y_value2>yLow && y_value2 < yUp) {   // 直线、游标范围限制
-        //定义标签格式
-        tip = QString::number(x_value) + "," + QString::number(y_value2);
-        QToolTip::showText(cursor().pos(), tip, pPlot1);
-    }
-    if (x_value > xLow && x_value<xUp && y_value3>yLow && y_value3 < yUp) {   // 直线、游标范围限制
-        //定义标签格式
-        tip = QString::number(x_value) + "," + QString::number(y_value3);
-        QToolTip::showText(cursor().pos(), tip, pPlot1);
-    }
-    if (x_value > xLow && x_value<xUp && y_value4>yLow && y_value4 < yUp) {   // 直线、游标范围限制
-        //定义标签格式
-        tip = QString::number(x_value) + "," + QString::number(y_value4);
-        QToolTip::showText(cursor().pos(), tip, pPlot1);
-    }
-    */
-    
-    //更新曲线
-    pPlot1->replot(QCustomPlot::rpQueuedReplot);
 }
 
 // 十字架取值
 void mainWindow::DoCrossTracer(QMouseEvent* event)
 {
     //直线范围限制
-    double xLow = pPlot1->xAxis->range().lower;
-    double yLow = pPlot1->yAxis->range().lower;
-    double xUp = pPlot1->xAxis->range().upper;
-    double yUp = pPlot1->yAxis->range().upper;
+    double xLow = pPlot->xAxis->range().lower;
+    double yLow = pPlot->yAxis->range().lower;
+    double xUp = pPlot->xAxis->range().upper;
+    double yUp = pPlot->yAxis->range().upper;
 
-    double x = pPlot1->xAxis->pixelToCoord(event->pos().x());
-    double y2 = pPlot1->yAxis->pixelToCoord(event->pos().y());
+    double x = pPlot->xAxis->pixelToCoord(event->pos().x());
+    double y2 = pPlot->yAxis->pixelToCoord(event->pos().y());
 
     if (x > xLow && x<xUp && y2>yLow && y2 < yUp) {   //直线、游标范围限制
         lineTracer->updatePosition(x, y2);
@@ -1077,7 +1080,42 @@ void mainWindow::DoCrossTracer(QMouseEvent* event)
     }
 
     //更新曲线
-    pPlot1->replot(QCustomPlot::rpQueuedReplot);
+    pPlot->replot(QCustomPlot::rpQueuedReplot);
+}
+
+//若当前对象com_index_string值发生改变则触发此函数
+void mainWindow::on_TimeLen_ComboBox_currentIndexChanged(const QString& arg1)
+{
+    showTimeType = ui->TimeLen_ComboBox->currentIndex();
+    
+    adjustXRange();
+
+    //更新曲线
+    pPlot->replot(QCustomPlot::rpQueuedReplot);
+}
+
+//调整根据界面的显示时长类型调整坐标轴范围
+void mainWindow::adjustXRange()
+{
+    // 设置x坐标轴显示范围类型
+    int timeLength = 1000; //图像可显示的时间宽度
+    if (showTimeType == 0) { //全部时长
+        timeLength = 1000;
+        double Xmin = 0;
+        double Xmax = (pGraph1_1->dataCount() > timeLength) ? pGraph1_1->dataCount() : timeLength;
+        pPlot->xAxis->setRange(Xmin, Xmax);
+    }
+    else {
+        if (showTimeType == 1) { // 10min
+            timeLength = 10 * 60;
+        }
+        else { // 5min
+            timeLength = 5 * 60;
+        }
+        double Xmin = (pGraph1_1->dataCount() > timeLength) ? (pGraph1_1->dataCount() - timeLength) : 0;
+        double Xmax = (pGraph1_1->dataCount() > timeLength) ? pGraph1_1->dataCount() : timeLength;
+        pPlot->xAxis->setRange(Xmin, Xmax);
+    }
 }
 
 //若当前对象com_index_string值发生改变则触发此函数
@@ -1103,11 +1141,11 @@ void mainWindow::on_GetData_comboBox_currentIndexChanged(const QString& arg1)
             delete lineTracer;
             lineTracer = Q_NULLPTR;
         }
-        disconnect(pPlot1, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(SLOT_mouseTracetoCoord(QMouseEvent*)));
+        disconnect(pPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(SLOT_mouseTracetoCoord(QMouseEvent*)));
     }
     if (str == "十字光标") {
         mTracer = TracerFlag::CrossTracer;
-        tracerCross = new myTracer(pPlot1, pGraph1_1, DataTracer);
+        tracerCross = new myTracer(pPlot, pGraph1_1, DataTracer);
         if (lineTracer != Q_NULLPTR) {
             delete lineTracer;
             lineTracer = Q_NULLPTR;
@@ -1118,8 +1156,8 @@ void mainWindow::on_GetData_comboBox_currentIndexChanged(const QString& arg1)
                 tracerX[i] = Q_NULLPTR;
             }
         }
-        lineTracer = new myTracerLine(pPlot1, myTracerLine::Both);//画十字交叉线
-        connect(pPlot1, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(SLOT_mouseTracetoCoord(QMouseEvent*)));
+        lineTracer = new myTracerLine(pPlot, myTracerLine::Both);//画十字交叉线
+        connect(pPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(SLOT_mouseTracetoCoord(QMouseEvent*)));
     }
     if (str == "曲线取值") {
         mTracer = TracerFlag::CurveTracer;
@@ -1133,21 +1171,22 @@ void mainWindow::on_GetData_comboBox_currentIndexChanged(const QString& arg1)
         }
         ////设置追踪曲线
         //for (int i = 0; i < 4; i++) {
-        //    plottracer[i] = new QCPItemTracer(pPlot1);
-        //    plottracer[i]->setGraph(pPlot1->graph(i));
+        //    plottracer[i] = new QCPItemTracer(pPlot);
+        //    plottracer[i]->setGraph(pPlot->graph(i));
         //    //设置十字浮标样式
-        //    QPen pen = pPlot1->graph(i)->pen();
+        //    QPen pen = pPlot->graph(i)->pen();
         //    pen.setStyle(Qt::SolidLine);//
         //    plottracer[i]->setPen(pen);
         //}
         for (int i = 0; i < 4; i++) {
-            tracerX[i] = new myTracer(pPlot1, pPlot1->graph(i), DataTracer);
+            tracerX[i] = new myTracer(pPlot, pPlot->graph(i), DataTracer);
         }
-        lineTracer = new myTracerLine(pPlot1, myTracerLine::VerticalLine);//画垂直线
-        connect(pPlot1, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(SLOT_mouseTracetoCoord(QMouseEvent*)));
+        lineTracer = new myTracerLine(pPlot, myTracerLine::VerticalLine);//画垂直线
+        connect(pPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(SLOT_mouseTracetoCoord(QMouseEvent*)));
     }
-
-    pPlot1->replot();
+    
+    adjustXRange();
+    pPlot->replot();
 }
 
 //响应图像刷新复选框
@@ -1159,7 +1198,8 @@ void mainWindow::on_refreshPlotCheckBox_stateChanged(int arg1)
     else { //未选中
         refreshPlotFlag = false;
     }
-    pPlot1->replot();
+    adjustXRange();
+    pPlot->replot();
 }
 
 //响应坐标轴自适应复选框
@@ -1179,7 +1219,8 @@ void mainWindow::on_rescaleAxesCheckBox_stateChanged(int arg1)
         pGraph1_3->rescaleAxes(false);
         pGraph1_4->rescaleAxes(false);
     }
-    pPlot1->replot();
+    adjustXRange();
+    pPlot->replot();
 }
 
 // 关闭窗口响应事件，弹出对话框：是/否/取消
@@ -1252,38 +1293,3 @@ void mainWindow::WaitingSocketWrite(int time) {
         return;
     }
 }
-
-/*
-//响应定时器信号，刷新绘图
-void mainWindow::onTimeOut()
-{
-    QVector<double> time(counter1.size()); //横轴
-    double n = 0;
-    std::generate(time.begin(), time.end(), [&] {return n = n + 1.0; }); //产生时间轴
-
-    bool status1 = ui->checkBox1->isChecked();
-    bool status2 = ui->checkBox2->isChecked();
-    bool status3 = ui->checkBox3->isChecked();
-    bool status4 = ui->checkBox4->isChecked();
-
-    // 确定坐标轴范围
-    QVector<double> TotalPlotData;
-    if (status1) TotalPlotData.append(counter1);
-    if (status1) TotalPlotData.append(counter2);
-    if (status1) TotalPlotData.append(counter3);
-    if (status1) TotalPlotData.append(counter4);
-    auto maxY = max_element(begin(TotalPlotData), end(TotalPlotData));
-    if (*maxY < 10.0)
-        ui->customPlot->yAxis->setRange(-10, 10); //设置纵坐标的范围
-    else
-        ui->customPlot->yAxis->setRange(-10, *maxY+10);
-    ui->customPlot->xAxis->setRange(0, counter1.size());
-
-    if (status1)    PlotData(time, counter1, Qt::red);
-    if (status2)    PlotData(time, counter2, Qt::green);
-    if (status3)    PlotData(time, counter3, Qt::magenta);
-    if (status4)    PlotData(time, counter4, Qt::darkBlue);
-    ui->customPlot->replot(QCustomPlot::rpQueuedReplot); // 刷新customPlot中数据
-    //repaint();
-}
-*/

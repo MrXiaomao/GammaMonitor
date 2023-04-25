@@ -48,7 +48,8 @@ private slots:
     void on_checkBox2_stateChanged(int arg1); //复选框2
     void on_checkBox3_stateChanged(int arg1); //复选框3
     void on_checkBox4_stateChanged(int arg1); //复选框4
-    void on_GetData_comboBox_currentIndexChanged(const QString& arg1); //是否光标，取值类型
+    void on_GetData_comboBox_currentIndexChanged(const QString& arg1); //下拉框改变状态
+    void on_TimeLen_ComboBox_currentIndexChanged(const QString& arg1); //下拉框改变状态
     void on_refreshPlotCheckBox_stateChanged(int arg1); //响应图像刷新
     void on_rescaleAxesCheckBox_stateChanged(int arg1); //坐标轴自适应
     
@@ -62,6 +63,7 @@ private:
     Ui::mainWindowClass *ui;
 
     void PlotData(const QVector<double>& x,const QVector<double>& y, QColor color = Qt::red); // 对输入的一对数据进行绘图
+    void adjustXRange();//调整根据界面的显示时长类型调整坐标轴范围
     // 保存测量数据
     void SaveFile(QString filepath, QVector<int>data1, QVector<int>data2,
                   QVector<int>data3, QVector<int>data4, QVector<double>temp, int timeLen = 0);
@@ -91,11 +93,11 @@ private:
     int timeLength; //测量时长，单位：s
     bool MeasureStaus; //测量状态标志
 
-
     // 绘图控件的指针
-    QCustomPlot* pPlot1;
+    QCustomPlot* pPlot;
     double plotCount ; //记录绘图的数据点个数，注意由于会定时矫正ARM的数据包个数，因此PackNumber与plotCount不一定相等。 
     QCPToolTip* m_pCpTip;
+    int showTimeType; // 绘图时长，全部时长，10min，5min,  对应0 1 2
 
     // 状态栏指针
     QStatusBar* sBar;
@@ -108,6 +110,7 @@ private:
     TracerFlag mTracer;
     myTracer* tracerCross;
     myTracer* tracerX[4];
+    bool isShowLine[4]; // 是否绘制曲线，由勾选框确定
     myTracerLine* lineTracer; // 直线
 
     bool refreshPlotFlag; // 是否刷新图像
