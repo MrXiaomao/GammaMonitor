@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>mainWindow</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../mainWindow.qrc">
+    <normaloff>:/mainWindow/images/nuclear.ico</normaloff>:/mainWindow/images/nuclear.ico</iconset>
+  </property>
   <property name="layoutDirection">
    <enum>Qt::LeftToRight</enum>
   </property>
@@ -925,7 +929,7 @@
      <string>图像刷新</string>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>776</x>
@@ -987,7 +991,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>776</x>
@@ -1049,7 +1053,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -1348,6 +1352,8 @@
     <property name="title">
      <string>帮助</string>
     </property>
+    <addaction name="instructionManual"/>
+    <addaction name="netLog"/>
    </widget>
    <addaction name="menu_3"/>
    <addaction name="menu"/>
@@ -1381,6 +1387,16 @@
   <action name="setThresholdMenu">
    <property name="text">
     <string>阈值设置</string>
+   </property>
+  </action>
+  <action name="instructionManual">
+   <property name="text">
+    <string>软件使用手册</string>
+   </property>
+  </action>
+  <action name="netLog">
+   <property name="text">
+    <string>网络修改日志</string>
    </property>
   </action>
  </widget>

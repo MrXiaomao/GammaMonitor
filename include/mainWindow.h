@@ -43,6 +43,7 @@ private slots:
     void on_networkSettingMenu_triggered(); // 菜单栏网络设置
     void on_relayMenu_triggered(); // 菜单栏继电器控制
     void on_setThresholdMenu_triggered(); // 探测器阈值设置
+    void on_netLog_triggered(); //打开帮助栏/网络修改日志
     void on_openFileMenu_triggered(); //打开历史文件
     void on_checkBox1_stateChanged(int arg1); //复选框1
     void on_checkBox2_stateChanged(int arg1); //复选框2

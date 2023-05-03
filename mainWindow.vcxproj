@@ -61,6 +61,11 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\DELL\Desktop\工作事项\12-辐射气路监测\4-软件界面资料\QT界面\NetWork\GammaMonitor\include;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
       <AdditionalIncludeDirectories>C:\Users\DELL\Desktop\工作事项\12-辐射气路监测\4-软件界面资料\QT界面\NetWork\GammaMonitor\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -104,12 +109,13 @@
     <ClCompile Include="src\RelayDialog.cpp" />
     <ClCompile Include="src\ResetNetwork.cpp" />
     <ClCompile Include="src\SetThreshlod.cpp" />
+    <ClCompile Include="src\ShowTXT.cpp" />
     <QtRcc Include="mainWindow.qrc" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\picture1.png" />
-    <Image Include="..\..\..\picture1.png" />
+    <Image Include="images\nuclear.ico" />
     <Image Include="images\picture1.png" />
   </ItemGroup>
   <ItemGroup>
@@ -131,6 +137,7 @@
     <ClInclude Include="include\mytracerline.h" />
     <ClInclude Include="include\order.h" />
     <ClInclude Include="include\resource.h" />
+    <QtMoc Include="include\ShowTXT.h" />
     <ClInclude Include="resource.h" />
     <QtMoc Include="include\SetThreshlod.h" />
     <QtMoc Include="include\ResetNetwork.h" />
@@ -146,6 +153,7 @@
     <QtUic Include="forms\RelayDialog.ui" />
     <QtUic Include="forms\ResetNetwork.ui" />
     <QtUic Include="forms\SetThreshlod.ui" />
+    <QtUic Include="forms\ShowTXT.ui" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="软件开发计划.txt" />

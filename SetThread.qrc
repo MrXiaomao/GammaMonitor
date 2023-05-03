@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="thread">
+    <file>images/picture1.png</file>
+  </qresource>
+</RCC>

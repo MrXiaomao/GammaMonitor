@@ -9,6 +9,7 @@
 #include "ResetNetwork.h"
 #include "SetThreshlod.h"
 #include "OpenFileDialog.h"
+#include "ShowTXT.h"
 
 #include <iostream>
 #include <fstream>
@@ -21,6 +22,7 @@ mainWindow::mainWindow(QWidget *parent)
     : QMainWindow(parent),ui(new Ui::mainWindowClass)
 {     
     ui->setupUi(this);
+    //this->setWindowIcon(QIcon(":/images/nuclear.ico"));
 
     //======================窗口初始化==============================
     experimentName = "测试1";
@@ -359,6 +361,24 @@ void mainWindow::on_openFileMenu_triggered(){
         
         dialog->show(); // 如果是myDialod继承于QDialog，则使用该方法设置非模态窗口
     }
+}
+
+// 打开帮助/网络修改日志 
+void mainWindow::on_netLog_triggered() {
+    // 获取可执行文件所在路径，eg:strDirPath = "/home/MonroeLiu/project/test/bin";
+    QString strDirPath = QCoreApplication::applicationDirPath();
+    QString fileFullName = strDirPath + "/log/NetSet_Record.txt";
+    
+    // 1、判断文件是否存在
+    QFile file(fileFullName);
+    QFileInfo fileInfo(file);
+    if (!fileInfo.isFile()) {
+        QString information = "文件：“" + fileFullName + "”不存在";
+        QMessageBox::warning(NULL, "警告：文件不存在", fileFullName, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+        return;
+    }
+    ShowTXT* dialog = new ShowTXT("网络修改日志",fileFullName);
+    dialog->show(); // 如果是myDialod继承于QDialog，则使用该方法设置非模态窗口
 }
 
 // 错误连接，在点击连接后，无法连接网络/失去连接，则进入该函数

@@ -1,5 +1,6 @@
 <RCC>
-  <qresource prefix="mainWindow">
-    <file>images/picture1.png</file>
-  </qresource>
+    <qresource prefix="/mainWindow">
+        <file>images/picture1.png</file>
+        <file>images/nuclear.ico</file>
+    </qresource>
 </RCC>

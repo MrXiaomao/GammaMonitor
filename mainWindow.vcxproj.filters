@@ -70,12 +70,15 @@
     <ClCompile Include="src\SetThreshlod.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\ShowTXT.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\picture1.png">
+    <Image Include="images\picture1.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="images\picture1.png">
+    <Image Include="images\nuclear.ico">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="..\..\..\..\picture1.png">
@@ -121,6 +124,9 @@
     <QtMoc Include="include\SetThreshlod.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="include\ShowTXT.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\mytracerline.h">
@@ -150,6 +156,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="forms\SetThreshlod.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="forms\ShowTXT.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>
