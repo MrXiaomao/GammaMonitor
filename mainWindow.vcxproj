@@ -55,7 +55,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <IncludePath>C:\Users\DELL\Desktop\工作事项\12-辐射气路监测\4-软件界面资料\QT界面\GammaMonitor\NetWork\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\DELL\Desktop\工作事项\12-辐射气路监测\4-软件界面资料\QT界面\GammaMonitor\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
   </PropertyGroup>
@@ -66,7 +66,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\DELL\Desktop\工作事项\12-辐射气路监测\4-软件界面资料\QT界面\NetWork\GammaMonitor\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\DELL\Desktop\工作事项\12-辐射气路监测\4-软件界面资料\QT界面\GammaMonitor\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
