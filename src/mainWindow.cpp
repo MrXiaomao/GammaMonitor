@@ -38,6 +38,7 @@ mainWindow::mainWindow(QWidget *parent)
         "background-color: white;"
         "}"
     );
+
     //======================窗口初始化==============================
     experimentName = "测试1";
     autofilePath = "";
@@ -88,8 +89,8 @@ mainWindow::mainWindow(QWidget *parent)
     sBar = statusBar();
     // 初始化图表1
     QPlot_init(pPlot);
-    //m_pCpTip = new QCPToolTip(ui->customPlot);
-    //connect(pPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(myMoveMouseEvent(QMouseEvent*)));
+    connect(this, SIGNAL(sigAppendMsg(const QString&, QtMsgType)), this, 
+        SLOT(slotAppendMsg(const QString&, QtMsgType)));
 }
 
 
@@ -103,6 +104,32 @@ mainWindow::~mainWindow()
     }
     if(tcpSocket) delete tcpSocket;
     delete ui;
+}
+
+void mainWindow::slotAppendMsg(const QString& msg, QtMsgType msgType)
+{
+    QTextCharFormat format;
+    const QString ts = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz>>");
+    QString logLine;
+
+    if (msgType == QtWarningMsg) {
+        format.setForeground(Qt::blue);
+        logLine = QStringLiteral("%1 [WARN] %2").arg(ts).arg(msg);
+    }
+    else if (msgType == QtCriticalMsg || msgType == QtFatalMsg) {
+        format.setForeground(Qt::red);
+        logLine = QStringLiteral("%1 [ERROR] %2").arg(ts).arg(msg);
+    }
+    else {
+        // QtDebugMsg、QtInfoMsg、QtSystemMsg 等：不打印级别字样
+        logLine = QStringLiteral("%1 %2").arg(ts).arg(msg);
+    }
+
+    QTextCursor cursor = ui->plainTextEdit_log->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    cursor.insertText(logLine, format);
+    cursor.insertBlock();
+    ui->plainTextEdit_log->setTextCursor(cursor);
 }
 
 // 读取配置文件

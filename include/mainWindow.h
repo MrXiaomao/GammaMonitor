@@ -33,6 +33,9 @@ public:
     void DoCrossTracer(QMouseEvent* event); // 十字架取值
     void DoCurveTracer(QMouseEvent* event); // 曲线取值
 
+signals:
+    void sigAppendMsg(const QString& msg, QtMsgType msgType);
+
 private slots:
     void readMassage(); // 读取网口数据
     void displayError(QAbstractSocket::SocketError);
@@ -53,7 +56,8 @@ private slots:
     void on_TimeLen_ComboBox_currentIndexChanged(const QString& arg1); //下拉框改变状态
     void on_refreshPlotCheckBox_stateChanged(int arg1); //响应图像刷新
     void on_rescaleAxesCheckBox_stateChanged(int arg1); //坐标轴自适应
-    
+
+    void slotAppendMsg(const QString& msg, QtMsgType msgType); //界面日志框刷新
     void SLOT_mouseTracetoCoord(QMouseEvent* event);//鼠标按下触发的槽函数
 
 protected slots:
