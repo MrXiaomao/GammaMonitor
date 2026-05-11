@@ -57,6 +57,8 @@ private slots:
     void on_refreshPlotCheckBox_stateChanged(int arg1); //响应图像刷新
     void on_rescaleAxesCheckBox_stateChanged(int arg1); //坐标轴自适应
 
+    // 选择存储路径
+    void on_savePathButton_clicked();
     void slotAppendMsg(const QString& msg, QtMsgType msgType); //界面日志框刷新
     void SLOT_mouseTracetoCoord(QMouseEvent* event);//鼠标按下触发的槽函数
 

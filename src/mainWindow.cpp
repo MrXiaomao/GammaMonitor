@@ -9,7 +9,6 @@
 
 #include "RelayDialog.h"
 #include "ResetNetwork.h"
-#include "SetThreshlod.h"
 #include "OpenFileDialog.h"
 #include "ShowTXT.h"
 
@@ -77,17 +76,6 @@ mainWindow::~mainWindow()
 
 void mainWindow::initUI()
 {
-    //选择存储路径的按钮
-    QAction* action = ui->le_savePath->addAction(QIcon(":/mainWindow/images/open.png"), QLineEdit::TrailingPosition);
-    QToolButton* button = qobject_cast<QToolButton*>(action->associatedWidgets().last());
-    button->setCursor(QCursor(Qt::PointingHandCursor));
-    connect(button, &QToolButton::pressed, this, [=]() {
-        QString cacheDir = QFileDialog::getExistingDirectory(this);
-        if (!cacheDir.isEmpty()) {
-            ui->le_savePath->setText(cacheDir);
-        }
-    });
-
     // 设置探测器编号示意图背景颜色为白色
     ui->gB_detSketchMap->setStyleSheet(
         "QGroupBox {"
@@ -107,10 +95,10 @@ void mainWindow::initUI()
     // 存储路径
     QString savePath = jsonSetting["SaveDir"].toString();
     if (!savePath.isEmpty()) {
-        ui->le_savePath->setText(savePath);
+        ui->le_savePath->setPlainText(savePath);
     }
     else {
-        ui->le_savePath->setText(QCoreApplication::applicationDirPath() + "/data"); // 默认路径为当前exe文件所在路径下的data文件夹
+        ui->le_savePath->setPlainText(QCoreApplication::applicationDirPath() + "/data"); // 默认路径为当前exe文件所在路径下的data文件夹
     }
     // 实验名称
     experimentName = jsonSetting["ExperimentName"].toString();
@@ -133,6 +121,30 @@ void mainWindow::initUI()
     ui->measureTime_label->setText("无");
     ui->measrue_label->setText("无");
     ui->equipmentID_label->setText("无");
+
+    // 布局/尺寸调整：让 customPlot 与 groupBox_4 高度占比为 2:1，保持 widget 和 widget_2 固定高度
+    QWidget *leftContainer = ui->customPlot->parentWidget();
+    if (leftContainer) {
+        QBoxLayout *box = qobject_cast<QBoxLayout*>(leftContainer->layout());
+        if (box) {
+            const int idxPlot = box->indexOf(ui->customPlot);
+            const int idxGroup = box->indexOf(ui->groupBox_4);
+            if ((idxPlot != -1) && (idxGroup != -1)) {
+                box->setStretch(idxPlot, 2);
+                box->setStretch(idxGroup, 1);
+            }
+        }
+    }
+
+    // 将顶部的 widget 和底部的 widget_2 保持固定高度（使用它们的 sizeHint 作为固定值）
+    if (ui->widget) {
+        const int h = ui->widget->sizeHint().height();
+        ui->widget->setFixedHeight(h);
+    }
+    if (ui->widget_2) {
+        const int h2 = ui->widget_2->sizeHint().height();
+        ui->widget_2->setFixedHeight(h2);
+    }
 }
 
 // 绘图图表初始化
@@ -700,7 +712,7 @@ void mainWindow::on_Measure_Button_clicked()
     if (ui->Measure_Button->text() == "开始测量")
     {
         //===============检查保存文件路径====================
-        const QString saveDir = ui->le_savePath->text().trimmed();
+        const QString saveDir = ui->le_savePath->toPlainText().trimmed();
         if (saveDir.isEmpty()) {
             QMessageBox::warning(this, tr("存储路径未设置"), tr("请先填写或选择保存目录。"));
             return;
@@ -1252,7 +1264,7 @@ void mainWindow::closeAction()
 {
     //保存界面参数
     // 存储路径
-    QString uiPath = ui->le_savePath->text().trimmed();
+    QString uiPath = ui->le_savePath->toPlainText().trimmed();
     QJsonObject jsonSetting = ReadSetting();
     if (!uiPath.isEmpty()) {
         jsonSetting["SaveDir"] = uiPath;
@@ -1316,6 +1328,14 @@ void mainWindow::WaitingSocketWrite(int time) {
     }
 }
 
+// 选择存储路径
+void mainWindow::on_savePathButton_clicked()
+{
+    QString cacheDir = QFileDialog::getExistingDirectory(this);
+    if (!cacheDir.isEmpty()) {
+        ui->le_savePath->setPlainText(cacheDir);
+    }
+}
 
 // 读取配置文件
 QJsonObject mainWindow::ReadSetting()

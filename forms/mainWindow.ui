@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1143</width>
-    <height>808</height>
+    <height>829</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -667,7 +667,7 @@
        <item>
         <widget class="QGroupBox" name="groupBox_2">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -675,7 +675,7 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>130</height>
+           <height>250</height>
           </size>
          </property>
          <property name="title">
@@ -686,7 +686,7 @@
            <number>0</number>
           </property>
           <property name="bottomMargin">
-           <number>0</number>
+           <number>3</number>
           </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label">
@@ -698,7 +698,7 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>65</width>
+              <width>100</width>
               <height>21</height>
              </size>
             </property>
@@ -754,7 +754,7 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>65</width>
+              <width>100</width>
               <height>21</height>
              </size>
             </property>
@@ -796,42 +796,77 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_15">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_6">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>65</width>
-              <height>21</height>
+              <width>100</width>
+              <height>0</height>
              </size>
             </property>
             <property name="text">
-             <string>存储路径：</string>
+             <string>探测器1、2阈值：</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
-           <widget class="QLineEdit" name="le_savePath">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>21</height>
-             </size>
-            </property>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="spinBox_thresholdA">
             <property name="maximumSize">
              <size>
               <width>200</width>
               <height>16777215</height>
              </size>
             </property>
+            <property name="maximum">
+             <number>4095</number>
+            </property>
+            <property name="value">
+             <number>100</number>
+            </property>
            </widget>
           </item>
-          <item row="5" column="0">
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_16">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>探测器3、4阈值：</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QSpinBox" name="spinBox_thresholdB">
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>21</height>
+             </size>
+            </property>
+            <property name="maximum">
+             <number>4095</number>
+            </property>
+            <property name="value">
+             <number>100</number>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
            <widget class="QLabel" name="label_11">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -841,7 +876,7 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>61</width>
+              <width>100</width>
               <height>21</height>
              </size>
             </property>
@@ -859,9 +894,12 @@
             <property name="text">
              <string>实验名称：</string>
             </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+            </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="6" column="1">
            <widget class="QTextEdit" name="experimentNameEdit">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -892,37 +930,79 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_6">
+          <item row="4" column="1">
+           <widget class="QWidget" name="widget_5" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>70</height>
+             </size>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QTextEdit" name="le_savePath">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>200</width>
+                 <height>60</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="savePathButton">
+               <property name="text">
+                <string>选择文件路径</string>
+               </property>
+               <property name="icon">
+                <iconset resource="../mainWindow.qrc">
+                 <normaloff>:/mainWindow/images/open.png</normaloff>:/mainWindow/images/open.png</iconset>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>60</height>
+             </size>
+            </property>
             <property name="text">
-             <string>探测器1、2阈值：</string>
+             <string>存储路径：</string>
             </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_16">
-            <property name="text">
-             <string>探测器3、4阈值：</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QSpinBox" name="spinBox_thresholdA">
-            <property name="maximum">
-             <number>4095</number>
-            </property>
-            <property name="value">
-             <number>100</number>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QSpinBox" name="spinBox_thresholdB">
-            <property name="maximum">
-             <number>4095</number>
-            </property>
-            <property name="value">
-             <number>100</number>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>

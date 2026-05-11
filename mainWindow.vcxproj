@@ -126,7 +126,6 @@
     <ClCompile Include="src\QIPLineEdit.cpp" />
     <ClCompile Include="src\RelayDialog.cpp" />
     <ClCompile Include="src\ResetNetwork.cpp" />
-    <ClCompile Include="src\SetThreshlod.cpp" />
     <ClCompile Include="src\ShowTXT.cpp" />
     <QtRcc Include="mainWindow.qrc" />
     <ClCompile Include="main.cpp" />
@@ -159,7 +158,6 @@
     <ClInclude Include="include\resource.h" />
     <QtMoc Include="include\ShowTXT.h" />
     <ClInclude Include="resource.h" />
-    <QtMoc Include="include\SetThreshlod.h" />
     <QtMoc Include="include\ResetNetwork.h" />
     <QtMoc Include="include\RelayDialog.h" />
     <QtMoc Include="include\QIPLineEdit.h" />
@@ -172,7 +170,6 @@
     <QtUic Include="forms\OpenFileDialog.ui" />
     <QtUic Include="forms\RelayDialog.ui" />
     <QtUic Include="forms\ResetNetwork.ui" />
-    <QtUic Include="forms\SetThreshlod.ui" />
     <QtUic Include="forms\ShowTXT.ui" />
   </ItemGroup>
   <ItemGroup>
