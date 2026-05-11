@@ -27,6 +27,7 @@ public:
     mainWindow(QWidget *parent = Q_NULLPTR);
     ~mainWindow();//析构函数
 
+    void initUI();
     static QJsonObject ReadSetting(); // 读取配置文件
     static void WriteSetting(QJsonObject);  // 写配置文件
     void closeAction(); // 响应关闭窗口动作，对一些数据进行处理，以及arm进行最后通信
@@ -41,11 +42,10 @@ private slots:
     void displayError(QAbstractSocket::SocketError);
     void connectUpdata(); // 连接成功，更新各个按钮功能
     void disconnectUpdata(); // 断开连接，更新各个按钮功能
-    void on_connectButton_clicked(); // 网络连接按钮
+    void on_bt_connectDet_clicked(); // 网络连接按钮
     void on_Measure_Button_clicked(); // 开始测量&停止测量按钮
     void on_networkSettingMenu_triggered(); // 菜单栏网络设置
     void on_relayMenu_triggered(); // 菜单栏继电器控制
-    void on_setThresholdMenu_triggered(); // 探测器阈值设置
     void on_netLog_triggered(); //打开帮助栏/网络修改日志
     void on_openFileMenu_triggered(); //打开历史文件
     void on_checkBox1_stateChanged(int arg1); //复选框1
@@ -96,7 +96,7 @@ private:
     QDateTime beginTime; //测量开始时间
     QDateTime nowTime; //当前时间
     int timeLength; //测量时长，单位：s
-    bool MeasureStaus; //测量状态标志
+    bool MeasureStatus; //测量状态标志
 
     // 绘图控件的指针
     QCustomPlot* pPlot;

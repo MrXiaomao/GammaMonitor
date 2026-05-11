@@ -38,11 +38,11 @@ ResetNetwork::~ResetNetwork()
 }
 
 // 连接网络按钮
-void ResetNetwork::on_connectButton_clicked()
+void ResetNetwork::on_bt_connectDet_clicked()
 {
-    if (ui.connectButton->text() == "连接")
+    if (ui.bt_connectDet->text() == "连接")
     {
-        ui.connectButton->setEnabled(false); // 连接按钮禁止使用，待系统响应网络
+        ui.bt_connectDet->setEnabled(false); // 连接按钮禁止使用，待系统响应网络
         ui.NetStatusLabel->setText("网络连接中。。。");
 
         if (tcpSocket) delete tcpSocket; //如果有指向其他空间直接删除
@@ -82,7 +82,7 @@ void ResetNetwork::on_connectButton_clicked()
         connect(tcpSocket, SIGNAL(connected()), this, SLOT(connectUpdata())); //更新连接之后按钮的使能
         connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readMassage())); //读取接收的信息
     }
-    else if (ui.connectButton->text() == "断开")
+    else if (ui.bt_connectDet->text() == "断开")
     {
         //定时器关闭
         if (timer) 
@@ -115,8 +115,8 @@ void ResetNetwork::displayError(QAbstractSocket::SocketError)
         "}");
 
     ui.NetStatusLabel->setText("无法连接");
-    ui.connectButton->setText("连接"); // 没有连接到任何网络，所以恢复到连接状态
-    ui.connectButton->setEnabled(true); // 网络连接按钮恢复使用
+    ui.bt_connectDet->setText("连接"); // 没有连接到任何网络，所以恢复到连接状态
+    ui.bt_connectDet->setEnabled(true); // 网络连接按钮恢复使用
     ui.changeSetting->setEnabled(false); // 控制器开关禁止使用
     ui.IP_ARM_Edit->setEnabled(true); // 可输入
     ui.Gateway_ARM_Edit->setEnabled(true); // 可输入
@@ -137,9 +137,9 @@ void ResetNetwork::connectUpdata()
     ui.NetStatusLabel->setText("连接成功");
 
     // 如果连接成功，实现按钮翻转
-    ui.connectButton->setText("断开");
+    ui.bt_connectDet->setText("断开");
     ui.changeSetting->setEnabled(true); // 控制器开关可以使用
-    ui.connectButton->setEnabled(true); // 网络连接按钮恢复使用
+    ui.bt_connectDet->setEnabled(true); // 网络连接按钮恢复使用
     ui.IP_ARM_Edit->setEnabled(true); //允许输入
     ui.Gateway_ARM_Edit->setEnabled(true); //允许输入
     ui.Port_ARM_Edit->setEnabled(true); //允许输入
@@ -166,9 +166,9 @@ void ResetNetwork::disconnectUpdata()
     ui.NetStatusLabel->setText("未连接");
 
     // 如果断开连接，实现按钮翻转
-    ui.connectButton->setText("连接");
+    ui.bt_connectDet->setText("连接");
     ui.changeSetting->setEnabled(false); // 控制器开关禁止使用
-    ui.connectButton->setEnabled(true); // 网络连接按钮恢复使用
+    ui.bt_connectDet->setEnabled(true); // 网络连接按钮恢复使用
     ui.IP_ARM_Edit->setEnabled(true); // 可输入
     ui.Gateway_ARM_Edit->setEnabled(true); // 可输入
     ui.Port_ARM_Edit->setEnabled(true); // 可输入
@@ -293,9 +293,9 @@ void ResetNetwork::readMassage()
     msgBox.setWindowTitle("参数设置");
     msgBox.setText("参数设置成功,新的参数如下：\nIP:" + str1 + "\n网关：" + str2 + "\n端口：" + str3);
     msgBox.exec();
-    ui.connectButton->setText("连接"); // 设置成功后，网络失去连接，恢复到连接状态
+    ui.bt_connectDet->setText("连接"); // 设置成功后，网络失去连接，恢复到连接状态
     ui.changeSetting->setEnabled(false); // 控制器开关可以使用
-    ui.connectButton->setEnabled(true); // 网络连接按钮恢复使用
+    ui.bt_connectDet->setEnabled(true); // 网络连接按钮恢复使用
 
     // 保存修改记录的日志
     QFile  m_pLogFile("./log/NetSet_Record.txt");

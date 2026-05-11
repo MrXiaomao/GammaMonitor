@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/mainWindow">
         <file>images/Monitor_sketchMap.png</file>
+        <file>images/open.png</file>
         <file>images/nuclear.ico</file>
     </qresource>
 </RCC>

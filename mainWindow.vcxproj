@@ -63,7 +63,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)log4qt\include\log4qt\varia;$(ProjectDir)log4qt\include\log4qt\spi;$(ProjectDir)log4qt\include\log4qt\helpers;$(ProjectDir)log4qt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>LOG4QT_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(ProjectDir)log4qt\lib\msvc_2019\debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

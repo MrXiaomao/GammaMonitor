@@ -21,7 +21,7 @@ private slots:
 	void displayError(QAbstractSocket::SocketError);
 	void connectUpdata();
 	void disconnectUpdata();
-	void on_connectButton_clicked(); // 控制继电器的网络连接
+	void on_bt_connectDet_clicked(); // 控制继电器的网络连接
 	void on_changeSetting_clicked(); // 修改配置
 	void onTimeOut(); //定时器
 	void closeEvent(QCloseEvent* event);

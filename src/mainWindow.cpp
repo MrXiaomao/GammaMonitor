@@ -5,6 +5,8 @@
 #include <Qjsonarray>
 #include <QVector>
 
+#include <QNetworkProxy>
+
 #include "RelayDialog.h"
 #include "ResetNetwork.h"
 #include "SetThreshlod.h"
@@ -22,47 +24,12 @@ mainWindow::mainWindow(QWidget *parent)
     : QMainWindow(parent),ui(new Ui::mainWindowClass)
 {     
     ui->setupUi(this);
-    //this->setWindowIcon(QIcon(":/images/nuclear.ico"));
-    QAction* action = ui->le_savePath->addAction(QIcon(":/resource/open.png"), QLineEdit::TrailingPosition);
-    QToolButton* button = qobject_cast<QToolButton*>(action->associatedWidgets().last());
-    button->setCursor(QCursor(Qt::PointingHandCursor));
-    connect(button, &QToolButton::pressed, this, [=]() {
-        QString cacheDir = QFileDialog::getExistingDirectory(this);
-        if (!cacheDir.isEmpty()) {
-            ui->le_savePath->setText(cacheDir);
-        }
-    });
-
-    ui->gB_detSketchMap->setStyleSheet(
-        "QGroupBox {"
-        "background-color: white;"
-        "}"
-    );
-
-    //======================窗口初始化==============================
-    experimentName = "测试1";
-    autofilePath = "";
-    ui->experimentNameEdit->setText(experimentName);
-
-    // 读取配置文件：json文件
-    QJsonObject jsonSetting = ReadSetting();
-    tcpIp = jsonSetting["IP_Detector"].toString();
-    tcpPort = jsonSetting["Port_Detector"].toString();
-    ui->widget_detIP->setIP(tcpIp);
-    ui->Port_LineEdit->setText(tcpPort); 
-    ui->Port_LineEdit->setValidator(new QIntValidator(1, 65536, this));  // 端口号只能在[1,65536]范围内的整数输入
-
-    ui->Measure_Button->setEnabled(false);//禁用状态
-    QDateTime dateTime = QDateTime::currentDateTime();
-    ui->measureTime_label->setText("无");
-    ui->measrue_label->setText("无");
-    ui->equipmentID_label->setText("无");
 
     // 变量初始化
     PackNumber = 0;
     plotCount = 0;
     timeLength = 0;
-    MeasureStaus = false;
+    MeasureStatus = false;
     TotalPackArray.clear();
     counter1.clear();
     counter2.clear();
@@ -85,14 +52,16 @@ mainWindow::mainWindow(QWidget *parent)
     // 给customPlot绘图控件，设置个别名，方便书写
     pPlot = ui->customPlot;
 
+    initUI();
+    
     // 状态栏指针
     sBar = statusBar();
     // 初始化图表1
     QPlot_init(pPlot);
+
     connect(this, SIGNAL(sigAppendMsg(const QString&, QtMsgType)), this, 
         SLOT(slotAppendMsg(const QString&, QtMsgType)));
 }
-
 
 mainWindow::~mainWindow()
 {
@@ -106,120 +75,64 @@ mainWindow::~mainWindow()
     delete ui;
 }
 
-void mainWindow::slotAppendMsg(const QString& msg, QtMsgType msgType)
+void mainWindow::initUI()
 {
-    QTextCharFormat format;
-    const QString ts = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz>>");
-    QString logLine;
+    //选择存储路径的按钮
+    QAction* action = ui->le_savePath->addAction(QIcon(":/mainWindow/images/open.png"), QLineEdit::TrailingPosition);
+    QToolButton* button = qobject_cast<QToolButton*>(action->associatedWidgets().last());
+    button->setCursor(QCursor(Qt::PointingHandCursor));
+    connect(button, &QToolButton::pressed, this, [=]() {
+        QString cacheDir = QFileDialog::getExistingDirectory(this);
+        if (!cacheDir.isEmpty()) {
+            ui->le_savePath->setText(cacheDir);
+        }
+    });
 
-    if (msgType == QtWarningMsg) {
-        format.setForeground(Qt::blue);
-        logLine = QStringLiteral("%1 [WARN] %2").arg(ts).arg(msg);
-    }
-    else if (msgType == QtCriticalMsg || msgType == QtFatalMsg) {
-        format.setForeground(Qt::red);
-        logLine = QStringLiteral("%1 [ERROR] %2").arg(ts).arg(msg);
+    // 设置探测器编号示意图背景颜色为白色
+    ui->gB_detSketchMap->setStyleSheet(
+        "QGroupBox {"
+        "background-color: white;"
+        "}"
+    );
+
+    // 读取配置文件：json文件
+    // IP地址和端口号
+    QJsonObject jsonSetting = ReadSetting();
+    tcpIp = jsonSetting["IP_Detector"].toString();
+    tcpPort = jsonSetting["Port_Detector"].toString();
+    ui->widget_detIP->setIP(tcpIp);
+    ui->Port_LineEdit->setText(tcpPort); 
+    ui->Port_LineEdit->setValidator(new QIntValidator(1, 65536, this));  // 端口号只能在[1,65536]范围内的整数输入
+    
+    // 存储路径
+    QString savePath = jsonSetting["SaveDir"].toString();
+    if (!savePath.isEmpty()) {
+        ui->le_savePath->setText(savePath);
     }
     else {
-        // QtDebugMsg、QtInfoMsg、QtSystemMsg 等：不打印级别字样
-        logLine = QStringLiteral("%1 %2").arg(ts).arg(msg);
+        ui->le_savePath->setText(QCoreApplication::applicationDirPath() + "/data"); // 默认路径为当前exe文件所在路径下的data文件夹
+    }
+    // 实验名称
+    experimentName = jsonSetting["ExperimentName"].toString();
+    if (!experimentName.isEmpty()) {
+        ui->experimentNameEdit->setText(experimentName);
+    }
+    else {
+        experimentName = "测试1";
+        ui->experimentNameEdit->setText("测试1");
     }
 
-    QTextCursor cursor = ui->plainTextEdit_log->textCursor();
-    cursor.movePosition(QTextCursor::End);
-    cursor.insertText(logLine, format);
-    cursor.insertBlock();
-    ui->plainTextEdit_log->setTextCursor(cursor);
-}
+    // 触发阈值
+    int thresholdA = jsonSetting["ThresholdA"].toInt();
+    int thresholdB = jsonSetting["ThresholdB"].toInt();
+    ui->spinBox_thresholdA->setValue(thresholdA);
+    ui->spinBox_thresholdB->setValue(thresholdB);
 
-// 读取配置文件
-QJsonObject mainWindow::ReadSetting()
-{
-    // 读取文件
-    QFile file("./config/setting.json");
-    file.open(QFile::ReadOnly);
-    QByteArray all = file.readAll();
-    file.close();
-
-    QJsonDocument doc = QJsonDocument::fromJson(all);//转换成文档对象
-    QJsonObject obj;
-    if (doc.isObject())//可以不做格式判断，因为，解析的时候已经知道是什么数据了
-    {
-        obj = doc.object(); //得到Json对象
-    }
-    return obj;
-    /*
-    if (doc.isObject())//可以不做格式判断，因为，解析的时候已经知道是什么数据了
-    {
-        QJsonObject obj = doc.object(); //得到Json对象
-        //读取字符串
-        QString strVal = obj["NAME"].toString();
-        //读取数值(对应的数值转换成对应的类型)
-        int numVal = obj["Age"].toInt();
-        //读取逻辑值
-        bool boolVal = obj["IsLive"].toBool();
-        qDebug() << "NAME" << ":" << strVal;
-        qDebug() << "Age" << ":" << numVal;
-
-        /*QStringList keys = obj.keys(); //得到所有key
-        for (int i = 0; i < keys.size(); i++)
-        {
-            QString key = keys.at(i);
-            QJsonValue value = obj.value(key);
-            QString name = value.toString();
-            if (value.isBool())
-            {
-                qDebug() << key << ":" << value.toBool();
-            }
-            else if (value.isString())
-            {
-                qDebug() << key << ":" << value.toString();
-            }
-            else if (value.isDouble())
-            {
-                qDebug() << key << ":" << value.toVariant().toInt();
-            }
-            else if (value.isObject())
-            {
-                qDebug() << key << ":";
-                QJsonObject subObj = value.toObject();
-                QStringList subKeys = subObj.keys();
-                for (int k = 0; k < subKeys.size(); ++k)
-                {
-                    QJsonValue subValue = subObj.value(subKeys.at(k));
-                    if (subValue.isString())
-                    {
-                        qDebug() << " " << subKeys.at(k) << ":" << subValue.toString();
-                    }
-                    else if (subValue.isArray())
-                    {
-                        qDebug() << " " << subKeys.at(k);
-                        QJsonArray array = subValue.toArray();
-                        for (int j = 0; j < array.size(); j++)
-                        {
-                            qDebug() << " " << array[j].toString();
-                        }
-                    }
-                }
-            }
-        }
-    }*/
-}
-
-// 写入配置文件，实际上是修改配置文件
-void mainWindow::WriteSetting(QJsonObject myJson)
-{
-    //创建QJsonDocument对象并将根对象传入
-    QJsonDocument jDoc(myJson);
-    //打开存放json串的文件
-    QFile file("./config/setting.json");
-    if (!file.open(QIODevice::WriteOnly)) return ;
-
-    //使用QJsonDocument的toJson方法获取json串并保存到数组
-    QByteArray data(jDoc.toJson());
-    //将json串写入文件
-    file.write(data);
-    file.close();
+    ui->Measure_Button->setEnabled(false);//禁用状态
+    QDateTime dateTime = QDateTime::currentDateTime();
+    ui->measureTime_label->setText("无");
+    ui->measrue_label->setText("无");
+    ui->equipmentID_label->setText("无");
 }
 
 // 绘图图表初始化
@@ -281,12 +194,38 @@ void mainWindow::QPlot_init(QCustomPlot* customPlot)
     //iRangeDrag 左键点击可拖动; iRangeZoom 范围可通过鼠标滚轮缩放; iSelectPlottables 线条可选中
 }
 
-// 连接网络/断开网络
-void mainWindow::on_connectButton_clicked()
+void mainWindow::slotAppendMsg(const QString& msg, QtMsgType msgType)
 {
-    if (ui->connectButton->text() == "连接网络")
+    QTextCharFormat format;
+    const QString ts = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz>>");
+    QString logLine;
+
+    if (msgType == QtWarningMsg) {
+        format.setForeground(Qt::blue);
+        logLine = QStringLiteral("%1 [WARN] %2").arg(ts).arg(msg);
+    }
+    else if (msgType == QtCriticalMsg || msgType == QtFatalMsg) {
+        format.setForeground(Qt::red);
+        logLine = QStringLiteral("%1 [ERROR] %2").arg(ts).arg(msg);
+    }
+    else {
+        // QtDebugMsg、QtInfoMsg、QtSystemMsg 等：不打印级别字样
+        logLine = QStringLiteral("%1 %2").arg(ts).arg(msg);
+    }
+
+    QTextCursor cursor = ui->plainTextEdit_log->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    cursor.insertText(logLine, format);
+    cursor.insertBlock();
+    ui->plainTextEdit_log->setTextCursor(cursor);
+}
+
+// 连接网络/断开网络
+void mainWindow::on_bt_connectDet_clicked()
+{
+    if (ui->bt_connectDet->text() == "连接网络")
     {
-        ui->connectButton->setEnabled(false); // 此时禁止用户点击
+        ui->bt_connectDet->setEnabled(false); // 此时禁止用户点击
         //=====================创建测试数据的备份文件夹====================
         // 获取当前exe文件所在路径
         QString Filepath;
@@ -304,7 +243,7 @@ void mainWindow::on_connectButton_clicked()
         tcpPort = ui->Port_LineEdit->text();
         if (tcpIp == NULL || tcpPort == NULL)//判断IP和PORT是否为空
         {
-            /*QMessageBox::question(this, "connectButton", "是否？");*/
+            /*QMessageBox::question(this, "bt_connectDet", "是否？");*/
             QMessageBox msgBox;
             msgBox.setWindowTitle("Warning");
             msgBox.setText("IP or PORT is Empty");
@@ -319,13 +258,15 @@ void mainWindow::on_connectButton_clicked()
         //===============连接网络==================
         if (tcpSocket) delete tcpSocket;    //如果有指向其他空间直接删除
         tcpSocket = new QTcpSocket(this);   //申请堆空间有TCP发送和接受操作
-        tcpSocket->connectToHost(tcpIp, tcpPort.toInt());   //连接主机
+        // 避免因系统代理导致 "the proxy type is invalid for this operation"
+        tcpSocket->setProxy(QNetworkProxy::NoProxy);
         connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this,
             SLOT(displayError(QAbstractSocket::SocketError)));  //错误连接
         connect(tcpSocket, SIGNAL(connected()), this, SLOT(connectUpdata()));   //更新连接之后按钮的使能
         connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readMassage())); //读取信息的连接
+        tcpSocket->connectToHost(tcpIp, tcpPort.toInt());   //连接主机
     }
-    else if (ui->connectButton->text() == "断开网络")
+    else if (ui->bt_connectDet->text() == "断开网络")
     {
         //============断网前最后通信，让ARM回到待机状态========
         if (tcpSocket) {
@@ -361,23 +302,10 @@ void mainWindow::on_networkSettingMenu_triggered()
     //dialog->show(); //如果是myDialod继承于QDialog，则使用该方法设置非模态窗口
 }
 
-// 菜单栏探测器触发阈值设置
-void mainWindow::on_setThresholdMenu_triggered()
-{
-    if (!tcpSocket) {
-        QMessageBox::warning(this, tr("Warnning"), "请先在主界面\"连接网络\"后再进行探测器触发阈值设置");
-        return;
-    }
-    SetThreshlod* dialog = new SetThreshlod(tcpSocket);
-    
-    dialog->exec();	//如果是myDialod继承于QDialog，则使用该方法显示模态窗口								
-    //dialog->show(); //如果是myDialod继承于QDialog，则使用该方法设置非模态窗口
-}
-
 // 打开文件
 void mainWindow::on_openFileMenu_triggered(){
     QJsonObject jsonSetting = ReadSetting();
-    QString saveDir = jsonSetting["SaveDir"].toString(); //"SaveDir": "/home"
+    QString saveDir = jsonSetting["SaveDir"].toString();
     // 判断是否存在默认路径，不存在则读取桌面所在目录。
     QDir dir(saveDir);
     if (!dir.exists()) {
@@ -385,14 +313,10 @@ void mainWindow::on_openFileMenu_triggered(){
         saveDir = desktopLocation.at(0);
     }
 
-    //QString fileFullName = QFileDialog::getSaveFileName(this, tr("打开文件"),
-    //    saveDir,tr("TXT files(*.txt)"));
     QString fileFullName = QFileDialog::getOpenFileName(this, "打开文件", saveDir, tr("TXT files(*.txt)"));
     // 判断文件名是否获取到
     if (!fileFullName.isEmpty()) {
         QFileInfo fileinfo = QFileInfo(fileFullName);
-        //QString file_name = fileinfo.fileName();//文件名称
-        //QString file_suffix = fileinfo.suffix();//文件后缀格式
         QString file_path = fileinfo.absolutePath();//文件绝对路径
 
         jsonSetting["SaveDir"] = file_path;
@@ -439,8 +363,8 @@ void mainWindow::displayError(QAbstractSocket::SocketError)
         "}");
 
     ui->connectStatusLabel->setText("无法连接");
-    ui->connectButton->setText("连接网络"); // 没有连接到任何网络，所以恢复到连接状态
-    ui->connectButton->setEnabled(true);
+    ui->bt_connectDet->setText("连接网络"); // 没有连接到任何网络，所以恢复到连接状态
+    ui->bt_connectDet->setEnabled(true);
     ui->widget_detIP->setEnabled(true); // 可输入状态
     ui->Port_LineEdit->setEnabled(true); // 可输入状态
 }
@@ -480,8 +404,8 @@ void mainWindow::connectUpdata()
     tcpSocket->write(tcp_order.MonitorMessageON);  WaitingSocketWrite(); Sleep(waitTime);
     
     // ==================连接成功，相关按钮翻转=================
-    ui->connectButton->setText("断开网络");
-    ui->connectButton->setEnabled(true);
+    ui->bt_connectDet->setText("断开网络");
+    ui->bt_connectDet->setEnabled(true);
     ui->Measure_Button->setEnabled(true);
     ui->widget_detIP->setEnabled(false); //禁止输入状态
     ui->Port_LineEdit->setEnabled(false);//禁止输入状态
@@ -509,12 +433,9 @@ void mainWindow::disconnectUpdata()
         "border: 2px solid rgb(255, 165, 0);"
         "}");
     ui->connectStatusLabel->setText("已断开连接");
-    //ui->Measure_Button->setEnabled(false);//禁止状态
-    //ui->widget_detIP->setEnabled(true); // 可输入状态
-    //ui->Port_LineEdit->setEnabled(true); // 可输入状态
 
     // 如果断开连接，实现按钮翻转
-    ui->connectButton->setText("连接网络");
+    ui->bt_connectDet->setText("连接网络");
     ui->widget_detIP->setEnabled(true);
     ui->Port_LineEdit->setEnabled(true);
 }
@@ -593,7 +514,7 @@ void mainWindow::readMassage()
             ui->VoltB_label->setText(QString::number(voltB, 'f', 1));
 
             // -------------获取探测器计数---------------
-            if (MeasureStaus)
+            if (MeasureStatus)
             {
                 // -------计算时间差--------
                 nowTime = QDateTime::currentDateTime();
@@ -778,6 +699,19 @@ void mainWindow::on_Measure_Button_clicked()
 {
     if (ui->Measure_Button->text() == "开始测量")
     {
+        //===============检查保存文件路径====================
+        const QString saveDir = ui->le_savePath->text().trimmed();
+        if (saveDir.isEmpty()) {
+            QMessageBox::warning(this, tr("存储路径未设置"), tr("请先填写或选择保存目录。"));
+            return;
+        }
+        const QDir outDir(saveDir);
+        if (!outDir.exists()) {
+            qWarning() << "存储路径不存在:" << saveDir;
+            QMessageBox::warning(this, tr("存储路径不存在"), tr("存储路径 %1 不存在，请检查设置或选择其他路径。").arg(saveDir));
+            return;
+        }
+
         //===========清除上一次的测量数据============
         counter1.clear();
         counter2.clear();
@@ -798,83 +732,69 @@ void mainWindow::on_Measure_Button_clicked()
         PackNumber = 0; // 每次点击开始按钮，清空前一次的包个数
         plotCount = 0; // 绘图点个数重制
         timeLength = 0;
-        MeasureStaus = true;
+        MeasureStatus = true;
         refreshPlotFlag = true;
         //-----------控件-----------
         ui->refreshPlotCheckBox->setCheckState(Qt::Checked); // 图像刷新
+        ui->spinBox_thresholdA->setEnabled(false);//禁止输入状态
+        ui->spinBox_thresholdB->setEnabled(false);//禁止输入状态
+        ui->le_savePath->setEnabled(false);//禁止输入状态
         ui->experimentNameEdit->setEnabled(false);//禁止输入状态
 
+        // 设置触发阈值（两字节大端；显式类型避免 int→char 隐式窄化）
+        const quint16 t1 = static_cast<quint16>(ui->spinBox_thresholdA->value());
+        const quint16 t2 = static_cast<quint16>(ui->spinBox_thresholdB->value());
+
+        QByteArray msg;
+        msg.resize(6);
+        msg[0] = static_cast<char>(0x50);
+        msg[1] = static_cast<char>(0x01);
+        msg[2] = static_cast<char>(static_cast<quint8>((t1 >> 8) & 0xFF));
+        msg[3] = static_cast<char>(static_cast<quint8>(t1 & 0xFF));
+        msg[4] = static_cast<char>(static_cast<quint8>((t2 >> 8) & 0xFF));
+        msg[5] = static_cast<char>(static_cast<quint8>(t2 & 0xFF));
+        tcpSocket->write(msg);
+        WaitingSocketWrite(); 
+        Sleep(tcp_order.waitingTime);
+
         // =========PC端向ARM端发送开始测量指令==============
-        tcpSocket->write(tcp_order.StartMeasure); WaitingSocketWrite(); Sleep(tcp_order.waitingTime);
+        tcpSocket->write(tcp_order.StartMeasure);
         
         // ==============记录实验开始时间==================
         beginTime = QDateTime::currentDateTime();
         QString str_beginTime = beginTime.toString("yyyy-MM-dd hh:mm:ss");
         ui->measureTime_label->setText(str_beginTime);
 
-        //===============②生成默认路径字符串====================
         QString EquipmentID = ui->equipmentID_label->text();
-        experimentName = ui->experimentNameEdit->toPlainText();
-        QString Filepath = QCoreApplication::applicationDirPath(); // 获取当前exe文件所在路径
-        QString dirName = Filepath + "/" + "GMCOUNTER";
-        autofilePath = dirName + "/" +  + "设备" + EquipmentID + "_" + experimentName 
-            + beginTime.toString("_yyyy-MM-dd_hh-mm-ss") + ".txt";
-
-        // 开启定时器绘图
-        /*
-        timer = new QTimer();
-        timer->setInterval(1000); //单位：ms
-        timer->start();
-        connect(timer, SIGNAL(timeout()), this, SLOT(onTimeOut())); // 根据定时器触发绘图
-        */
-        
+        experimentName = ui->experimentNameEdit->toPlainText().trimmed();
+        QString fileName = QString("设备%1_%2%3.txt")
+            .arg(EquipmentID)
+            .arg(experimentName.isEmpty() ? "unnamed" : experimentName)
+            .arg(beginTime.toString("_yyyy-MM-dd_hh-mm-ss"));
+        autofilePath = outDir.filePath(fileName);
         ui->Measure_Button->setText(QString("停止测量"));
+        qInfo() << "开始测量";
+        qInfo() << "触发阈值：" << t1 << " " << t2;
+        qInfo() << "保存文件路径：" << autofilePath;
     }
     else if (ui->Measure_Button->text() == "停止测量")
     {
-        /*
-        //定时器关闭，停止绘图
-        timer->stop(); 
-        delete timer;
-        */
-        MeasureStaus = false;
+        MeasureStatus = false;
         // PC端向ARM端发送停止测量指令
-        tcpSocket->write(tcp_order.StopMeasure); WaitingSocketWrite(); Sleep(tcp_order.waitingTime);
+        tcpSocket->write(tcp_order.StopMeasure);
         
         // 保存测量数据
         if (counter1.size() > 0) {
             SaveFile(autofilePath, counter1, counter2, counter3, counter4, temperatue);//保存这次的测量数据至默认路径
         }
         
-        // 另存为，弹出是否保存文件的对话框
-        if (counter1.size() > 0) {
-            QJsonObject jsonSetting = ReadSetting();
-            QString saveDir = jsonSetting["SaveDir"].toString(); //"SaveDir": "/home"
-            // 判断是否存在默认路径，不存在则读取桌面所在目录。
-            QDir dir(saveDir);
-            if (!dir.exists()) {
-                QStringList desktopLocation = QStandardPaths::standardLocations(QStandardPaths::DesktopLocation);//如果不存在该目录，则重定向到桌面所在目录
-                saveDir = desktopLocation.at(0);
-            }
-
-            QString fileFullName  = QFileDialog::getSaveFileName(this, tr("保存文件"),
-                                                                saveDir,
-                                                                tr("TXT files(*.txt)"));
-            // 判断文件名是否获取到
-            if (!fileFullName.isEmpty()){
-                QFileInfo fileinfo = QFileInfo(fileFullName);
-                //QString file_name = fileinfo.fileName();//文件名称
-                //QString file_suffix = fileinfo.suffix();//文件后缀格式
-                QString file_path = fileinfo.absolutePath();//文件绝对路径
-
-                jsonSetting["SaveDir"] = file_path;
-                WriteSetting(jsonSetting);
-                SaveFile(fileFullName, counter1, counter2, counter3, counter4, temperatue, timeLength);
-            } 
-        }
         // 恢复使用
         ui->Measure_Button->setText(QString("开始测量")); //按钮翻转
+        ui->le_savePath->setEnabled(true);//恢复输入状态
         ui->experimentNameEdit->setEnabled(true);//恢复输入状态
+        ui->spinBox_thresholdA->setEnabled(true);//恢复输入状态
+        ui->spinBox_thresholdB->setEnabled(true);//恢复输入状态
+        qInfo() << "停止测量";
     }
 }
 
@@ -1330,6 +1250,27 @@ void mainWindow::closeEvent(QCloseEvent* event)
 // 响应关闭窗口动作，对一些数据进行销毁，以及ARM进行最后通信
 void mainWindow::closeAction()
 {
+    //保存界面参数
+    // 存储路径
+    QString uiPath = ui->le_savePath->text().trimmed();
+    QJsonObject jsonSetting = ReadSetting();
+    if (!uiPath.isEmpty()) {
+        jsonSetting["SaveDir"] = uiPath;
+    }
+
+    //实验文件名
+    QString experimentName = ui->experimentNameEdit->toPlainText().trimmed();
+    if (!experimentName.isEmpty()) {
+        jsonSetting["ExperimentName"] = experimentName;
+    }
+
+    //触发阈值
+    int thresholdA = ui->spinBox_thresholdA->value();
+    int thresholdB = ui->spinBox_thresholdB->value();
+    jsonSetting["ThresholdA"] = thresholdA;
+    jsonSetting["ThresholdB"] = thresholdB;
+    WriteSetting(jsonSetting);
+
     // 关闭前处于测量状态，PC端向ARM端发送停止测量指令
     if (ui->Measure_Button->text() == "停止测量")
     {
@@ -1373,4 +1314,39 @@ void mainWindow::WaitingSocketWrite(int time) {
     if (!tcpSocket->waitForBytesWritten(time)) {
         return;
     }
+}
+
+
+// 读取配置文件
+QJsonObject mainWindow::ReadSetting()
+{
+    // 读取文件
+    QFile file("./config/setting.json");
+    file.open(QFile::ReadOnly);
+    QByteArray all = file.readAll();
+    file.close();
+
+    QJsonDocument doc = QJsonDocument::fromJson(all);//转换成文档对象
+    QJsonObject obj;
+    if (doc.isObject())//可以不做格式判断，因为，解析的时候已经知道是什么数据了
+    {
+        obj = doc.object(); //得到Json对象
+    }
+    return obj;
+}
+
+// 写入配置文件，实际上是修改配置文件
+void mainWindow::WriteSetting(QJsonObject myJson)
+{
+    //创建QJsonDocument对象并将根对象传入
+    QJsonDocument jDoc(myJson);
+    //打开存放json串的文件
+    QFile file("./config/setting.json");
+    if (!file.open(QIODevice::WriteOnly)) return ;
+
+    //使用QJsonDocument的toJson方法获取json串并保存到数组
+    QByteArray data(jDoc.toJson());
+    //将json串写入文件
+    file.write(data);
+    file.close();
 }
