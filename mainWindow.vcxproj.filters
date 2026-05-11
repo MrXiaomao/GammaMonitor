@@ -73,15 +73,18 @@
     <ClCompile Include="src\ShowTXT.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\ipaddress.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="images\picture1.png">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="images\nuclear.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\..\..\picture1.png">
+    <Image Include="images\open.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="images\Monitor_sketchMap.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
@@ -125,6 +128,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="include\ShowTXT.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="include\ipaddress.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

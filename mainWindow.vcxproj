@@ -31,7 +31,7 @@
     <Import Project="$(QtMsBuild)\qt_defaults.props" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
-    <QtInstall>msvc2017_64</QtInstall>
+    <QtInstall>msvs2019_64</QtInstall>
     <QtModules>core;gui;network;printsupport;widgets</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
@@ -55,7 +55,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <IncludePath>C:\Users\DELL\Desktop\工作事项\12-辐射气路监测\4-软件界面资料\QT界面\GammaMonitor\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
   </PropertyGroup>
@@ -97,6 +97,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\CustomPlotTooltip.cpp" />
+    <ClCompile Include="src\ipaddress.cpp" />
     <ClCompile Include="src\mainWindow.cpp" />
     <ClCompile Include="src\myThread.cpp" />
     <ClCompile Include="src\mytracer.cpp" />
@@ -114,9 +115,9 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\..\picture1.png" />
+    <Image Include="images\Monitor_sketchMap.png" />
     <Image Include="images\nuclear.ico" />
-    <Image Include="images\picture1.png" />
+    <Image Include="images\open.png" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="mainWindow.rc" />
@@ -134,6 +135,7 @@
     <QtMoc Include="include\mytracer.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="include\ipaddress.h" />
     <ClInclude Include="include\mytracerline.h" />
     <ClInclude Include="include\order.h" />
     <ClInclude Include="include\resource.h" />

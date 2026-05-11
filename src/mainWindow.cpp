@@ -23,7 +23,21 @@ mainWindow::mainWindow(QWidget *parent)
 {     
     ui->setupUi(this);
     //this->setWindowIcon(QIcon(":/images/nuclear.ico"));
+    QAction* action = ui->le_savePath->addAction(QIcon(":/resource/open.png"), QLineEdit::TrailingPosition);
+    QToolButton* button = qobject_cast<QToolButton*>(action->associatedWidgets().last());
+    button->setCursor(QCursor(Qt::PointingHandCursor));
+    connect(button, &QToolButton::pressed, this, [=]() {
+        QString cacheDir = QFileDialog::getExistingDirectory(this);
+        if (!cacheDir.isEmpty()) {
+            ui->le_savePath->setText(cacheDir);
+        }
+    });
 
+    ui->gB_detSketchMap->setStyleSheet(
+        "QGroupBox {"
+        "background-color: white;"
+        "}"
+    );
     //======================窗口初始化==============================
     experimentName = "测试1";
     autofilePath = "";
@@ -33,9 +47,9 @@ mainWindow::mainWindow(QWidget *parent)
     QJsonObject jsonSetting = ReadSetting();
     tcpIp = jsonSetting["IP_Detector"].toString();
     tcpPort = jsonSetting["Port_Detector"].toString();
-    ui->IP_LineEdit->setText(tcpIp);
+    ui->widget_detIP->setIP(tcpIp);
     ui->Port_LineEdit->setText(tcpPort); 
-    ui->Port_LineEdit->setValidator(new QIntValidator(1, 9999, this));  // 端口号只能在[1,9999]范围内的整数输入
+    ui->Port_LineEdit->setValidator(new QIntValidator(1, 65536, this));  // 端口号只能在[1,65536]范围内的整数输入
 
     ui->Measure_Button->setEnabled(false);//禁用状态
     QDateTime dateTime = QDateTime::currentDateTime();
@@ -259,7 +273,7 @@ void mainWindow::on_connectButton_clicked()
         }
         
         //===========获取界面参数，并写入json文件==========
-        tcpIp = ui->IP_LineEdit->text();
+        tcpIp = ui->widget_detIP->getIP();
         tcpPort = ui->Port_LineEdit->text();
         if (tcpIp == NULL || tcpPort == NULL)//判断IP和PORT是否为空
         {
@@ -400,7 +414,7 @@ void mainWindow::displayError(QAbstractSocket::SocketError)
     ui->connectStatusLabel->setText("无法连接");
     ui->connectButton->setText("连接网络"); // 没有连接到任何网络，所以恢复到连接状态
     ui->connectButton->setEnabled(true);
-    ui->IP_LineEdit->setEnabled(true); // 可输入状态
+    ui->widget_detIP->setEnabled(true); // 可输入状态
     ui->Port_LineEdit->setEnabled(true); // 可输入状态
 }
 
@@ -441,7 +455,7 @@ void mainWindow::connectUpdata()
     ui->connectButton->setText("断开网络");
     ui->connectButton->setEnabled(true);
     ui->Measure_Button->setEnabled(true);
-    ui->IP_LineEdit->setEnabled(false); //禁止输入状态
+    ui->widget_detIP->setEnabled(false); //禁止输入状态
     ui->Port_LineEdit->setEnabled(false);//禁止输入状态
 }
 
@@ -466,13 +480,13 @@ void mainWindow::disconnectUpdata()
         "border: 2px solid rgb(255, 165, 0);"
         "}");
     ui->connectStatusLabel->setText("已断开连接");
-    ui->Measure_Button->setEnabled(false);//禁止状态
-    ui->IP_LineEdit->setEnabled(true); // 可输入状态
-    ui->Port_LineEdit->setEnabled(true); // 可输入状态
+    //ui->Measure_Button->setEnabled(false);//禁止状态
+    //ui->widget_detIP->setEnabled(true); // 可输入状态
+    //ui->Port_LineEdit->setEnabled(true); // 可输入状态
 
     // 如果断开连接，实现按钮翻转
     ui->connectButton->setText("连接网络");
-    ui->IP_LineEdit->setEnabled(true);
+    ui->widget_detIP->setEnabled(true);
     ui->Port_LineEdit->setEnabled(true);
 }
 
