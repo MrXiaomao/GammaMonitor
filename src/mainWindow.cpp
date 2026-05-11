@@ -448,6 +448,7 @@ void mainWindow::displayError(QAbstractSocket::SocketError)
 // 连接成功，更新相应按钮功能
 void mainWindow::connectUpdata()
 {
+    qInfo().noquote() << "探测器连接成功";
     ui->connectStatusLabel->setStyleSheet(
         "QLineEdit{"
         "color:rgba(0,0,0);" //黑色
@@ -489,6 +490,7 @@ void mainWindow::connectUpdata()
 // 断开连接，更新相应按钮功能
 void mainWindow::disconnectUpdata()
 {
+    qInfo().nospace() << "探测器断开连接";
     // 状态信息恢复
     ui->VoltA_label->setText("无");
     ui->VoltB_label->setText("无");
@@ -642,7 +644,10 @@ void mainWindow::readMassage()
             }
             
             // 设备编号
-            EquipmentID = OnePackArray[18 - 2];
+            if (OnePackArray.size() > 16)
+                EquipmentID = static_cast<quint8>(OnePackArray.at(16));
+            else
+                EquipmentID = 0;
             ui->equipmentID_label->setNum(EquipmentID);
         }
     }
@@ -652,6 +657,10 @@ void mainWindow::readMassage()
 // DataPack是不包含包头的数据包,包头2字节
 void mainWindow::GetCounter(QByteArray DataPack, int* count)
 {
+    if (DataPack.size() < 16) {
+        count[0] = count[1] = count[2] = count[3] = 0;
+        return;
+    }
     // 将16进制的QByteArray转化为十进制的int
     int i = 0;
     int detectorID1 = DataPack.at(i++) & 0xFF; // 探测器编号
@@ -683,6 +692,9 @@ void mainWindow::GetCounter(QByteArray DataPack, int* count)
 // DataPack是不包含包头的数据包,包头2字节
 double mainWindow::GetTemperature(QByteArray DataPack)
 {
+    if (DataPack.size() < 20) {
+        return 0.0;
+    }
     // 读取温度信息
     double temperature = 0.0;
     unsigned short int temp = DataPack.at(19 - 2) * 16*16 + DataPack.at(20 - 2); 
@@ -720,8 +732,11 @@ double mainWindow::GetTemperature(QByteArray DataPack)
 // DataPack是不包含包头的数据包, 包头2字节
 double mainWindow::GetOuterVolt(QByteArray DataPack)
 {
+    if (DataPack.size() < 23) {
+        return 0.0;
+    }
     double outervoltage = 0.0;
-    int outervoltage_adc = 256 * DataPack[21-2] + DataPack[22-2]; //减去包头两个字节
+    int outervoltage_adc = 256 * DataPack.at(21-2) + DataPack.at(22-2); //减去包头两个字节
     //outervoltage = (outervoltage_adc * 3.3) / 4096;
     //outervoltage = outervoltage * 5;	//需要注意，这里的分压系数还需要实验来进行确定
     outervoltage = outervoltage_adc * 0.005421;	
@@ -732,11 +747,14 @@ double mainWindow::GetOuterVolt(QByteArray DataPack)
 // DataPack是不包含包头的数据包,包头2字节
 double mainWindow::GetVolt_A(QByteArray DataPack)
 {
+    if (DataPack.size() < 25) {
+        return 0.0;
+    }
     double sipmvoltege_A = 0.0;
-    int sipmvoltege_A_adc = 256 * DataPack[23-2] + DataPack[24-2];
+    int sipmvoltege_A_adc = 256 * DataPack.at(23-2) + DataPack.at(24-2);
     //sipmvoltege_A = (sipmvoltege_A_adc * 3.3) / 4096;
     //sipmvoltege_A = sipmvoltege_A * 105 / 5;  //需要注意，这里的分压系数还需要实验来进行确定
-    sipmvoltege_A = sipmvoltege_A_adc * 0.020147;
+    sipmvoltege_A = sipmvoltege_A_adc * 0.023297;
     return sipmvoltege_A;
 }
 
@@ -744,11 +762,14 @@ double mainWindow::GetVolt_A(QByteArray DataPack)
 // DataPack是不包含包头的数据包,包头2字节
 double mainWindow::GetVolt_B(QByteArray DataPack)
 {
+    if (DataPack.size() < 27) {
+        return 0.0;
+    }
     double sipmvoltege_B = 0.0;
-    int sipmvoltege_B_adc = 256 * DataPack[25-2] + DataPack[26-2];
+    int sipmvoltege_B_adc = 256 * DataPack.at(25-2) + DataPack.at(26-2);
     //sipmvoltege_B = (sipmvoltege_B_adc * 3.3) / 4096;
     // sipmvoltege_B = sipmvoltege_B * 105 / 5; //需要注意，这里的分压系数还需要实验来进行确定
-    sipmvoltege_B = sipmvoltege_B_adc * 0.017284;
+    sipmvoltege_B = sipmvoltege_B_adc * 0.023297;
     return sipmvoltege_B;
 }
 
@@ -1184,7 +1205,6 @@ void mainWindow::on_GetData_comboBox_currentIndexChanged(const QString& arg1)
 {
     //将当前选项名赋值给变量str，输出当前选项名
     QString str = ui->GetData_comboBox->currentText();
-    qDebug() << "Text:" << str;
     if (str == "无") {
         mTracer = TracerFlag::NoTracer;
         // 删除浮标相关变量，指针置空

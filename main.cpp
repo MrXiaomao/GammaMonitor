@@ -47,7 +47,7 @@ void logStartup()
     auto logger = Log4Qt::Logger::rootLogger();
 
     logger->info(QStringLiteral("################################################################"));
-    logger->info(QStringLiteral("                           程序启动                               "));
+    logger->info(QStringLiteral("                           App start                            "));
     logger->info(QStringLiteral("################################################################"));
 }
 
@@ -68,7 +68,6 @@ int main(int argc, char *argv[])
         Log4Qt::PropertyConfigurator::configure(sConfFilename);
     }
     else {
-        Log4Qt::LogManager::setHandleQtMessages(true);
         Log4Qt::Logger* logger = Log4Qt::Logger::rootLogger();
         logger->setLevel(Log4Qt::Level::DEBUG_INT); //设置日志输出级别
 
@@ -79,25 +78,19 @@ int main(int argc, char *argv[])
 
         /***************************配置日志的输出位置***********/
         //输出到控制台
-        Log4Qt::ConsoleAppender* appender = new Log4Qt::ConsoleAppender(layout, Log4Qt::ConsoleAppender::STDOUT_TARGET);
+       Log4Qt::ConsoleAppender* appender = new Log4Qt::ConsoleAppender(layout, Log4Qt::ConsoleAppender::STDOUT_TARGET);
         appender->activateOptions();
         logger->addAppender(appender);
 
-        //输出到文件(如果需要把离线处理单独保存日志文件，可以改这里)
-        QStringList args = QCoreApplication::arguments();
-        if (args.contains("-m") && args.contains("offline")) {
-            Log4Qt::DailyFileAppender* dailiAppender = new Log4Qt::DailyFileAppender(layout, "logs/.log", "offline_yyyy-MM-dd");
-            dailiAppender->setAppendFile(true);
-            dailiAppender->activateOptions();
-            logger->addAppender(dailiAppender);
-        }
-        else {
-            Log4Qt::DailyFileAppender* dailiAppender = new Log4Qt::DailyFileAppender(layout, "logs/.log", "online_yyyy-MM-dd");
-            dailiAppender->setAppendFile(true);
-            dailiAppender->activateOptions();
-            logger->addAppender(dailiAppender);
-        }
+        Log4Qt::DailyFileAppender* dailiAppender = new Log4Qt::DailyFileAppender(layout, "logs/.log", "logs_yyyy-MM-dd");
+        dailiAppender->setAppendFile(true);
+        dailiAppender->activateOptions();
+        logger->addAppender(dailiAppender);
     }
+
+    // 必须在安装 AppMessageHandler 之前启用：否则 qInstallMessageHandler 返回 nullptr，
+    // 自定义处理函数无法把 qInfo 等转发到 Log4Qt（常见于仅有 log4qt.conf 且未配置 log4j.handleQtMessages=true）。
+    Log4Qt::LogManager::setHandleQtMessages(true);
 
     // 确保logs目录存在
     QDir dir(QDir::currentPath() + "/logs");
