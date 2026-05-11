@@ -262,4 +262,4 @@ void DailyRollingFileAppender::rollOver()
 
 } // namespace Log4Qt
 
-#include "moc_dailyrollingfileappender.cpp"
+//#include "moc_dailyrollingfileappender.cpp"

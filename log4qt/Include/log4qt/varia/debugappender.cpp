@@ -58,4 +58,4 @@ void DebugAppender::append(const LoggingEvent &event)
 
 } // namspace Log4Qt
 
-#include "moc_debugappender.cpp"
+//#include "moc_debugappender.cpp"

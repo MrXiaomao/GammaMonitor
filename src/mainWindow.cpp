@@ -86,6 +86,7 @@ void mainWindow::initUI()
     // 读取配置文件：json文件
     // IP地址和端口号
     QJsonObject jsonSetting = ReadSetting();
+    LoadVoltageCoefficients();
     tcpIp = jsonSetting["IP_Detector"].toString();
     tcpPort = jsonSetting["Port_Detector"].toString();
     ui->widget_detIP->setIP(tcpIp);
@@ -144,6 +145,41 @@ void mainWindow::initUI()
     if (ui->widget_2) {
         const int h2 = ui->widget_2->sizeHint().height();
         ui->widget_2->setFixedHeight(h2);
+    }
+}
+
+// 读取配置文件，获取电压系数等参数
+void mainWindow::LoadVoltageCoefficients()
+{
+    QJsonObject jsonSetting = ReadSetting();
+    if (jsonSetting.isEmpty()) {
+        qWarning() << "ReadSetting() returned empty JSON for voltage coefficients.";
+        return;
+    }
+
+    const QJsonArray detectorIds = jsonSetting.value("detectorID").toArray();
+    const QJsonArray coefA = jsonSetting.value("coef_DAC_2_VoltOfSiPMA").toArray();
+    const QJsonArray coefB = jsonSetting.value("coef_DAC_2_VoltOfSiPMB").toArray();
+    const QJsonArray coefInput = jsonSetting.value("coef_DAC_2_VoltOfInput").toArray();
+
+    if (detectorIds.size() != coefA.size() || coefA.size() != coefB.size() || coefB.size() != coefInput.size()) {
+        qWarning() << "Voltage coefficient arrays size mismatch:" \
+                   << detectorIds.size() << coefA.size() << coefB.size() << coefInput.size();
+        return;
+    }
+
+    coef_SiPMA_Volt.clear();
+    coef_SiPMB_Volt.clear();
+    coef_InputVolt.clear();
+
+    for (int i = 0; i < detectorIds.size(); ++i) {
+        const int detID = detectorIds.at(i).toInt();
+        const double valueA = coefA.at(i).toDouble();
+        const double valueB = coefB.at(i).toDouble();
+        const double valueInput = coefInput.at(i).toDouble();
+        coef_SiPMA_Volt[detID] = valueA;
+        coef_SiPMB_Volt[detID] = valueB;
+        coef_InputVolt[detID] = valueInput;
     }
 }
 
@@ -508,6 +544,13 @@ void mainWindow::readMassage()
             PackNumber++;  
             
             //-------------获取设备基本状态参数-------------
+            // 设备编号
+            if (OnePackArray.size() > 16)
+                EquipmentID = static_cast<quint8>(OnePackArray.at(16));
+            else
+                EquipmentID = 0;
+            ui->equipmentID_label->setNum(EquipmentID);
+
             // 获取温度
             double temp = GetTemperature(OnePackArray);
 
@@ -575,13 +618,6 @@ void mainWindow::readMassage()
                     SaveFile(autofilePath, counter1, counter2, counter3, counter4, temperatue);//保存这次的测量数据至默认路径
                 }
             }
-            
-            // 设备编号
-            if (OnePackArray.size() > 16)
-                EquipmentID = static_cast<quint8>(OnePackArray.at(16));
-            else
-                EquipmentID = 0;
-            ui->equipmentID_label->setNum(EquipmentID);
         }
     }
 }
@@ -670,9 +706,14 @@ double mainWindow::GetOuterVolt(QByteArray DataPack)
     }
     double outervoltage = 0.0;
     int outervoltage_adc = 256 * DataPack.at(21-2) + DataPack.at(22-2); //减去包头两个字节
-    //outervoltage = (outervoltage_adc * 3.3) / 4096;
-    //outervoltage = outervoltage * 5;	//需要注意，这里的分压系数还需要实验来进行确定
-    outervoltage = outervoltage_adc * 0.005421;	
+    
+    double coefficient = 0.002762;
+	auto it = coef_InputVolt.find(EquipmentID);
+	if (it != coef_InputVolt.end()) {
+		// 键存在
+		coefficient = coef_InputVolt[EquipmentID];
+	}
+    outervoltage = outervoltage_adc * coefficient;	
     return outervoltage;
 }
 
@@ -685,9 +726,16 @@ double mainWindow::GetVolt_A(QByteArray DataPack)
     }
     double sipmvoltege_A = 0.0;
     int sipmvoltege_A_adc = 256 * DataPack.at(23-2) + DataPack.at(24-2);
-    //sipmvoltege_A = (sipmvoltege_A_adc * 3.3) / 4096;
-    //sipmvoltege_A = sipmvoltege_A * 105 / 5;  //需要注意，这里的分压系数还需要实验来进行确定
-    sipmvoltege_A = sipmvoltege_A_adc * 0.023297;
+
+    double coefficient = 0.023297; //默认值
+	// 使用find查找设备编号
+	auto it = coef_SiPMA_Volt.find(EquipmentID);
+	if (it != coef_SiPMA_Volt.end()) {
+		// 键存在
+		coefficient = coef_SiPMA_Volt[EquipmentID];
+	}
+	sipmvoltege_A = sipmvoltege_A_adc * coefficient;
+    qDebug() << "coefficient_A = " << coefficient<<", EquipmentID=" << EquipmentID<<", sipmvoltege_A_adc=" << sipmvoltege_A_adc << ", sipmvoltege_A=" << sipmvoltege_A;
     return sipmvoltege_A;
 }
 
@@ -700,9 +748,16 @@ double mainWindow::GetVolt_B(QByteArray DataPack)
     }
     double sipmvoltege_B = 0.0;
     int sipmvoltege_B_adc = 256 * DataPack.at(25-2) + DataPack.at(26-2);
-    //sipmvoltege_B = (sipmvoltege_B_adc * 3.3) / 4096;
-    // sipmvoltege_B = sipmvoltege_B * 105 / 5; //需要注意，这里的分压系数还需要实验来进行确定
-    sipmvoltege_B = sipmvoltege_B_adc * 0.023297;
+	
+    double coefficient = 0.023297; //默认值
+	// 使用find查找设备编号
+	auto it = coef_SiPMB_Volt.find(EquipmentID);
+	if (it != coef_SiPMB_Volt.end()) {
+		// 键存在
+		coefficient = coef_SiPMB_Volt[EquipmentID];
+	}
+	sipmvoltege_B = sipmvoltege_B_adc * coefficient;
+
     return sipmvoltege_B;
 }
 
@@ -1369,4 +1424,10 @@ void mainWindow::WriteSetting(QJsonObject myJson)
     //将json串写入文件
     file.write(data);
     file.close();
+}
+
+void mainWindow::GetConfig()
+{
+  QJsonObject jsonSetting = ReadSetting();
+
 }

@@ -129,4 +129,4 @@ Logger *QmlLogger::logger() const
 
 }
 
-#include "moc_qmllogger.cpp"
+//#include "moc_qmllogger.cpp"

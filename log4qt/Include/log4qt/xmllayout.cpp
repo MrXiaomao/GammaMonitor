@@ -74,4 +74,4 @@ QString XMLLayout::format(const LoggingEvent &event)
 
 }
 
-#include "moc_xmllayout.cpp"
+//#include "moc_xmllayout.cpp"

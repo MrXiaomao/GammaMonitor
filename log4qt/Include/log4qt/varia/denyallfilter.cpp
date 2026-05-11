@@ -29,4 +29,4 @@ DenyAllFilter::DenyAllFilter(QObject *parent) :
 
 } // namespace Log4Qt
 
-#include "moc_denyallfilter.cpp"
+//#include "moc_denyallfilter.cpp"

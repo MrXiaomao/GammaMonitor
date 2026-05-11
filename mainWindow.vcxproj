@@ -32,12 +32,12 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>msvs2019_64</QtInstall>
-    <QtModules>core;gui;network;printsupport;widgets</QtModules>
+    <QtModules>concurrent;core;gui;network;printsupport;widgets</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>msvs2019_64</QtInstall>
-    <QtModules>core;gui;network;printsupport;widgets</QtModules>
+    <QtModules>concurrent;core;gui;network;printsupport;widgets</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
@@ -62,12 +62,12 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)log4qt\include\log4qt\varia;$(ProjectDir)log4qt\include\log4qt\spi;$(ProjectDir)log4qt\include\log4qt\helpers;$(ProjectDir)log4qt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)log4qt\include\log4qt\varia;$(ProjectDir)log4qt\include\log4qt\spi;$(ProjectDir)log4qt\include\log4qt\helpers;$(ProjectDir)log4qt\include;$(ProjectDir)log4qt\include\log4qt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>LOG4QT_STATIC;LOG4QT_VERSION_MAJOR=1;LOG4QT_VERSION_MINOR=6;LOG4QT_VERSION_PATCH=0;LOG4QT_VERSION_STR="1.6.0";%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(ProjectDir)log4qt\lib\msvc_2019\debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>log4qt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>cd "$(ProjectDir)" &amp;&amp; call generate_version.bat</Command>
@@ -75,16 +75,20 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)log4qt\include\log4qt\varia;$(ProjectDir)log4qt\include\log4qt\spi;$(ProjectDir)log4qt\include\log4qt\helpers;$(ProjectDir)log4qt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>LOG4QT_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)log4qt\include\log4qt\varia;$(ProjectDir)log4qt\include\log4qt\spi;$(ProjectDir)log4qt\include\log4qt\;$(ProjectDir)log4qt\include\log4qt\helpers;$(ProjectDir)log4qt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>LOG4QT_STATIC;LOG4QT_VERSION_MAJOR=1;LOG4QT_VERSION_MINOR=6;LOG4QT_VERSION_PATCH=0;LOG4QT_VERSION_STR="1.6.0";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/Zm300 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(ProjectDir)log4qt\lib\msvc_2019\release\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>log4qt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>cd "$(ProjectDir)" &amp;&amp; call generate_version.bat</Command>
     </PreBuildEvent>
+    <QtMoc>
+      <NoInclude>false</NoInclude>
+    </QtMoc>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>
@@ -113,6 +117,68 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="log4qt\Include\log4qt\appender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\appenderskeleton.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\asyncappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\basicconfigurator.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\binaryfileappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\binarylayout.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\binarylogger.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\binaryloggingevent.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\binarylogstream.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\binarytotextlayout.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\binarywriterappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\colorconsoleappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\consoleappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\dailyfileappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\dailyrollingfileappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\fileappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\helpers\appenderattachable.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\helpers\binaryclasslogger.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\helpers\classlogger.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\helpers\configuratorhelper.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\helpers\datetime.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\helpers\dispatcher.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\helpers\factory.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\helpers\initialisationhelper.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\helpers\logerror.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\helpers\optionconverter.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\helpers\patternformatter.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\helpers\properties.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\hierarchy.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\layout.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\level.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\logger.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\loggerrepository.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\loggingevent.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\logmanager.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\logstream.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\mainthreadappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\mdc.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\ndc.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\patternlayout.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\propertyconfigurator.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\qmllogger.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\rollingbinaryfileappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\rollingfileappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\signalappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\simplelayout.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\simpletimelayout.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\spi\filter.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\systemlogappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\telnetappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\ttcclayout.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\varia\binaryeventfilter.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\varia\debugappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\varia\denyallfilter.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\varia\levelmatchfilter.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\varia\levelrangefilter.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\varia\listappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\varia\nullappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\varia\stringmatchfilter.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\wdcappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\writerappender.cpp" />
+    <ClCompile Include="log4qt\Include\log4qt\xmllayout.cpp" />
     <ClCompile Include="src\CustomPlotTooltip.cpp" />
     <ClCompile Include="src\ipaddress.cpp" />
     <ClCompile Include="src\mainWindow.cpp" />
@@ -151,6 +217,72 @@
     <QtMoc Include="include\mytracer.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="log4qt\Include\log4qt\appender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\appenderskeleton.h" />
+    <QtMoc Include="log4qt\Include\log4qt\asyncappender.h" />
+    <ClInclude Include="log4qt\Include\log4qt\basicconfigurator.h" />
+    <QtMoc Include="log4qt\Include\log4qt\binaryfileappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\binarylayout.h" />
+    <QtMoc Include="log4qt\Include\log4qt\binarylogger.h" />
+    <ClInclude Include="log4qt\Include\log4qt\binaryloggingevent.h" />
+    <ClInclude Include="log4qt\Include\log4qt\binarylogstream.h" />
+    <QtMoc Include="log4qt\Include\log4qt\binarytotextlayout.h" />
+    <QtMoc Include="log4qt\Include\log4qt\binarywriterappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\colorconsoleappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\consoleappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\dailyfileappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\dailyrollingfileappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\fileappender.h" />
+    <ClInclude Include="log4qt\Include\log4qt\helpers\appenderattachable.h" />
+    <ClInclude Include="log4qt\Include\log4qt\helpers\binaryclasslogger.h" />
+    <ClInclude Include="log4qt\Include\log4qt\helpers\classlogger.h" />
+    <QtMoc Include="log4qt\Include\log4qt\helpers\configuratorhelper.h" />
+    <ClInclude Include="log4qt\Include\log4qt\helpers\datetime.h" />
+    <QtMoc Include="log4qt\Include\log4qt\helpers\dispatcher.h" />
+    <ClInclude Include="log4qt\Include\log4qt\helpers\factory.h" />
+    <ClInclude Include="log4qt\Include\log4qt\helpers\initialisationhelper.h" />
+    <ClInclude Include="log4qt\Include\log4qt\helpers\logerror.h" />
+    <ClInclude Include="log4qt\Include\log4qt\helpers\optionconverter.h" />
+    <ClInclude Include="log4qt\Include\log4qt\helpers\patternformatter.h" />
+    <ClInclude Include="log4qt\Include\log4qt\helpers\properties.h" />
+    <ClInclude Include="log4qt\Include\log4qt\hierarchy.h" />
+    <QtMoc Include="log4qt\Include\log4qt\layout.h" />
+    <ClInclude Include="log4qt\Include\log4qt\level.h" />
+    <ClInclude Include="log4qt\Include\log4qt\log4qt.h" />
+    <ClInclude Include="log4qt\Include\log4qt\log4qtdefs.h" />
+    <ClInclude Include="log4qt\Include\log4qt\log4qtshared.h" />
+    <ClInclude Include="log4qt\Include\log4qt\log4qtsharedptr.h" />
+    <QtMoc Include="log4qt\Include\log4qt\logger.h" />
+    <ClInclude Include="log4qt\Include\log4qt\loggerrepository.h" />
+    <ClInclude Include="log4qt\Include\log4qt\loggingevent.h" />
+    <ClInclude Include="log4qt\Include\log4qt\logmanager.h" />
+    <ClInclude Include="log4qt\Include\log4qt\logstream.h" />
+    <QtMoc Include="log4qt\Include\log4qt\mainthreadappender.h" />
+    <ClInclude Include="log4qt\Include\log4qt\mdc.h" />
+    <ClInclude Include="log4qt\Include\log4qt\ndc.h" />
+    <QtMoc Include="log4qt\Include\log4qt\patternlayout.h" />
+    <ClInclude Include="log4qt\Include\log4qt\propertyconfigurator.h" />
+    <QtMoc Include="log4qt\Include\log4qt\qmllogger.h" />
+    <QtMoc Include="log4qt\Include\log4qt\rollingbinaryfileappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\rollingfileappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\signalappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\simplelayout.h" />
+    <QtMoc Include="log4qt\Include\log4qt\simpletimelayout.h" />
+    <QtMoc Include="log4qt\Include\log4qt\systemlogappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\telnetappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\ttcclayout.h" />
+    <QtMoc Include="log4qt\Include\log4qt\wdcappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\writerappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\xmllayout.h" />
+    <QtMoc Include="log4qt\Include\log4qt\spi\filter.h" />
+    <QtMoc Include="log4qt\Include\log4qt\varia\binaryeventfilter.h" />
+    <QtMoc Include="log4qt\Include\log4qt\varia\debugappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\varia\denyallfilter.h" />
+    <QtMoc Include="log4qt\Include\log4qt\varia\levelmatchfilter.h" />
+    <QtMoc Include="log4qt\Include\log4qt\varia\levelrangefilter.h" />
+    <QtMoc Include="log4qt\Include\log4qt\varia\listappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\varia\nullappender.h" />
+    <QtMoc Include="log4qt\Include\log4qt\varia\stringmatchfilter.h" />
     <ClInclude Include="version.h" />
     <QtMoc Include="include\ipaddress.h" />
     <ClInclude Include="include\mytracerline.h" />
@@ -176,7 +308,7 @@
     <Text Include="软件开发计划.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="setting.json" />
+    <None Include="config\setting.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

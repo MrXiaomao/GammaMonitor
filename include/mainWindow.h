@@ -30,6 +30,8 @@ public:
     void initUI();
     static QJsonObject ReadSetting(); // 读取配置文件
     static void WriteSetting(QJsonObject);  // 写配置文件
+    void GetConfig();//从配置文件中获取参数
+
     void closeAction(); // 响应关闭窗口动作，对一些数据进行处理，以及arm进行最后通信
     void DoCrossTracer(QMouseEvent* event); // 十字架取值
     void DoCurveTracer(QMouseEvent* event); // 曲线取值
@@ -119,12 +121,17 @@ private:
     myTracer* tracerX[4];
     bool isShowLine[4]; // 是否绘制曲线，由勾选框确定
     myTracerLine* lineTracer; // 直线
+    
+    std::map<int, double>  coef_SiPMA_Volt; //各个探测器组的SiPM探测器偏压ADC转换系数，一个电路板两组SiPM偏压，暂时采用同一个系数。
+    std::map<int, double>  coef_SiPMB_Volt; //各个探测器组的SiPM探测器偏压ADC转换系数，一个电路板两组SiPM偏压，暂时采用同一个系数。
+    std::map<int, double>  coef_InputVolt; //各个电路板编号的输入电压对应的ADC转换系数
 
     bool refreshPlotFlag; // 是否刷新图像
     bool RescaleAxesFlag; // 是否自动调整坐标轴范围
 
     void QPlot_init(QCustomPlot* customPlot);
     void Show_Plot(QCustomPlot* customPlot, double num1,double num2,double num3, double num4);
+    void LoadVoltageCoefficients();
 
     void ARM_Sleep(); // 让ARM进入休眠，停止比较器工作，停止电压监测、温度监测
     void WaitingSocketWrite(int time = 30000); // 等待QTcpSocket写入数据

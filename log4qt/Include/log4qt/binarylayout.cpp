@@ -47,5 +47,5 @@ QString BinaryLayout::contentType() const
 
 } // namespace Log4Qt
 
-#include "moc_binarylayout.cpp"
+//#include "moc_binarylayout.cpp"
 

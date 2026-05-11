@@ -45,4 +45,4 @@ void NullAppender::append(const LoggingEvent &event)
 
 } // namespace Log4Qt
 
-#include "moc_nullappender.cpp"
+//#include "moc_nullappender.cpp"

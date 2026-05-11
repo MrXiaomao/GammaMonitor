@@ -159,4 +159,4 @@ void ConsoleAppender::append(const LoggingEvent &event)
 
 } // namespace Log4Qt
 
-#include "moc_consoleappender.cpp"
+//#include "moc_consoleappender.cpp"

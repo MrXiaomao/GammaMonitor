@@ -21,6 +21,18 @@
       <UniqueIdentifier>{639EADAA-A684-42e4-A9AD-28FC9BCB8F7C}</UniqueIdentifier>
       <Extensions>ts</Extensions>
     </Filter>
+    <Filter Include="log4qt">
+      <UniqueIdentifier>{c9788a84-42aa-4c30-b1d1-3bc52c4c7f2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="log4qt\helpers">
+      <UniqueIdentifier>{8edba5a2-f8a6-4877-afce-84380a118207}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="log4qt\spi">
+      <UniqueIdentifier>{7cbe56ad-7c8b-49a0-80ca-836f45b04bea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="log4qt\varia">
+      <UniqueIdentifier>{dd750a25-4a7f-4b22-9251-0e30b4543f82}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="mainWindow.qrc">
@@ -72,6 +84,192 @@
     </ClCompile>
     <ClCompile Include="src\ipaddress.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\appender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\appenderskeleton.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\asyncappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\basicconfigurator.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\binaryfileappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\binarylayout.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\binarylogger.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\binaryloggingevent.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\binarylogstream.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\binarytotextlayout.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\binarywriterappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\colorconsoleappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\consoleappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\dailyfileappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\dailyrollingfileappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\fileappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\hierarchy.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\layout.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\level.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\logger.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\loggerrepository.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\loggingevent.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\logmanager.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\logstream.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\mainthreadappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\mdc.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\ndc.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\patternlayout.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\propertyconfigurator.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\qmllogger.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\rollingbinaryfileappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\rollingfileappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\signalappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\simplelayout.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\simpletimelayout.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\systemlogappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\telnetappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\ttcclayout.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\wdcappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\writerappender.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\xmllayout.cpp">
+      <Filter>log4qt</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\helpers\appenderattachable.cpp">
+      <Filter>log4qt\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\helpers\binaryclasslogger.cpp">
+      <Filter>log4qt\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\helpers\classlogger.cpp">
+      <Filter>log4qt\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\helpers\configuratorhelper.cpp">
+      <Filter>log4qt\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\helpers\datetime.cpp">
+      <Filter>log4qt\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\helpers\dispatcher.cpp">
+      <Filter>log4qt\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\helpers\factory.cpp">
+      <Filter>log4qt\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\helpers\initialisationhelper.cpp">
+      <Filter>log4qt\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\helpers\logerror.cpp">
+      <Filter>log4qt\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\helpers\optionconverter.cpp">
+      <Filter>log4qt\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\helpers\patternformatter.cpp">
+      <Filter>log4qt\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\helpers\properties.cpp">
+      <Filter>log4qt\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\spi\filter.cpp">
+      <Filter>log4qt\spi</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\varia\binaryeventfilter.cpp">
+      <Filter>log4qt\varia</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\varia\debugappender.cpp">
+      <Filter>log4qt\varia</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\varia\denyallfilter.cpp">
+      <Filter>log4qt\varia</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\varia\levelmatchfilter.cpp">
+      <Filter>log4qt\varia</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\varia\levelrangefilter.cpp">
+      <Filter>log4qt\varia</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\varia\listappender.cpp">
+      <Filter>log4qt\varia</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\varia\nullappender.cpp">
+      <Filter>log4qt\varia</Filter>
+    </ClCompile>
+    <ClCompile Include="log4qt\Include\log4qt\varia\stringmatchfilter.cpp">
+      <Filter>log4qt\varia</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -127,6 +325,126 @@
     <QtMoc Include="include\ipaddress.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\appender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\appenderskeleton.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\asyncappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\binaryfileappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\binarylayout.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\binarylogger.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\binarytotextlayout.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\binarywriterappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\colorconsoleappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\consoleappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\dailyfileappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\dailyrollingfileappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\fileappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\layout.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\logger.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\mainthreadappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\patternlayout.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\qmllogger.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\rollingbinaryfileappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\rollingfileappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\signalappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\simplelayout.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\simpletimelayout.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\systemlogappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\telnetappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\ttcclayout.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\wdcappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\writerappender.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\xmllayout.h">
+      <Filter>log4qt</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\helpers\configuratorhelper.h">
+      <Filter>log4qt\helpers</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\helpers\dispatcher.h">
+      <Filter>log4qt\helpers</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\spi\filter.h">
+      <Filter>log4qt\spi</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\varia\binaryeventfilter.h">
+      <Filter>log4qt\varia</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\varia\debugappender.h">
+      <Filter>log4qt\varia</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\varia\denyallfilter.h">
+      <Filter>log4qt\varia</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\varia\levelmatchfilter.h">
+      <Filter>log4qt\varia</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\varia\levelrangefilter.h">
+      <Filter>log4qt\varia</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\varia\listappender.h">
+      <Filter>log4qt\varia</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\varia\nullappender.h">
+      <Filter>log4qt\varia</Filter>
+    </QtMoc>
+    <QtMoc Include="log4qt\Include\log4qt\varia\stringmatchfilter.h">
+      <Filter>log4qt\varia</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\mytracerline.h">
@@ -143,6 +461,84 @@
     </ClInclude>
     <ClInclude Include="version.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\basicconfigurator.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\binaryloggingevent.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\binarylogstream.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\hierarchy.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\level.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\log4qt.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\log4qtdefs.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\log4qtshared.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\log4qtsharedptr.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\loggerrepository.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\loggingevent.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\logmanager.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\logstream.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\mdc.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\ndc.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\propertyconfigurator.h">
+      <Filter>log4qt</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\helpers\appenderattachable.h">
+      <Filter>log4qt\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\helpers\binaryclasslogger.h">
+      <Filter>log4qt\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\helpers\classlogger.h">
+      <Filter>log4qt\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\helpers\datetime.h">
+      <Filter>log4qt\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\helpers\factory.h">
+      <Filter>log4qt\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\helpers\initialisationhelper.h">
+      <Filter>log4qt\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\helpers\logerror.h">
+      <Filter>log4qt\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\helpers\optionconverter.h">
+      <Filter>log4qt\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\helpers\patternformatter.h">
+      <Filter>log4qt\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="log4qt\Include\log4qt\helpers\properties.h">
+      <Filter>log4qt\helpers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -166,6 +562,6 @@
     <Text Include="软件开发计划.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="setting.json" />
+    <None Include="config\setting.json" />
   </ItemGroup>
 </Project>

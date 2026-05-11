@@ -61,5 +61,5 @@ void BinaryLogger::log(Level level, const QByteArray &message, QDateTime timeSta
 
 } // namespace Log4Qt
 
-#include "moc_binarylogger.cpp"
+//#include "moc_binarylogger.cpp"
 

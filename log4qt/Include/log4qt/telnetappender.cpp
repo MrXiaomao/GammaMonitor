@@ -232,4 +232,4 @@ void TelnetAppender::onClientDisconnected()
 
 } // namespace Log4Qt
 
-#include "moc_telnetappender.cpp"
+//#include "moc_telnetappender.cpp"

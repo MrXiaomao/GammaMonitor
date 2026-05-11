@@ -49,4 +49,4 @@ QString Layout::endOfLine()
 
 } // namespace Log4Qt
 
-#include "moc_layout.cpp"
+//#include "moc_layout.cpp"

@@ -112,4 +112,4 @@ void TTCCLayout::updatePatternFormatter()
 
 } // namespace Log4Qt
 
-#include "moc_ttcclayout.cpp"
+//#include "moc_ttcclayout.cpp"

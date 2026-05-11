@@ -263,4 +263,4 @@ QString RollingBinaryFileAppender::frequencyToString() const
 
 }
 
-#include "moc_rollingbinaryfileappender.cpp"
+//#include "moc_rollingbinaryfileappender.cpp"

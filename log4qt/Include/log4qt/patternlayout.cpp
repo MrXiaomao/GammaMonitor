@@ -77,5 +77,5 @@ void PatternLayout::updatePatternFormatter()
 
 } // namespace Log4Qt
 
-#include "moc_patternlayout.cpp"
+//#include "moc_patternlayout.cpp"
 

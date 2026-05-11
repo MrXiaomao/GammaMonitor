@@ -353,5 +353,5 @@ LogStream MessageLogger::log() const
 
 } // namespace Log4Qt
 
-#include "moc_logger.cpp"
+//#include "moc_logger.cpp"
 

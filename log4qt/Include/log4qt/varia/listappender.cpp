@@ -75,4 +75,4 @@ void ListAppender::ensureMaxCount()
 
 } // namespace Log4Qt
 
-#include "moc_listappender.cpp"
+//#include "moc_listappender.cpp"

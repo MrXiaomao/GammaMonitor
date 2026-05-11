@@ -61,4 +61,4 @@ void WDCAppender::append(const LoggingEvent &event)
 
 }
 
-#include "moc_wdcappender.cpp"
+//#include "moc_wdcappender.cpp"

@@ -256,4 +256,4 @@ LayoutSharedPtr Log4Qt::AppenderSkeleton::layout() const
 
 } // namespace Log4Qt
 
-#include "moc_appenderskeleton.cpp"
+//#include "moc_appenderskeleton.cpp"

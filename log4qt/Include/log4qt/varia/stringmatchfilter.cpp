@@ -48,4 +48,4 @@ Filter::Decision StringMatchFilter::decide(const LoggingEvent &event) const
 
 } // namespace Log4Qt
 
-#include "moc_stringmatchfilter.cpp"
+//#include "moc_stringmatchfilter.cpp"

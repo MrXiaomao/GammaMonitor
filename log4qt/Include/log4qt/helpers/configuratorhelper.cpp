@@ -94,4 +94,4 @@ void ConfiguratorHelper::doSetConfigurationFile(const QString &fileName,
 
 } // namespace Log4Qt
 
-#include "moc_configuratorhelper.cpp"
+//#include "moc_configuratorhelper.cpp"

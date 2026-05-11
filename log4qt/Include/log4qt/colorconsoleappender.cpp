@@ -300,5 +300,5 @@ void ColorConsoleAppender::closeInternal()
 
 } // namespace Log4Qt
 
-#include "moc_colorconsoleappender.cpp"
+//#include "moc_colorconsoleappender.cpp"
 

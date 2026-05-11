@@ -183,4 +183,4 @@ void DatabaseLayout::setMessageColumn(const QString &columnName)
 
 } // namespace Log4Qt
 
-#include "moc_databaselayout.cpp"
+//#include "moc_databaselayout.cpp"

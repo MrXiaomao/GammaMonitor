@@ -150,5 +150,5 @@ bool DatabaseAppender::checkEntryConditions() const
 
 } // namespace Log4Qt
 
-#include "moc_databaseappender.cpp"
+//#include "moc_databaseappender.cpp"
 

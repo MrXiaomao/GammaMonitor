@@ -206,4 +206,4 @@ void DailyFileAppender::rollOver()
 
 }
 
-#include "moc_dailyfileappender.cpp"
+//#include "moc_dailyfileappender.cpp"

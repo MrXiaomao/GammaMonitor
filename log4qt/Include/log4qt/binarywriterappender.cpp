@@ -177,4 +177,4 @@ BinaryLayout *BinaryWriterAppender::binaryLayout() const
 
 } // namespace Log4Qt
 
-#include "moc_binarywriterappender.cpp"
+//#include "moc_binarywriterappender.cpp"

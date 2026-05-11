@@ -49,4 +49,4 @@ void Dispatcher::setAsyncAppender(AsyncAppender *asyncAppender)
 
 } // namespace Log4Qt
 
-#include "moc_dispatcher.cpp"
+//#include "moc_dispatcher.cpp"
