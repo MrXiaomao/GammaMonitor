@@ -3,6 +3,7 @@
 #include <QDialog>
 #include "ui_RelayDialog.h"
 #include <QTcpSocket>
+#include <QTimer>
 #include "order.h"
 
 // 控制继电器的窗口
@@ -14,9 +15,12 @@ public:
 	RelayDialog(QWidget *parent = Q_NULLPTR);
 	~RelayDialog();
 
+protected:
+	void closeEvent(QCloseEvent *event) override;
+
 private slots:	
 	void readMassage();
-	void displayError(QAbstractSocket::SocketError);
+	void slotNetError(QAbstractSocket::SocketError);
 	void connectUpdata();
 	void disconnectUpdata();
 	void on_connectRelayButton_clicked(); // 控制继电器的网络连接

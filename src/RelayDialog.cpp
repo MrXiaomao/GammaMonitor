@@ -31,8 +31,30 @@ RelayDialog::~RelayDialog()
         if (timer->isActive())//判断定时器是否在工作
             timer->stop();
         delete timer;
+        timer = Q_NULLPTR;
     }
-    if(tcpSocket) delete tcpSocket;
+    if(tcpSocket) {
+        tcpSocket->abort();
+        delete tcpSocket;
+        tcpSocket = Q_NULLPTR;
+    }
+}
+
+void RelayDialog::closeEvent(QCloseEvent *event)
+{
+    if (timer) {
+        if (timer->isActive())
+            timer->stop();
+        delete timer;
+        timer = Q_NULLPTR;
+    }
+    if (tcpSocket) {
+        tcpSocket->abort();
+        delete tcpSocket;
+        tcpSocket = Q_NULLPTR;
+    }
+    disconnectUpdata();
+    event->accept();
 }
 
 void RelayDialog::on_connectRelayButton_clicked()
@@ -55,7 +77,7 @@ void RelayDialog::on_connectRelayButton_clicked()
 
         tcpSocket->connectToHost(tcpIp, tcpPort.toInt());//连接主机
         connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this,
-            SLOT(displayError(QAbstractSocket::SocketError)));//错误连接
+            SLOT(slotNetError(QAbstractSocket::SocketError)));//错误连接
         connect(tcpSocket, SIGNAL(connected()), this, SLOT(connectUpdata())); //更新连接之后按钮的使能
         connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readMassage())); //读取接收的信息
     }
@@ -74,7 +96,7 @@ void RelayDialog::on_connectRelayButton_clicked()
 }
 
 // 在点击连接后，错误连接：即无法连接网络/失去连接，则进入该函数
-void RelayDialog::displayError(QAbstractSocket::SocketError)
+void RelayDialog::slotNetError(QAbstractSocket::SocketError)
 {
     QMessageBox::warning(this, tr("Warnning"), tcpSocket->errorString());
     tcpSocket->close();
@@ -99,6 +121,7 @@ void RelayDialog::displayError(QAbstractSocket::SocketError)
 // 连接成功，更新相应按钮功能
 void RelayDialog::connectUpdata()
 {
+    qInfo().noquote() <<"继电器连接成功";
     ui.NetStatusLabel->setStyleSheet(
         "QLineEdit{"
         "color:rgba(0,0,0);" //黑色
@@ -127,6 +150,7 @@ void RelayDialog::connectUpdata()
 // 断开连接，更新相应按钮功能
 void RelayDialog::disconnectUpdata()
 {
+    qInfo().noquote() << "继电器断开连接";
     ui.NetStatusLabel->setStyleSheet(
         "QLineEdit{"
         "color:rgba(255,0,0);"//红色
@@ -149,10 +173,12 @@ void RelayDialog::disconnectUpdata()
 void RelayDialog::on_controlRelayButton_clicked()
 {
     if (ui.controlRelayButton->text() == "关闭") {
+        qInfo().noquote() << "发送关闭探测器电源指令";
         tcpSocket->write(tcp_order.PowerCH1_OFF); WaitingSocketWrite();  Sleep(tcp_order.waitingTime);
         tcpSocket->write(tcp_order.PowerCH2_OFF); WaitingSocketWrite();  Sleep(tcp_order.waitingTime);
     }
     else if(ui.controlRelayButton->text() == "打开") {
+        qInfo().noquote() << "发送打开探测器电源指令";
         tcpSocket->write(tcp_order.PowerCH1_ON); WaitingSocketWrite();  Sleep(tcp_order.waitingTime);
         tcpSocket->write(tcp_order.PowerCH2_ON); WaitingSocketWrite();  Sleep(tcp_order.waitingTime);
     }
@@ -176,7 +202,6 @@ void RelayDialog::readMassage()
         ui.label_5->setText("已关闭");
         ui.controlRelayButton->setText("打开");
     }
-    //ui->showLineEdit->setText(QString(data));//显示数据
 }
 
 

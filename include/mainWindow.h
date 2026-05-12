@@ -41,7 +41,7 @@ signals:
 
 private slots:
     void readMassage(); // 读取网口数据
-    void displayError(QAbstractSocket::SocketError);
+    void slotNetError(QAbstractSocket::SocketError);
     void connectUpdata(); // 连接成功，更新各个按钮功能
     void disconnectUpdata(); // 断开连接，更新各个按钮功能
     void on_bt_connectDet_clicked(); // 网络连接按钮
@@ -54,6 +54,8 @@ private slots:
     void on_checkBox2_stateChanged(int arg1); //复选框2
     void on_checkBox3_stateChanged(int arg1); //复选框3
     void on_checkBox4_stateChanged(int arg1); //复选框4
+    void on_cb_TotalCount_stateChanged(int arg1); //复选框TotalCount
+
     void on_GetData_comboBox_currentIndexChanged(const QString& arg1); //下拉框改变状态
     void on_TimeLen_ComboBox_currentIndexChanged(const QString& arg1); //下拉框改变状态
     void on_refreshPlotCheckBox_stateChanged(int arg1); //响应图像刷新
@@ -115,11 +117,12 @@ private:
     QCPGraph* pGraph1_2;
     QCPGraph* pGraph1_3;
     QCPGraph* pGraph1_4;
+    QCPGraph* pGraphTotal;
 
     TracerFlag mTracer;
     myTracer* tracerCross;
     myTracer* tracerX[4];
-    bool isShowLine[4]; // 是否绘制曲线，由勾选框确定
+    bool isShowLine[5]; // 是否绘制曲线，由勾选框确定
     myTracerLine* lineTracer; // 直线
     
     std::map<int, double>  coef_SiPMA_Volt; //各个探测器组的SiPM探测器偏压ADC转换系数，一个电路板两组SiPM偏压，暂时采用同一个系数。

@@ -1,6 +1,8 @@
 ﻿#include "ResetNetwork.h"
 #include "mainWindow.h"
 
+#include <QNetworkProxy>
+
 #pragma execution_character_set("utf-8") 
 
 // 控制继电器的窗口
@@ -38,11 +40,18 @@ void ResetNetwork::on_bt_connectDet_clicked()
 
         if (tcpSocket) delete tcpSocket; //如果有指向其他空间直接删除
         tcpSocket = new QTcpSocket(this); //申请堆空间有TCP发送和接受操作
+        tcpSocket->setProxy(QNetworkProxy::NoProxy);
 
         // 点击连接按钮后，记录下当前IP、网关以及Port
         tcpIp = ui.IP_ARM_Edit->getIP();
         tcpGateway = ui.Gateway_ARM_Edit->getIP();
         tcpPort = ui.Port_ARM_Edit->text();
+
+        if (tcpIp.isEmpty() || tcpPort.isEmpty()) {
+            QMessageBox::warning(this, tr("Warnning"), tr("IP 或端口不能为空。"));
+            ui.bt_connectDet->setEnabled(true);
+            return;
+        }
 
         QJsonObject jsonSetting = mainWindow::ReadSetting();
         jsonSetting["IP_Detector"] = tcpIp;
@@ -50,11 +59,11 @@ void ResetNetwork::on_bt_connectDet_clicked()
         jsonSetting["Port_Detector"] = tcpPort;
         mainWindow::WriteSetting(jsonSetting);
 
-        tcpSocket->connectToHost(tcpIp, tcpPort.toInt());//连接主机
         connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this,
-            SLOT(displayError(QAbstractSocket::SocketError)));//错误连接
+            SLOT(slotNetError(QAbstractSocket::SocketError)));//错误连接
         connect(tcpSocket, SIGNAL(connected()), this, SLOT(connectUpdata())); //更新连接之后按钮的使能
         connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readMassage())); //读取接收的信息
+        tcpSocket->connectToHost(tcpIp, tcpPort.toInt());//连接主机
     }
     else if (ui.bt_connectDet->text() == "断开")
     {
@@ -66,7 +75,7 @@ void ResetNetwork::on_bt_connectDet_clicked()
 }
 
 // 在点击连接后，错误连接：即无法连接网络/失去连接，则进入该函数
-void ResetNetwork::displayError(QAbstractSocket::SocketError)
+void ResetNetwork::slotNetError(QAbstractSocket::SocketError)
 {
     QMessageBox::warning(this, tr("Warnning"), tcpSocket->errorString());
     tcpSocket->close();
@@ -163,8 +172,14 @@ void ResetNetwork::on_changeSetting_clicked()
         msg[8] = gateways.at(3).toInt();
     }
     int port = tcpPort.toInt();
-    msg[9] = (unsigned char)(port / 256);
-    msg[10] = (unsigned char)(port % 256);
+    msg[9] = static_cast<unsigned char>(port / 256);
+    msg[10] = static_cast<unsigned char>(port % 256);
+
+    if (!tcpSocket || tcpSocket->state() != QAbstractSocket::ConnectedState) {
+        QMessageBox::warning(this, tr("Warnning"), tr("当前网络未连接，无法发送配置指令。"));
+        return;
+    }
+
     tcpSocket->write(msg);
     qDebug().noquote() << "发送修改网络配置指令，新的参数如下：IP:" << tcpIp << " 网关：" << tcpGateway << " 端口：" << tcpPort;
 }

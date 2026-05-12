@@ -191,14 +191,19 @@ void mainWindow::QPlot_init(QCustomPlot* customPlot)
     pGraph1_2 = customPlot->addGraph();
     pGraph1_3 = customPlot->addGraph();
     pGraph1_4 = customPlot->addGraph();
+    pGraphTotal = customPlot->addGraph();
 
     ui->checkBox1->setCheckState(Qt::Checked);  //设置复选框初始状态 Unchecked
     ui->checkBox2->setCheckState(Qt::Checked);  
     ui->checkBox3->setCheckState(Qt::Checked);  
     ui->checkBox4->setCheckState(Qt::Checked); 
+    ui->cb_TotalCount->setCheckState(Qt::Unchecked);
+
     for (int i = 0; i < 4; i++) {
         isShowLine[i] = true;
     }
+    isShowLine[4] = false;
+    pGraphTotal->setVisible(false);
 
     ui->rescaleAxesCheckBox->setCheckState(Qt::Checked); // 坐标轴自适应
     ui->refreshPlotCheckBox->setCheckState(Qt::Checked); // 图像刷新
@@ -212,6 +217,7 @@ void mainWindow::QPlot_init(QCustomPlot* customPlot)
     pGraph1_2->setPen(QPen(Qt::darkRed));
     pGraph1_3->setPen(QPen(Qt::green));
     pGraph1_4->setPen(QPen(Qt::blue));
+    pGraphTotal->setPen(QPen(Qt::black));
 
     // 设置坐标轴名称
     customPlot->xAxis->setLabel("时间/s");
@@ -230,12 +236,14 @@ void mainWindow::QPlot_init(QCustomPlot* customPlot)
     pGraph1_2->setName("探测器2");
     pGraph1_3->setName("探测器3");
     pGraph1_4->setName("探测器4");
+    pGraphTotal->setName("总计数");
 
     // 设置波形曲线的复选框字体颜色
     ui->checkBox1->setStyleSheet("QCheckBox{color:red}");//设定前景颜色,就是字体颜色
     ui->checkBox2->setStyleSheet("QCheckBox{color:darkRed}");
     ui->checkBox3->setStyleSheet("QCheckBox{color:green}");
     ui->checkBox4->setStyleSheet("QCheckBox{color:blue}");
+    ui->cb_TotalCount->setStyleSheet("QCheckBox{color:black}");
     
     // 允许用户用鼠标拖动轴范围，用鼠标滚轮缩放，点击选择图形:
     customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
@@ -273,10 +281,11 @@ void mainWindow::on_bt_connectDet_clicked()
 {
     if (ui->bt_connectDet->text() == "连接网络")
     {
+        qDebug() << "连接网络按钮被点击";
         ui->bt_connectDet->setEnabled(false); // 此时禁止用户点击
         //=====================创建测试数据的备份文件夹====================
         // 获取当前exe文件所在路径
-        QString Filepath;
+        /*QString Filepath;
         Filepath = QCoreApplication::applicationDirPath();
         // 创建
         QString dirName = Filepath + "/" + "GMCOUNTER";
@@ -284,7 +293,7 @@ void mainWindow::on_bt_connectDet_clicked()
         if (!dir.exists()) {
             dir.mkdir(dirName);
             qDebug() << "GMCOUNTER文件夹创建成功";
-        }
+        }*/
         
         //===========获取界面参数，并写入json文件==========
         tcpIp = ui->widget_detIP->getIP();
@@ -309,13 +318,14 @@ void mainWindow::on_bt_connectDet_clicked()
         // 避免因系统代理导致 "the proxy type is invalid for this operation"
         tcpSocket->setProxy(QNetworkProxy::NoProxy);
         connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this,
-            SLOT(displayError(QAbstractSocket::SocketError)));  //错误连接
+            SLOT(slotNetError(QAbstractSocket::SocketError)));  //错误连接
         connect(tcpSocket, SIGNAL(connected()), this, SLOT(connectUpdata()));   //更新连接之后按钮的使能
         connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readMassage())); //读取信息的连接
         tcpSocket->connectToHost(tcpIp, tcpPort.toInt());   //连接主机
     }
     else if (ui->bt_connectDet->text() == "断开网络")
     {
+        qDebug() << "断开网络按钮被点击";
         //============断网前最后通信，让ARM回到待机状态========
         if (tcpSocket) {
             ARM_Sleep();
@@ -347,8 +357,8 @@ void mainWindow::on_networkSettingMenu_triggered()
     
     qInfo().noquote() << "打开“修改网络配置”界面";
     ResetNetwork* dialog = new ResetNetwork();
-    dialog->exec();	    // 模态窗口				
-    //dialog->show();   // 非模态窗口
+    dialog->exec();	// 模态窗口						
+    //dialog->show(); // 非模态窗口
 }
 
 // 打开文件
@@ -396,10 +406,11 @@ void mainWindow::on_netLog_triggered() {
 }
 
 // 错误连接，在点击连接后，无法连接网络/失去连接，则进入该函数
-void mainWindow::displayError(QAbstractSocket::SocketError)
+void mainWindow::slotNetError(QAbstractSocket::SocketError)
 {
-    QMessageBox::warning(this, tr("Warnning"), tcpSocket->errorString());
-    tcpSocket->close(); 
+    qWarning() << "探测器连接发生错误:" << tcpSocket->errorString();
+    tcpSocket->close();
+    tcpSocket = Q_NULLPTR;
     ui->Measure_Button->setEnabled(false);
 
     ui->connectStatusLabel->setStyleSheet(
@@ -436,22 +447,26 @@ void mainWindow::connectUpdata()
     //-------------开启硬件电源---------
     // 探测器组A、组B以及外接设备开启电压
     int waitTime = tcp_order.waitingTime;
-    tcpSocket->write(tcp_order.DetecA_ON);  WaitingSocketWrite(); Sleep(waitTime);
-    tcpSocket->write(tcp_order.DetecB_ON);  WaitingSocketWrite(); Sleep(waitTime);
-    tcpSocket->write(tcp_order.ExtDeviceON);  WaitingSocketWrite(); Sleep(waitTime);
+    if(tcpSocket->state() == QAbstractSocket::ConnectedState) {
+        tcpSocket->write(tcp_order.DetecA_ON);  WaitingSocketWrite(); Sleep(waitTime);
+        tcpSocket->write(tcp_order.DetecB_ON);  WaitingSocketWrite(); Sleep(waitTime);
+        tcpSocket->write(tcp_order.ExtDeviceON);  WaitingSocketWrite(); Sleep(waitTime);
 
-    //-------------设置比较器阈值-------------
-    tcpSocket->write(tcp_order.DetectorThread);  WaitingSocketWrite(); Sleep(waitTime);
+        //-------------设置比较器阈值-------------
+        tcpSocket->write(tcp_order.DetectorThread);  WaitingSocketWrite(); Sleep(waitTime);
 
-    //-------------对各个硬件状态监测开启（目前不考虑关闭监测）-------------
-    tcpSocket->write(tcp_order.VoltageA_MonitorON); WaitingSocketWrite(); Sleep(waitTime);
-    tcpSocket->write(tcp_order.VoltageB_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
-    tcpSocket->write(tcp_order.InputVoltage_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
-    tcpSocket->write(tcp_order.Temp_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
-    
-    //-------------开始检测ARM硬件电路的基本状态-------------
-    tcpSocket->write(tcp_order.MonitorMessageON);  WaitingSocketWrite(); Sleep(waitTime);
-    
+        //-------------对各个硬件状态监测开启（目前不考虑关闭监测）-------------
+        tcpSocket->write(tcp_order.VoltageA_MonitorON); WaitingSocketWrite(); Sleep(waitTime);
+        tcpSocket->write(tcp_order.VoltageB_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
+        tcpSocket->write(tcp_order.InputVoltage_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
+        tcpSocket->write(tcp_order.Temp_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
+        
+        //-------------开始检测ARM硬件电路的基本状态-------------
+        tcpSocket->write(tcp_order.MonitorMessageON);  WaitingSocketWrite(); Sleep(waitTime);
+    }
+    else {
+        qWarning() << "连接成功后，探测器状态异常，无法发送初始化指令";
+    }
     // ==================连接成功，相关按钮翻转=================
     ui->bt_connectDet->setText("断开网络");
     ui->bt_connectDet->setEnabled(true);
@@ -577,9 +592,9 @@ void mainWindow::readMassage()
                 int minutes = rest_seconds / 60;
                 rest_seconds -= minutes * 60;
                 QString str_Time = "";
-                if (hours > 0)  str_Time = QString::number(hours) + "h" + QString::number(minutes) + "min" + QString::number(rest_seconds) + "s";
-                else if (minutes > 0) str_Time = QString::number(minutes) + "min" + QString::number(rest_seconds) + "s";
-                else str_Time = QString::number(rest_seconds) + "s";
+                if (hours > 0)  str_Time = QString::number(hours) + "h" + QString::number(minutes) + "min" + QString::number(rest_seconds);
+                else if (minutes > 0) str_Time = QString::number(minutes) + "min" + QString::number(rest_seconds);
+                else str_Time = QString::number(rest_seconds);
                 ui->measrue_label->setText(str_Time);
 
                 // -------解析探测器计数数据------
@@ -592,10 +607,11 @@ void mainWindow::readMassage()
                 Num3 = counter[2];
                 Num4 = counter[3];
 
-                ui->Conuter1Label->setNum(Num1);
-                ui->Conuter2Label->setNum(Num2);
-                ui->Conuter3Label->setNum(Num3);
-                ui->Conuter4Label->setNum(Num4);
+                ui->label_count1->setNum(Num1);
+                ui->label_count2->setNum(Num2);
+                ui->label_count3->setNum(Num3);
+                ui->label_count4->setNum(Num4);
+                ui->label_TotalCount->setNum(Num1 + Num2 + Num3 + Num4);
 
                 // 当绘图点数少于时间，填充数据，若还是少于，则再次补一个数据，确保绘图点数与时间长度相等。
                 // 否则不进行动作，也就是不往容器里存入数据，也不往绘图曲线中存入数据
@@ -812,12 +828,20 @@ void mainWindow::on_Measure_Button_clicked()
         msg[3] = static_cast<char>(static_cast<quint8>(t1 & 0xFF));
         msg[4] = static_cast<char>(static_cast<quint8>((t2 >> 8) & 0xFF));
         msg[5] = static_cast<char>(static_cast<quint8>(t2 & 0xFF));
-        tcpSocket->write(msg);
-        WaitingSocketWrite(); 
-        Sleep(tcp_order.waitingTime);
-
-        // =========PC端向ARM端发送开始测量指令==============
-        tcpSocket->write(tcp_order.StartMeasure);
+        
+        if(tcpSocket!=Q_NULLPTR && tcpSocket->state() == QAbstractSocket::ConnectedState) {
+            // PC端向ARM端发送设置比较器阈值指令
+            tcpSocket->write(msg);
+            WaitingSocketWrite(); 
+            Sleep(tcp_order.waitingTime);
+            // =========PC端向ARM端发送开始测量指令==============
+            tcpSocket->write(tcp_order.StartMeasure);
+        }
+        else {
+            qWarning() << "无法发送开始测量指令，探测器网络状态异常";
+            QMessageBox::warning(this, tr("错误"), tr("无法发送开始测量指令，请检查探测器连接状态。"));
+            return;
+        }
         
         // ==============记录实验开始时间==================
         beginTime = QDateTime::currentDateTime();
@@ -840,7 +864,14 @@ void mainWindow::on_Measure_Button_clicked()
     {
         MeasureStatus = false;
         // PC端向ARM端发送停止测量指令
-        tcpSocket->write(tcp_order.StopMeasure);
+        if(tcpSocket!=Q_NULLPTR && tcpSocket->state() == QAbstractSocket::ConnectedState) {
+            tcpSocket->write(tcp_order.StopMeasure);
+        }
+        else {
+            qWarning() << "无法发送停止测量指令，探测器网络状态异常";
+            QMessageBox::warning(this, tr("错误"), tr("无法发送停止测量指令，请检查探测器连接状态。"));
+            return;
+        }
         
         // 保存测量数据
         if (counter1.size() > 0) {
@@ -923,13 +954,17 @@ void mainWindow::Show_Plot(QCustomPlot* customPlot, double num1, double num2, do
     pGraph1_2->addData(plotCount, num2);
     pGraph1_3->addData(plotCount, num3);
     pGraph1_4->addData(plotCount, num4);
+    pGraphTotal->addData(plotCount, num1 + num2 + num3 + num4);
 
     // 自动调节坐标轴
     if (RescaleAxesFlag){
-        pGraph1_1->rescaleAxes(); // 让范围自行缩放，使图0完全适合于可见区域.这里不能带参数true
-        pGraph1_2->rescaleAxes(true); // 图1也是一样自动调整范围，但只是放大或不变范围
-        pGraph1_3->rescaleAxes(true);
-        pGraph1_4->rescaleAxes(true);
+        pGraph1_1->rescaleValueAxis(); // 让范围自行缩放，使图0完全适合于可见区域.这里不能带参数true
+        pGraph1_2->rescaleValueAxis(); // 图1也是一样自动调整范围，但只是放大或不变范围
+        pGraph1_3->rescaleValueAxis();
+        pGraph1_4->rescaleValueAxis();
+        if (isShowLine[4]) {
+            pGraphTotal->rescaleValueAxis();
+        }
     }
     // 设置x坐标轴显示范围，使其自适应缩放x轴，x轴最大显示1000个点
     customPlot->xAxis->setRange((pGraph1_1->dataCount() > 1000) ? (pGraph1_1->dataCount() - 1000) : 0, pGraph1_1->dataCount());
@@ -1050,6 +1085,28 @@ void mainWindow::on_checkBox4_stateChanged(int arg1)
     pPlot->replot();
 }
 
+void mainWindow::on_cb_TotalCount_stateChanged(int arg1)
+{
+    if (arg1 == Qt::Checked) { //选中
+        isShowLine[4] = true;
+        pGraphTotal->setVisible(true);
+    }
+    else { //未选中
+        isShowLine[4] = false;
+        pGraphTotal->setVisible(false);//void QCPLayerable::setVisible(bool on)
+    }
+    if (RescaleAxesFlag) {
+        pGraph1_1->rescaleValueAxis();
+        pGraph1_2->rescaleValueAxis();
+        pGraph1_3->rescaleValueAxis();
+        pGraph1_4->rescaleValueAxis();
+        if (isShowLine[4]) {
+            pGraphTotal->rescaleValueAxis();
+        }
+    }
+    pPlot->replot();
+}
+
 // 鼠标左键点击图像取值
 void mainWindow::SLOT_mouseTracetoCoord(QMouseEvent* event)
 {
@@ -1084,7 +1141,8 @@ void mainWindow::DoCurveTracer(QMouseEvent* event)
     // 
     //将鼠标坐标值换成曲线x轴的值
     int x_value = round(pPlot->xAxis->pixelToCoord(x_pos));
-    for (int i = pPlot->graphCount() - 1; i >= 0; --i)
+    // 总计数曲线不显示曲线取值
+    for (int i = pPlot->graphCount() - 2; i >= 0; --i)
     {
         // 获取x轴值对应的曲线中的y轴值
         float y_value = pPlot->graph(i)->data()->at(x_value)->value;
@@ -1098,7 +1156,7 @@ void mainWindow::DoCurveTracer(QMouseEvent* event)
             tracerX[i]->setVisible(isShowLine[i]);
             //定义标签格式
             QString tip;
-            tip = QString::number(i+1) + "," + QString::number(x_value) + "," + QString::number(y_value);
+            tip = QString::number(i+1) + ":(" + QString::number(x_value) + "," + QString::number(y_value) + ")";
             tracerX[i]->setText(tip);
         }
         else
@@ -1229,15 +1287,7 @@ void mainWindow::on_GetData_comboBox_currentIndexChanged(const QString& arg1)
             delete lineTracer;
             lineTracer = Q_NULLPTR;
         }
-        ////设置追踪曲线
-        //for (int i = 0; i < 4; i++) {
-        //    plottracer[i] = new QCPItemTracer(pPlot);
-        //    plottracer[i]->setGraph(pPlot->graph(i));
-        //    //设置十字浮标样式
-        //    QPen pen = pPlot->graph(i)->pen();
-        //    pen.setStyle(Qt::SolidLine);//
-        //    plottracer[i]->setPen(pen);
-        //}
+
         for (int i = 0; i < 4; i++) {
             tracerX[i] = new myTracer(pPlot, pPlot->graph(i), DataTracer);
         }
@@ -1268,16 +1318,16 @@ void mainWindow::on_rescaleAxesCheckBox_stateChanged(int arg1)
     if (arg1 == Qt::Checked) { //选中
         RescaleAxesFlag = true;
         pGraph1_1->rescaleAxes(); // 让范围自行缩放，使图0完全适合于可见区域.这里不能带参数true
-        pGraph1_2->rescaleAxes(true); // 图1也是一样自动调整范围，但只是放大或不变范围
-        pGraph1_3->rescaleAxes(true);
-        pGraph1_4->rescaleAxes(true);
+        pGraph1_2->rescaleAxes(); // 图1也是一样自动调整范围，但只是放大或不变范围
+        pGraph1_3->rescaleAxes();
+        pGraph1_4->rescaleAxes();
     }
     else { //未选中
         RescaleAxesFlag = false;
-        pGraph1_1->rescaleAxes(false); 
-        pGraph1_2->rescaleAxes(false); 
-        pGraph1_3->rescaleAxes(false);
-        pGraph1_4->rescaleAxes(false);
+        pGraph1_1->rescaleAxes(true);  //true 表示 只扩展坐标轴范围，不覆盖前面已经算好的范围。
+        pGraph1_2->rescaleAxes(true); 
+        pGraph1_3->rescaleAxes(true);
+        pGraph1_4->rescaleAxes(true);
     }
     adjustXRange();
     pPlot->replot();
@@ -1287,7 +1337,6 @@ void mainWindow::on_rescaleAxesCheckBox_stateChanged(int arg1)
 // 该函数在析构函数之前运行
 void mainWindow::closeEvent(QCloseEvent* event)
 {
-    qInfo() << "退出软件";
     int ret = QMessageBox::question(this, "关闭窗口", "是否退出",
         QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
         QMessageBox::Yes); // 默认接受退出
@@ -1334,7 +1383,9 @@ void mainWindow::closeAction()
     // 关闭前处于测量状态，PC端向ARM端发送停止测量指令
     if (ui->Measure_Button->text() == "停止测量")
     {
-        tcpSocket->write(tcp_order.StopMeasure);  WaitingSocketWrite();
+        if(tcpSocket!=Q_NULLPTR && tcpSocket->state() == QAbstractSocket::ConnectedState) {
+            tcpSocket->write(tcp_order.StopMeasure);  WaitingSocketWrite();
+        }
         // 延时关闭窗口，以确保网口能够把指令发送给ARM
         QTime t;
         t.start();
@@ -1351,7 +1402,7 @@ void mainWindow::closeAction()
 // 让ARM停止发送设备状态信息（温度、输入电源、探测器A组电压、探测器B组电压）
 void mainWindow::ARM_Sleep()
 {
-    if (tcpSocket) {
+    if(tcpSocket!=Q_NULLPTR && tcpSocket->state() == QAbstractSocket::ConnectedState) {
         int waitTime = tcp_order.waitingTime;
         tcpSocket->write(tcp_order.DetecA_OFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭探测器A组电压
         tcpSocket->write(tcp_order.DetecB_OFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭探测器B组电压

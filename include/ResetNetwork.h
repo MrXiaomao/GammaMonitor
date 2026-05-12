@@ -24,7 +24,7 @@ public:
 
 private slots:
 	void readMassage();
-	void displayError(QAbstractSocket::SocketError);
+	void slotNetError(QAbstractSocket::SocketError);
 	void connectUpdata();
 	void disconnectUpdata();
 	void on_bt_connectDet_clicked(); // 控制探测器的网络连接
