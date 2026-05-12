@@ -9,7 +9,7 @@ Order::Order(void)
 	StopMeasure.resize(4);
 
 	DetecA_ON.resize(4);
-	DetecA_ON.resize(4);
+	DetecB_ON.resize(4);
 	ExtDeviceON.resize(4);
 
 	DetecA_OFF.resize(4);

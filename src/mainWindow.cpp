@@ -347,9 +347,8 @@ void mainWindow::on_networkSettingMenu_triggered()
     
     qInfo().noquote() << "打开“修改网络配置”界面";
     ResetNetwork* dialog = new ResetNetwork();
-    
-    dialog->exec();	// 模态窗口								
-    //dialog->show(); // 非模态窗口
+    dialog->exec();	    // 模态窗口				
+    //dialog->show();   // 非模态窗口
 }
 
 // 打开文件
@@ -493,8 +492,6 @@ void mainWindow::disconnectUpdata()
 //读取网口数据
 void mainWindow::readMassage()
 {
-    //打印线程号
-    qDebug() << "readMassage thread ID:" << QThread::currentThreadId();
     // 从接收缓冲区中读取数据
     QByteArray buffer = tcpSocket->readAll();
 
@@ -759,9 +756,6 @@ double mainWindow::GetVolt_B(QByteArray DataPack)
 //开始测量&停止测量按钮
 void mainWindow::on_Measure_Button_clicked() 
 {
-    //打印线程号
-    qDebug() << "on_Measure_Button_clicked thread ID:" << QThread::currentThreadId();
-
     if (ui->Measure_Button->text() == "开始测量")
     {
         //===============检查保存文件路径====================
@@ -1293,6 +1287,7 @@ void mainWindow::on_rescaleAxesCheckBox_stateChanged(int arg1)
 // 该函数在析构函数之前运行
 void mainWindow::closeEvent(QCloseEvent* event)
 {
+    qInfo() << "退出软件";
     int ret = QMessageBox::question(this, "关闭窗口", "是否退出",
         QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
         QMessageBox::Yes); // 默认接受退出

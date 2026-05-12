@@ -973,7 +973,7 @@
              <item>
               <widget class="QPushButton" name="savePathButton">
                <property name="text">
-                <string>选择文件路径</string>
+                <string>选择文件夹</string>
                </property>
                <property name="icon">
                 <iconset resource="../mainWindow.qrc">
