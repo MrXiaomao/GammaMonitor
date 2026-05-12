@@ -189,7 +189,6 @@
     <ClCompile Include="src\order.cpp" />
     <ClCompile Include="src\QCPItemTip.cpp" />
     <ClCompile Include="src\qcustomplot.cpp" />
-    <ClCompile Include="src\QIPLineEdit.cpp" />
     <ClCompile Include="src\RelayDialog.cpp" />
     <ClCompile Include="src\ResetNetwork.cpp" />
     <ClCompile Include="src\ShowTXT.cpp" />
@@ -292,7 +291,6 @@
     <ClInclude Include="resource.h" />
     <QtMoc Include="include\ResetNetwork.h" />
     <QtMoc Include="include\RelayDialog.h" />
-    <QtMoc Include="include\QIPLineEdit.h" />
     <QtMoc Include="include\qcustomplot.h" />
     <QtMoc Include="include\QCPItemTip.h" />
     <QtMoc Include="include\OpenFileDialog.h" />

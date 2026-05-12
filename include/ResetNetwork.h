@@ -1,3 +1,10 @@
+/*
+ * @Author: MrPan
+ * @Date: 2026-05-10 19:34:32
+ * @LastEditors: Maoxiaoqing
+ * @LastEditTime: 2026-05-12 13:52:40
+ * @Description: 请填写简介
+ */
 
 #pragma once
 
@@ -14,16 +21,14 @@ class ResetNetwork : public QDialog
 public:
 	ResetNetwork(QWidget* parent = Q_NULLPTR);
 	~ResetNetwork();
-	//static quint32 IPV4StringToInteger(const QString& ip);
 
 private slots:
 	void readMassage();
 	void displayError(QAbstractSocket::SocketError);
 	void connectUpdata();
 	void disconnectUpdata();
-	void on_bt_connectDet_clicked(); // 控制继电器的网络连接
+	void on_bt_connectDet_clicked(); // 控制探测器的网络连接
 	void on_changeSetting_clicked(); // 修改配置
-	void onTimeOut(); //定时器
 	void closeEvent(QCloseEvent* event);
 
 private:
@@ -35,5 +40,4 @@ private:
 	QString tcpGateway; // 存储网关
 	QString tcpPort;// 存储端口地址
 	Order tcp_order; // PC端发送的指令
-	QTimer* timer; //定时器
 };

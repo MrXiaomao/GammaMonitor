@@ -344,10 +344,12 @@ void mainWindow::on_networkSettingMenu_triggered()
         QMessageBox::warning(this, tr("Warnning"), "请先在主界面断开网络后再进行网络设置");
         return;
     }
+    
+    qInfo().noquote() << "打开“修改网络配置”界面";
     ResetNetwork* dialog = new ResetNetwork();
-
-    dialog->exec();	//如果是myDialod继承于QDialog，则使用该方法显示模态窗口								
-    //dialog->show(); //如果是myDialod继承于QDialog，则使用该方法设置非模态窗口
+    
+    dialog->exec();	// 模态窗口								
+    //dialog->show(); // 非模态窗口
 }
 
 // 打开文件
@@ -491,6 +493,8 @@ void mainWindow::disconnectUpdata()
 //读取网口数据
 void mainWindow::readMassage()
 {
+    //打印线程号
+    qDebug() << "readMassage thread ID:" << QThread::currentThreadId();
     // 从接收缓冲区中读取数据
     QByteArray buffer = tcpSocket->readAll();
 
@@ -536,9 +540,7 @@ void mainWindow::readMassage()
 
         // 先提取一个指定长度的数据包，不要包头包尾，假定是一个完整的数据包
         QByteArray OnePackArray = TotalPackArray.mid(HeadIndex, TailIndex - HeadIndex+2); // mid(startID,length)
-        //打印接收到的数据包
-        // QString hexDataStr = OnePackArray.toHex(' ').toUpper();
-        // qDebug() << "Received data packet:" << hexDataStr;
+
         int OnePackDataLen = OnePackArray.size();
 
         TotalPackArray.remove(0, TailIndex + 2); // 清除该部分数据
@@ -757,6 +759,9 @@ double mainWindow::GetVolt_B(QByteArray DataPack)
 //开始测量&停止测量按钮
 void mainWindow::on_Measure_Button_clicked() 
 {
+    //打印线程号
+    qDebug() << "on_Measure_Button_clicked thread ID:" << QThread::currentThreadId();
+
     if (ui->Measure_Button->text() == "开始测量")
     {
         //===============检查保存文件路径====================

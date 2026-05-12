@@ -70,9 +70,6 @@
     <ClCompile Include="src\qcustomplot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\QIPLineEdit.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\RelayDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -308,9 +305,6 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="include\qcustomplot.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="include\QIPLineEdit.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="include\RelayDialog.h">

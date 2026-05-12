@@ -164,6 +164,9 @@ void IPAddress::setIP(const QString &ip)
  
         //将IP地址填入各个网段
         QStringList list = ip.split(".");
+        if(list.size() != 4) {
+            return;
+        }
         txtIP1->setText(list.at(0));
         txtIP2->setText(list.at(1));
         txtIP3->setText(list.at(2));
