@@ -16,9 +16,10 @@ RelayDialog::RelayDialog(QWidget *parent)
     tcpPort = jsonSetting["Port_Relay"].toString();
     
     ui.controlRelayButton->setEnabled(false);// 控制器开关禁止状态
-    ui.IP_RelayEdit->setText(tcpIp);
+    ui.IP_RelayEdit->setIP(tcpIp);
     ui.Port_RelayEdit->setText(tcpPort);
     ui.Port_RelayEdit->setValidator(new QIntValidator(1, 9999, this));  // 端口号只能在[1,9999]范围内的整数输入
+    
     timer = Q_NULLPTR;
     tcpSocket = Q_NULLPTR;//使用前先清空 
 }
@@ -45,21 +46,12 @@ void RelayDialog::on_connectRelayButton_clicked()
         tcpSocket = new QTcpSocket(this); //申请堆空间有TCP发送和接受操作
 
         // 点击连接按钮后，记录下当前IP以及Port
-        tcpIp = ui.IP_RelayEdit->text();
+        tcpIp = ui.IP_RelayEdit->getIP();
         tcpPort = ui.Port_RelayEdit->text();
         QJsonObject jsonSetting = mainWindow::ReadSetting();
         jsonSetting["IP_Relay"] = tcpIp;
         jsonSetting["Port_Relay"] = tcpPort;
         mainWindow::WriteSetting(jsonSetting);
-
-        if(!ui.IP_RelayEdit->isTextValid(tcpIp))
-        {
-            QMessageBox msgBox;
-            msgBox.setWindowTitle("Warning");
-            msgBox.setText("IP is in valid");
-            msgBox.exec();
-            return;
-        }
 
         tcpSocket->connectToHost(tcpIp, tcpPort.toInt());//连接主机
         connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this,

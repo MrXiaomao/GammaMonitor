@@ -535,25 +535,24 @@ void mainWindow::readMassage()
         }
 
         // 先提取一个指定长度的数据包，不要包头包尾，假定是一个完整的数据包
-        QByteArray OnePackArray = TotalPackArray.mid(HeadIndex+2, TailIndex - HeadIndex-2); // mid(startID,length)
+        QByteArray OnePackArray = TotalPackArray.mid(HeadIndex, TailIndex - HeadIndex+2); // mid(startID,length)
+        //打印接收到的数据包
+        // QString hexDataStr = OnePackArray.toHex(' ').toUpper();
+        // qDebug() << "Received data packet:" << hexDataStr;
         int OnePackDataLen = OnePackArray.size();
 
         TotalPackArray.remove(0, TailIndex + 2); // 清除该部分数据
-        if (OnePackDataLen == StandardPackLength - 4)  // 包尾包尾各是两个字节，所以减去4
+        if (OnePackDataLen == StandardPackLength)
         {
             PackNumber++;  
             
             //-------------获取设备基本状态参数-------------
             // 设备编号
-            if (OnePackArray.size() > 16)
-                EquipmentID = static_cast<quint8>(OnePackArray.at(16));
-            else
-                EquipmentID = 0;
+            EquipmentID = static_cast<quint8>(OnePackArray.at(18));
             ui->equipmentID_label->setNum(EquipmentID);
 
             // 获取温度
             double temp = GetTemperature(OnePackArray);
-
             ui->temperature_label->setText(QString::number(temp, 'f', 1));
 
             // 获取输入电压
@@ -631,30 +630,30 @@ void mainWindow::GetCounter(QByteArray DataPack, int* count)
         return;
     }
     // 将16进制的QByteArray转化为十进制的int
-    int i = 0;
+    int i = 2; // DataPack 含包包头，从第2字节开始
     int detectorID1 = DataPack.at(i++) & 0xFF; // 探测器编号
-    int high = DataPack.at(i++) & 0xFF;      // 转化高八位
-    int middle = DataPack.at(i++) & 0xFF; // 转换中八位
-    int low = DataPack.at(i++) & 0xFF;   // 转化低八位
-    count[0] = high * 16 * 16 * 16 + middle * 16 * 16 + low;
+    int high = DataPack.at(i++) & 0xFF;      // 高八位
+    int middle = DataPack.at(i++) & 0xFF;   // 中八位
+    int low = DataPack.at(i++) & 0xFF;      // 低八位
+    count[0] = (high << 16) | (middle << 8) | low; // 24位大端组合
     
     int detectorID2 = DataPack.at(i++) & 0xFF;
     high = DataPack.at(i++) & 0xFF;
     middle = DataPack.at(i++) & 0xFF;
     low = DataPack.at(i++) & 0xFF;
-    count[1] = high * 16 * 16 * 16 + middle * 16 * 16 + low;
+    count[1] = (high << 16) | (middle << 8) | low;
     
     int detectorID3 = DataPack.at(i++) & 0xFF;
     high = DataPack.at(i++) & 0xFF;
     middle = DataPack.at(i++) & 0xFF;
     low = DataPack.at(i++) & 0xFF;
-    count[2] = high * 16 * 16 * 16 + middle * 16 * 16 + low;
+    count[2] = (high << 16) | (middle << 8) | low;
 
     int detectorID4 = DataPack.at(i++) & 0xFF;
     high = DataPack.at(i++) & 0xFF;
     middle = DataPack.at(i++) & 0xFF;
     low = DataPack.at(i++) & 0xFF;
-    count[3] = high * 16 * 16 * 16 + middle * 16 * 16 + low;
+    count[3] = (high << 16) | (middle << 8) | low;
 }
 
 // 获取温度
@@ -664,35 +663,25 @@ double mainWindow::GetTemperature(QByteArray DataPack)
     if (DataPack.size() < 20) {
         return 0.0;
     }
-    // 读取温度信息
+    // 读取温度信息（16位大端补码）
+    quint8 high = static_cast<quint8>(DataPack.at(19));
+    quint8 low = static_cast<quint8>(DataPack.at(20));
+    unsigned short int temp = (high << 8) | low;
+
     double temperature = 0.0;
-    unsigned short int temp = DataPack.at(19 - 2) * 16*16 + DataPack.at(20 - 2); 
-    if (temp & 0x8000)
-    {
-        unsigned short int dl = ((~temp) | 0x8000);
-        dl += 0x0001;
-        float dat = 0;
-        for (int i = 0; i < 15; i++)
-        {
-            if (((dl) >> i) | 0x0001)
-            {
-                dat += (-1) * (pow(2, i - 7));
-            }
-        }
-        temperature = dat;
-    }
-    else
-    {
-        unsigned short int dl = temp;
-        float dat = 0;
-        for (int i = 0; i < 15; i++)
-        {
-            if (((dl) >> i) & 0x0001)
-            {
-                dat += (+1) * pow(2, i - 7);
-            }
-        }
-        temperature = dat;
+    if (temp & 0x8000) { // 负数：转换为原码
+        unsigned short int original = (~temp) + 1;
+        // 整数部分：位14~7 (8位)
+        int int_part = (original >> 7) & 0xFF;
+        // 小数部分：位6~0 (7位)
+        int frac_part = original & 0x7F;
+        temperature = -(int_part + frac_part / 128.0);
+    } else { // 正数
+        // 整数部分：位14~7 (8位)
+        int int_part = (temp >> 7) & 0xFF;
+        // 小数部分：位6~0 (7位)
+        int frac_part = temp & 0x7F;
+        temperature = int_part + frac_part / 128.0;
     }
     return temperature;
 }
@@ -704,8 +693,9 @@ double mainWindow::GetOuterVolt(QByteArray DataPack)
     if (DataPack.size() < 23) {
         return 0.0;
     }
-    double outervoltage = 0.0;
-    int outervoltage_adc = 256 * DataPack.at(21-2) + DataPack.at(22-2); //减去包头两个字节
+    quint8 high = static_cast<quint8>(DataPack.at(21));
+    quint8 low  = static_cast<quint8>(DataPack.at(22));
+    int outervoltage_adc = (high << 8) | low;
     
     double coefficient = 0.002762;
 	auto it = coef_InputVolt.find(EquipmentID);
@@ -713,6 +703,8 @@ double mainWindow::GetOuterVolt(QByteArray DataPack)
 		// 键存在
 		coefficient = coef_InputVolt[EquipmentID];
 	}
+
+    double outervoltage = 0.0;
     outervoltage = outervoltage_adc * coefficient;	
     return outervoltage;
 }
@@ -724,18 +716,18 @@ double mainWindow::GetVolt_A(QByteArray DataPack)
     if (DataPack.size() < 25) {
         return 0.0;
     }
-    double sipmvoltege_A = 0.0;
-    int sipmvoltege_A_adc = 256 * DataPack.at(23-2) + DataPack.at(24-2);
+    quint8 high = static_cast<quint8>(DataPack.at(23));
+    quint8 low  = static_cast<quint8>(DataPack.at(24));
+    int sipmvoltege_A_adc = (high << 8) | low;
 
     double coefficient = 0.023297; //默认值
-	// 使用find查找设备编号
 	auto it = coef_SiPMA_Volt.find(EquipmentID);
 	if (it != coef_SiPMA_Volt.end()) {
-		// 键存在
 		coefficient = coef_SiPMA_Volt[EquipmentID];
 	}
+
+    double sipmvoltege_A = 0.0;
 	sipmvoltege_A = sipmvoltege_A_adc * coefficient;
-    qDebug() << "coefficient_A = " << coefficient<<", EquipmentID=" << EquipmentID<<", sipmvoltege_A_adc=" << sipmvoltege_A_adc << ", sipmvoltege_A=" << sipmvoltege_A;
     return sipmvoltege_A;
 }
 
@@ -746,18 +738,19 @@ double mainWindow::GetVolt_B(QByteArray DataPack)
     if (DataPack.size() < 27) {
         return 0.0;
     }
-    double sipmvoltege_B = 0.0;
-    int sipmvoltege_B_adc = 256 * DataPack.at(25-2) + DataPack.at(26-2);
+
+    quint8 high = static_cast<quint8>(DataPack.at(25));
+    quint8 low  = static_cast<quint8>(DataPack.at(26));
+    int sipmvoltege_B_adc = (high << 8) | low;
 	
     double coefficient = 0.023297; //默认值
-	// 使用find查找设备编号
 	auto it = coef_SiPMB_Volt.find(EquipmentID);
 	if (it != coef_SiPMB_Volt.end()) {
-		// 键存在
 		coefficient = coef_SiPMB_Volt[EquipmentID];
 	}
-	sipmvoltege_B = sipmvoltege_B_adc * coefficient;
 
+    double sipmvoltege_B = 0.0;
+	sipmvoltege_B = sipmvoltege_B_adc * coefficient;
     return sipmvoltege_B;
 }
 

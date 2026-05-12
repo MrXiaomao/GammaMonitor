@@ -18,8 +18,8 @@ ResetNetwork::ResetNetwork(QWidget* parent)
     
 
     ui.changeSetting->setEnabled(false);// 控制器开关禁止状态
-    ui.IP_ARM_Edit->setText(tcpIp);
-    ui.Gateway_ARM_Edit->setText(tcpGateway);
+    ui.IP_ARM_Edit->setIP(tcpIp);
+    ui.Gateway_ARM_Edit->setIP(tcpGateway);
     ui.Port_ARM_Edit->setText(tcpPort);
     ui.Port_ARM_Edit->setValidator(new QIntValidator(1, 9999, this));  // 端口号只能在[1,9999]范围内的整数输入
     timer = Q_NULLPTR;
@@ -49,8 +49,8 @@ void ResetNetwork::on_bt_connectDet_clicked()
         tcpSocket = new QTcpSocket(this); //申请堆空间有TCP发送和接受操作
 
         // 点击连接按钮后，记录下当前IP、网关以及Port
-        tcpIp = ui.IP_ARM_Edit->text();
-        tcpGateway = ui.Gateway_ARM_Edit->text();
+        tcpIp = ui.IP_ARM_Edit->getIP();
+        tcpGateway = ui.Gateway_ARM_Edit->getIP();
         tcpPort = ui.Port_ARM_Edit->text();
 
         QJsonObject jsonSetting = mainWindow::ReadSetting();
@@ -58,23 +58,6 @@ void ResetNetwork::on_bt_connectDet_clicked()
         jsonSetting["Gateway_Detector"] = tcpGateway;
         jsonSetting["Port_Detector"] = tcpPort;
         mainWindow::WriteSetting(jsonSetting);
-
-        if (!ui.IP_ARM_Edit->isTextValid(tcpIp))
-        {
-            QMessageBox msgBox;
-            msgBox.setWindowTitle("Warning");
-            msgBox.setText("IP is in valid");
-            msgBox.exec();
-            return;
-        }
-        if (!ui.Gateway_ARM_Edit->isTextValid(tcpGateway))
-        {
-            QMessageBox msgBox;
-            msgBox.setWindowTitle("Warning");
-            msgBox.setText("Gateway is in valid");
-            msgBox.exec();
-            return;
-        }
 
         tcpSocket->connectToHost(tcpIp, tcpPort.toInt());//连接主机
         connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this,
@@ -182,27 +165,9 @@ void ResetNetwork::on_changeSetting_clicked()
     msg[0] = 0x11; //包头
     msg[11] = 0x22; //包尾
 
-    tcpIp = ui.IP_ARM_Edit->text();
-    tcpGateway = ui.Gateway_ARM_Edit->text();
+    tcpIp = ui.IP_ARM_Edit->getIP();
+    tcpGateway = ui.Gateway_ARM_Edit->getIP();
     tcpPort = ui.Port_ARM_Edit->text();
-
-    // 确保输入的设备IP、设备网关是有效的。
-    if (!ui.IP_ARM_Edit->isTextValid(tcpIp))
-    {
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("Warning");
-        msgBox.setText("IP is in valid");
-        msgBox.exec();
-        return;
-    }
-    if (!ui.Gateway_ARM_Edit->isTextValid(tcpGateway))
-    {
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("Warning");
-        msgBox.setText("Gateway is in valid");
-        msgBox.exec();
-        return;
-    }
 
     QStringList ips = tcpIp.split(".");
     QStringList gateways = tcpGateway.split(".");
@@ -260,23 +225,6 @@ void ResetNetwork::readMassage()
 
     // 设备编号
     int EquipmentID = data.at(18) & 0xFF;
-
-    if (!ui.IP_ARM_Edit->isTextValid(str1))
-    {
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("Warning");
-        msgBox.setText("IP reset is in valid");
-        msgBox.exec();
-        return;
-    }
-    if (!ui.Gateway_ARM_Edit->isTextValid(str2))
-    {
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("Warning");
-        msgBox.setText("Gateway reset is in valid");
-        msgBox.exec();
-        return;
-    }
 
     QJsonObject jsonSetting = mainWindow::ReadSetting();
     jsonSetting["IP_Detector"] = str1;
