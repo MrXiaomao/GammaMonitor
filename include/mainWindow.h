@@ -5,7 +5,9 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QMessageBox>
-#include <QJsonObject> 
+#include <QJsonObject>
+#include <QTimer>
+#include <QVector>
 #include "order.h"
 #include "CustomPlotTooltip.h"
 #include "mytracer.h"
@@ -46,6 +48,7 @@ private slots:
     void disconnectUpdata(); // 断开连接，更新各个按钮功能
     void on_bt_connectDet_clicked(); // 网络连接按钮
     void on_Measure_Button_clicked(); // 开始测量&停止测量按钮
+    void onMultiThresholdLoopTimer(); // 多阈值子循环单次时长结束
     void on_networkSettingMenu_triggered(); // 菜单栏网络设置
     void on_relayMenu_triggered(); // 菜单栏继电器控制
     void on_netLog_triggered(); //打开帮助栏/网络修改日志
@@ -73,7 +76,6 @@ protected slots:
 private:
     Ui::mainWindowClass *ui;
 
-    void PlotData(const QVector<double>& x,const QVector<double>& y, QColor color = Qt::red); // 对输入的一对数据进行绘图
     void adjustXRange();//调整根据界面的显示时长类型调整坐标轴范围
     // 保存测量数据
     void SaveFile(QString filepath, QVector<int>data1, QVector<int>data2,
@@ -104,6 +106,19 @@ private:
     int timeLength; //测量时长，单位：s
     bool MeasureStatus; //测量状态标志
 
+    // 多阈值循环测量（一次「开始测量」内多档道址/阈值）
+    bool m_multiThresholdSweepMode;
+    bool m_subLoopCollectingSamples;
+    QVector<int> m_sweepThresholdList;
+    int m_sweepThresholdIndex;
+    QTimer* m_multiLoopTimer;
+    QDateTime m_subLoopMeasureStart;
+    QVector<double> m_subLoopRatesAfterStableSec[4];
+    double m_lastSubLoopMeanCountRate[4];
+    QVector<QVector<double>> m_sweepMeanCountRatesByThreshold;
+    QVector<double> m_spectrumThresholdLeftPoints;
+    QVector<double> m_spectrumDiffRates[4];
+
     // 绘图控件的指针
     QCustomPlot* pPlot;
     double plotCount ; //记录绘图的数据点个数，注意由于会定时矫正ARM的数据包个数，因此PackNumber与plotCount不一定相等。 
@@ -118,6 +133,7 @@ private:
     QCPGraph* pGraph1_3;
     QCPGraph* pGraph1_4;
     QCPGraph* pGraphTotal;
+    QCPGraph* pSpectrumGraph[4];
 
     TracerFlag mTracer;
     myTracer* tracerCross;
@@ -133,12 +149,22 @@ private:
     bool RescaleAxesFlag; // 是否自动调整坐标轴范围
 
     void QPlot_init(QCustomPlot* customPlot);
+    void SpectrumPlot_init(QCustomPlot* customPlot);
     void Show_Plot(QCustomPlot* customPlot, double num1,double num2,double num3, double num4);
+    void updateSpectrumPlot();
     void LoadVoltageCoefficients();
 
     void ARM_Sleep(); // 让ARM进入休眠，停止比较器工作，停止电压监测、温度监测
     void WaitingSocketWrite(int time = 30000); // 等待QTcpSocket写入数据
     void GetCounter(QByteArray DataPack,int *count); // 解析四个探测器计数
+
+    void sendComparatorThreshold(quint16 t1, quint16 t2); // 发送比较器阈值（0x50 0x01）
+    static QVector<int> buildThresholdSweepList(int startCh, int endCh, int deltaCh);
+    void appendLineToDataFile(const QString& filepath, const QString& line); // 追加一行到数据文件
+    void startNextThresholdSubLoop(); // 开始下一档阈值子循环
+    void finishMultiThresholdSweep(bool stoppedByUser); // 多阈值序列结束收尾
+    void stopMeasureArm(); // 发送停止测量并等待写出
+
     double GetTemperature(QByteArray DataPack); // 解析数据包中的温度
     double GetOuterVolt(QByteArray DataPack);// 获取外部电压
     double GetVolt_A(QByteArray DataPack);// 获取探测器A组偏压

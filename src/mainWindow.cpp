@@ -4,6 +4,9 @@
 #include <QJsonDocument>
 #include <Qjsonarray>
 #include <QVector>
+#include <QTextStream>
+#include <QTextCodec>
+#include <QTimer>
 
 #include <QNetworkProxy>
 
@@ -18,6 +21,10 @@
 using namespace std;
 
 #pragma execution_character_set("utf-8") 
+
+namespace {
+const double kMultiSweepStableDiscardSec = 2.0; // 改变阈值后约前两秒数据不稳定，不参与均值
+}
 
 mainWindow::mainWindow(QWidget *parent)
     : QMainWindow(parent),ui(new Ui::mainWindowClass)
@@ -39,6 +46,16 @@ mainWindow::mainWindow(QWidget *parent)
     timer = Q_NULLPTR;
     mTracer = TracerFlag::NoTracer;
 
+    m_multiThresholdSweepMode = false;
+    m_subLoopCollectingSamples = false;
+    m_sweepThresholdIndex = 0;
+    for (int i = 0; i < 4; ++i) {
+        m_lastSubLoopMeanCountRate[i] = 0.0;
+    }
+    m_multiLoopTimer = new QTimer(this);
+    m_multiLoopTimer->setSingleShot(true);
+    connect(m_multiLoopTimer, &QTimer::timeout, this, &mainWindow::onMultiThresholdLoopTimer);
+
     refreshPlotFlag = true;
     RescaleAxesFlag = true;
 
@@ -46,6 +63,7 @@ mainWindow::mainWindow(QWidget *parent)
     lineTracer = Q_NULLPTR;
     for (int i = 0; i < 4; i++) {
         tracerX[i] = Q_NULLPTR;
+        pSpectrumGraph[i] = Q_NULLPTR;
     }
 
     // 给customPlot绘图控件，设置个别名，方便书写
@@ -57,6 +75,7 @@ mainWindow::mainWindow(QWidget *parent)
     sBar = statusBar();
     // 初始化图表1
     QPlot_init(pPlot);
+    SpectrumPlot_init(ui->plot_spectrum);
 
     connect(this, SIGNAL(sigAppendMsg(const QString&, QtMsgType)), this, 
         SLOT(slotAppendMsg(const QString&, QtMsgType)));
@@ -129,9 +148,12 @@ void mainWindow::initUI()
         QBoxLayout *box = qobject_cast<QBoxLayout*>(leftContainer->layout());
         if (box) {
             const int idxPlot = box->indexOf(ui->customPlot);
+            const int idxPlotSpec = box->indexOf(ui->plot_spectrum);
             const int idxGroup = box->indexOf(ui->groupBox_4);
-            if ((idxPlot != -1) && (idxGroup != -1)) {
+            // plot_spectrum
+            if ((idxPlot != -1) && (idxGroup != -1) && (idxPlotSpec != -1)) {
                 box->setStretch(idxPlot, 2);
+                box->setStretch(idxPlotSpec, 2);
                 box->setStretch(idxGroup, 1);
             }
         }
@@ -248,6 +270,29 @@ void mainWindow::QPlot_init(QCustomPlot* customPlot)
     // 允许用户用鼠标拖动轴范围，用鼠标滚轮缩放，点击选择图形:
     customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     //iRangeDrag 左键点击可拖动; iRangeZoom 范围可通过鼠标滚轮缩放; iSelectPlottables 线条可选中
+}
+
+void mainWindow::SpectrumPlot_init(QCustomPlot* customPlot)
+{
+    if (!customPlot)
+        return;
+
+    const QColor colors[4] = { Qt::red, Qt::darkRed, Qt::green, Qt::blue };
+    for (int i = 0; i < 4; ++i) {
+        pSpectrumGraph[i] = customPlot->addGraph();
+        pSpectrumGraph[i]->setPen(QPen(colors[i]));
+        pSpectrumGraph[i]->setLineStyle(QCPGraph::lsLine);
+        pSpectrumGraph[i]->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 5));
+        pSpectrumGraph[i]->setName(QString("探测器%1").arg(i + 1));
+    }
+
+    customPlot->xAxis->setLabel("阈值道址");
+    customPlot->yAxis->setLabel("差分计数率/cps");
+    customPlot->xAxis->setRange(0, 4095);
+    customPlot->yAxis->setRange(0, 100);
+    customPlot->legend->setBrush(QColor(255, 255, 255, 0));
+    customPlot->legend->setVisible(true);
+    customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 }
 
 void mainWindow::slotAppendMsg(const QString& msg, QtMsgType msgType)
@@ -613,24 +658,23 @@ void mainWindow::readMassage()
                 ui->label_count4->setNum(Num4);
                 ui->label_TotalCount->setNum(Num1 + Num2 + Num3 + Num4);
 
-                // 当绘图点数少于时间，填充数据，若还是少于，则再次补一个数据，确保绘图点数与时间长度相等。
-                // 否则不进行动作，也就是不往容器里存入数据，也不往绘图曲线中存入数据
-                while (plotCount < timeLength) 
-                {
-                    counter1.push_back(Num1);
-                    counter2.push_back(Num2);
-                    counter3.push_back(Num3);
-                    counter4.push_back(Num4);
-                    temperatue.push_back(temp);
-                    plotCount++; 
-                    Show_Plot(pPlot, Num1 * 1.0, Num2 * 1.0, Num3 * 1.0, Num4 * 1.0);
-                }        
-                // 自动保存数据 每镉10秒保存一次数据，防止软件意外崩溃，
-				//    因为保存数据(读写I/O口)比较费时间，所以不能每秒都进行保存，
-                if (timeLength % 30 == 0)
-                {   
-                    SaveFile(autofilePath, counter1, counter2, counter3, counter4, temperatue);//保存这次的测量数据至默认路径
+                if (m_multiThresholdSweepMode && m_subLoopCollectingSamples) {
+                    const double elapsedSec = m_subLoopMeasureStart.msecsTo(nowTime) / 1000.0;
+                    if (elapsedSec >= kMultiSweepStableDiscardSec) {
+                        m_subLoopRatesAfterStableSec[0].push_back(static_cast<double>(Num1));
+                        m_subLoopRatesAfterStableSec[1].push_back(static_cast<double>(Num2));
+                        m_subLoopRatesAfterStableSec[2].push_back(static_cast<double>(Num3));
+                        m_subLoopRatesAfterStableSec[3].push_back(static_cast<double>(Num4));
+                    }                    
+                } else if (!m_multiThresholdSweepMode) {
+                    // 自动保存数据 每镉10秒保存一次数据，防止软件意外崩溃，
+                    //    因为保存数据(读写I/O口)比较费时间，所以不能每秒都进行保存，
+                    if (timeLength % 30 == 0)
+                    {
+                        SaveFile(autofilePath, counter1, counter2, counter3, counter4, temperatue);//保存这次的测量数据至默认路径
+                    }
                 }
+                Show_Plot(pPlot, Num1 * 1.0, Num2 * 1.0, Num3 * 1.0, Num4 * 1.0);
             }
         }
     }
@@ -769,12 +813,11 @@ double mainWindow::GetVolt_B(QByteArray DataPack)
     return sipmvoltege_B;
 }
 
-//开始测量&停止测量按钮
-void mainWindow::on_Measure_Button_clicked() 
+//开始测量&停止测量按钮（多道阈值循环：left→right，间隔 deltaCh，每档时长 spinBox_oneLoopTime）
+void mainWindow::on_Measure_Button_clicked()
 {
     if (ui->Measure_Button->text() == "开始测量")
     {
-        //===============检查保存文件路径====================
         const QString saveDir = ui->le_savePath->toPlainText().trimmed();
         if (saveDir.isEmpty()) {
             QMessageBox::warning(this, tr("存储路径未设置"), tr("请先填写或选择保存目录。"));
@@ -787,104 +830,392 @@ void mainWindow::on_Measure_Button_clicked()
             return;
         }
 
-        //===========清除上一次的测量数据============
+        m_sweepThresholdList = buildThresholdSweepList(
+            ui->spinBox_leftCh->value(),
+            ui->spinBox_rightCh->value(),
+            ui->spinBox_deltaCh->value());
+        if (m_sweepThresholdList.isEmpty()) {
+            QMessageBox::warning(this, tr("阈值范围无效"), tr("请检查 left / right 道址与间隔设置。"));
+            return;
+        }
+
         counter1.clear();
         counter2.clear();
         counter3.clear();
         counter4.clear();
         temperatue.clear();
 
-        //==============清空绘图曲线的缓存数据==============
-        int count = ui->customPlot->graphCount();//获取曲线条数
-        for (int i = 0; i < count; ++i)
-        {
+        int count = ui->customPlot->graphCount();
+        for (int i = 0; i < count; ++i) {
             pPlot->graph(i)->data().data()->clear();
         }
 
-        //====================重置部分变量，以及控件=====================
-        //-----------变量-----------
         TotalPackArray.clear();
-        PackNumber = 0; // 每次点击开始按钮，清空前一次的包个数
-        plotCount = 0; // 绘图点个数重制
+        PackNumber = 0;
+        plotCount = 0;
         timeLength = 0;
-        MeasureStatus = true;
+        MeasureStatus = false;
+        m_subLoopCollectingSamples = false;
         refreshPlotFlag = true;
-        //-----------控件-----------
-        ui->refreshPlotCheckBox->setCheckState(Qt::Checked); // 图像刷新
-        ui->spinBox_thresholdA->setEnabled(false);//禁止输入状态
-        ui->spinBox_thresholdB->setEnabled(false);//禁止输入状态
-        ui->le_savePath->setEnabled(false);//禁止输入状态
-        ui->experimentNameEdit->setEnabled(false);//禁止输入状态
 
-        // 设置触发阈值（两字节大端；显式类型避免 int→char 隐式窄化）
-        const quint16 t1 = static_cast<quint16>(ui->spinBox_thresholdA->value());
-        const quint16 t2 = static_cast<quint16>(ui->spinBox_thresholdB->value());
+        ui->refreshPlotCheckBox->setCheckState(Qt::Checked);
+        ui->spinBox_thresholdA->setEnabled(false);
+        ui->spinBox_thresholdB->setEnabled(false);
+        ui->spinBox_leftCh->setEnabled(false);
+        ui->spinBox_rightCh->setEnabled(false);
+        ui->spinBox_deltaCh->setEnabled(false);
+        ui->spinBox_oneLoopTime->setEnabled(false);
+        ui->le_savePath->setEnabled(false);
+        ui->experimentNameEdit->setEnabled(false);
 
-        QByteArray msg;
-        msg.resize(6);
-        msg[0] = static_cast<char>(0x50);
-        msg[1] = static_cast<char>(0x01);
-        msg[2] = static_cast<char>(static_cast<quint8>((t1 >> 8) & 0xFF));
-        msg[3] = static_cast<char>(static_cast<quint8>(t1 & 0xFF));
-        msg[4] = static_cast<char>(static_cast<quint8>((t2 >> 8) & 0xFF));
-        msg[5] = static_cast<char>(static_cast<quint8>(t2 & 0xFF));
-        
-        if(tcpSocket!=Q_NULLPTR && tcpSocket->state() == QAbstractSocket::ConnectedState) {
-            // PC端向ARM端发送设置比较器阈值指令
-            tcpSocket->write(msg);
-            WaitingSocketWrite(); 
-            Sleep(tcp_order.waitingTime);
-            // =========PC端向ARM端发送开始测量指令==============
-            tcpSocket->write(tcp_order.StartMeasure);
-        }
-        else {
-            qWarning() << "无法发送开始测量指令，探测器网络状态异常";
-            QMessageBox::warning(this, tr("错误"), tr("无法发送开始测量指令，请检查探测器连接状态。"));
+        if (tcpSocket == Q_NULLPTR || tcpSocket->state() != QAbstractSocket::ConnectedState) {
+            qWarning() << "无法开始多阈值测量，探测器网络状态异常";
+            QMessageBox::warning(this, tr("错误"), tr("请检查探测器连接状态。"));
+            ui->spinBox_thresholdA->setEnabled(true);
+            ui->spinBox_thresholdB->setEnabled(true);
+            ui->spinBox_leftCh->setEnabled(true);
+            ui->spinBox_rightCh->setEnabled(true);
+            ui->spinBox_deltaCh->setEnabled(true);
+            ui->spinBox_oneLoopTime->setEnabled(true);
+            ui->le_savePath->setEnabled(true);
+            ui->experimentNameEdit->setEnabled(true);
             return;
         }
-        
-        // ==============记录实验开始时间==================
-        beginTime = QDateTime::currentDateTime();
-        QString str_beginTime = beginTime.toString("yyyy-MM-dd hh:mm:ss");
-        ui->measureTime_label->setText(str_beginTime);
 
-        QString EquipmentID = ui->equipmentID_label->text();
+        beginTime = QDateTime::currentDateTime();
+        ui->measureTime_label->setText(beginTime.toString("yyyy-MM-dd hh:mm:ss"));
+
         experimentName = ui->experimentNameEdit->toPlainText().trimmed();
-        QString fileName = QString("设备%1_%2%3.txt")
-            .arg(EquipmentID)
+        const QString equipStr = ui->equipmentID_label->text();
+        const QString fileName = QString("设备%1_%2%3.txt")
+            .arg(equipStr == "无" ? QString("0") : equipStr)
             .arg(experimentName.isEmpty() ? "unnamed" : experimentName)
             .arg(beginTime.toString("_yyyy-MM-dd_hh-mm-ss"));
         autofilePath = outDir.filePath(fileName);
+
+        m_multiThresholdSweepMode = true;
+        m_sweepThresholdIndex = 0;
+        m_sweepMeanCountRatesByThreshold.clear();
+        m_spectrumThresholdLeftPoints.clear();
+        for (int i = 0; i < 4; ++i) {
+            m_spectrumDiffRates[i].clear();
+            if (pSpectrumGraph[i]) {
+                pSpectrumGraph[i]->data().data()->clear();
+            }
+        }
+        ui->plot_spectrum->replot(QCustomPlot::rpQueuedReplot);
+        for (int i = 0; i < 4; ++i) {
+            m_lastSubLoopMeanCountRate[i] = 0.0;
+        }
+
+        appendLineToDataFile(autofilePath,
+            QString("threshold_ch samples1 samples2 samples3 samples4 mean_rate1 mean_rate2 mean_rate3 mean_rate4"));
+
         ui->Measure_Button->setText(QString("停止测量"));
-        qInfo() << "开始测量";
-        qInfo() << "触发阈值：" << t1 << " " << t2;
-        qInfo() << "保存文件路径：" << autofilePath;
+        qInfo() << "开始多阈值循环测量，档数:" << m_sweepThresholdList.size()
+                << "保存文件:" << autofilePath;
+
+        startNextThresholdSubLoop();
     }
     else if (ui->Measure_Button->text() == "停止测量")
     {
+        m_multiLoopTimer->stop();
+        m_subLoopCollectingSamples = false;
         MeasureStatus = false;
-        // PC端向ARM端发送停止测量指令
-        if(tcpSocket!=Q_NULLPTR && tcpSocket->state() == QAbstractSocket::ConnectedState) {
+
+        if (tcpSocket != Q_NULLPTR && tcpSocket->state() == QAbstractSocket::ConnectedState) {
             tcpSocket->write(tcp_order.StopMeasure);
-        }
-        else {
+            WaitingSocketWrite();
+        } else {
             qWarning() << "无法发送停止测量指令，探测器网络状态异常";
             QMessageBox::warning(this, tr("错误"), tr("无法发送停止测量指令，请检查探测器连接状态。"));
-            return;
         }
-        
-        // 保存测量数据
-        if (counter1.size() > 0) {
-            SaveFile(autofilePath, counter1, counter2, counter3, counter4, temperatue);//保存这次的测量数据至默认路径
+
+        if (m_multiThresholdSweepMode) {
+            finishMultiThresholdSweep(true);
+        } else {
+            if (counter1.size() > 0) {
+                SaveFile(autofilePath, counter1, counter2, counter3, counter4, temperatue);
+            }
+            ui->Measure_Button->setText(QString("开始测量"));
+            ui->le_savePath->setEnabled(true);
+            ui->experimentNameEdit->setEnabled(true);
+            ui->spinBox_thresholdA->setEnabled(true);
+            ui->spinBox_thresholdB->setEnabled(true);
+            ui->spinBox_leftCh->setEnabled(true);
+            ui->spinBox_rightCh->setEnabled(true);
+            ui->spinBox_deltaCh->setEnabled(true);
+            ui->spinBox_oneLoopTime->setEnabled(true);
+            qInfo() << "停止测量";
         }
-        
-        // 恢复使用
-        ui->Measure_Button->setText(QString("开始测量")); //按钮翻转
-        ui->le_savePath->setEnabled(true);//恢复输入状态
-        ui->experimentNameEdit->setEnabled(true);//恢复输入状态
-        ui->spinBox_thresholdA->setEnabled(true);//恢复输入状态
-        ui->spinBox_thresholdB->setEnabled(true);//恢复输入状态
-        qInfo() << "停止测量";
+    }
+}
+
+void mainWindow::sendComparatorThreshold(quint16 t1, quint16 t2)
+{
+    if (tcpSocket == Q_NULLPTR || tcpSocket->state() != QAbstractSocket::ConnectedState)
+        return;
+    QByteArray msg;
+    msg.resize(6);
+    msg[0] = static_cast<char>(0x50);
+    msg[1] = static_cast<char>(0x01);
+    msg[2] = static_cast<char>(static_cast<quint8>((t1 >> 8) & 0xFF));
+    msg[3] = static_cast<char>(static_cast<quint8>(t1 & 0xFF));
+    msg[4] = static_cast<char>(static_cast<quint8>((t2 >> 8) & 0xFF));
+    msg[5] = static_cast<char>(static_cast<quint8>(t2 & 0xFF));
+    tcpSocket->write(msg);
+}
+
+QVector<int> mainWindow::buildThresholdSweepList(int startCh, int endCh, int deltaCh)
+{
+    QVector<int> out;
+    const int d = qMax(1, deltaCh);
+    if (startCh == endCh) {
+        out.push_back(startCh);
+        return out;
+    }
+    if (startCh < endCh) {
+        for (int x = startCh; x <= endCh; x += d)
+            out.push_back(x);
+        if (out.isEmpty() || out.last() != endCh)
+            out.push_back(endCh);
+    } else {
+        for (int x = startCh; x >= endCh; x -= d)
+            out.push_back(x);
+        if (out.isEmpty() || out.last() != endCh)
+            out.push_back(endCh);
+    }
+    return out;
+}
+
+void mainWindow::appendLineToDataFile(const QString& filepath, const QString& line)
+{
+    QTextCodec* code = QTextCodec::codecForName("UTF-8");
+    const QString filename = QString::fromStdString(code->fromUnicode(filepath).data());
+    QFile f(filename);
+    if (!f.open(QIODevice::Append | QIODevice::Text)) {
+        qWarning() << "appendLineToDataFile: open fail" << filepath;
+        return;
+    }
+    QTextStream ts(&f);
+    ts << line << "\n";
+}
+
+void mainWindow::stopMeasureArm()
+{
+    if (tcpSocket != Q_NULLPTR && tcpSocket->state() == QAbstractSocket::ConnectedState) {
+        tcpSocket->write(tcp_order.StopMeasure);
+        WaitingSocketWrite();
+    }
+}
+
+void mainWindow::startNextThresholdSubLoop()
+{
+    if (!m_multiThresholdSweepMode)
+        return;
+    if (m_sweepThresholdIndex >= m_sweepThresholdList.size()) {
+        finishMultiThresholdSweep(false);
+        return;
+    }
+
+    if (tcpSocket == Q_NULLPTR || tcpSocket->state() != QAbstractSocket::ConnectedState) {
+        qWarning() << "多阈值子循环：网络未连接，中止序列";
+        finishMultiThresholdSweep(true);
+        return;
+    }
+
+    const int ch = m_sweepThresholdList[m_sweepThresholdIndex];
+
+    ui->spinBox_thresholdA->setValue(ch);
+    ui->spinBox_thresholdB->setValue(ch);
+
+    const quint16 t1 = static_cast<quint16>(ch);
+    const quint16 t2 = static_cast<quint16>(ch);
+    sendComparatorThreshold(t1, t2);
+    WaitingSocketWrite();
+    Sleep(tcp_order.waitingTime);
+
+    for (int i = 0; i < 4; ++i) {
+        m_subLoopRatesAfterStableSec[i].clear();
+    }
+    m_subLoopCollectingSamples = true;
+    MeasureStatus = true;
+
+    tcpSocket->write(tcp_order.StartMeasure);
+    WaitingSocketWrite();
+
+    m_subLoopMeasureStart = QDateTime::currentDateTime();
+    beginTime = m_subLoopMeasureStart;
+    timeLength = 0;
+
+    const int oneLoopSec = qMax(1, ui->spinBox_oneLoopTime->value());
+    m_multiLoopTimer->start(oneLoopSec * 1000);
+
+    qInfo() << "多阈值子循环开始 阈值" << ch << "时长" << oneLoopSec << "s";
+}
+
+void mainWindow::onMultiThresholdLoopTimer()
+{
+    if (!m_multiThresholdSweepMode)
+        return;
+
+    m_subLoopCollectingSamples = false;
+    MeasureStatus = false;
+    stopMeasureArm();
+    Sleep(tcp_order.waitingTime);
+
+    QVector<double> means;
+    means.resize(4);
+    for (int i = 0; i < 4; ++i) {
+        double mean = 0.0;
+        if (!m_subLoopRatesAfterStableSec[i].isEmpty()) {
+            double sum = 0.0;
+            for (double r : m_subLoopRatesAfterStableSec[i]) {
+                sum += r;
+            }
+            mean = sum / static_cast<double>(m_subLoopRatesAfterStableSec[i].size());
+        } else {
+            qWarning() << "多阈值子循环：探头" << (i + 1)
+                       << "舍去前2秒后无有效样本（可能单次时长过短或数据未上传）";
+        }
+        means[i] = mean;
+        m_lastSubLoopMeanCountRate[i] = mean;
+    }
+
+    int validSampleCount = 0;
+    for (int i = 0; i < 4; ++i) {
+        validSampleCount = qMax(validSampleCount, m_subLoopRatesAfterStableSec[i].size());
+    }
+    if (validSampleCount == 0) {
+        qWarning() << "多阈值子循环：舍去前2秒后无有效样本（可能单次时长过短或数据未上传）";
+    }
+
+    m_sweepMeanCountRatesByThreshold.push_back(means);
+
+    const int ch = m_sweepThresholdList[m_sweepThresholdIndex];
+    appendLineToDataFile(autofilePath,
+        QString("%1 %2 %3 %4 %5 %6 %7 %8 %9")
+            .arg(ch)
+            .arg(m_subLoopRatesAfterStableSec[0].size())
+            .arg(m_subLoopRatesAfterStableSec[1].size())
+            .arg(m_subLoopRatesAfterStableSec[2].size())
+            .arg(m_subLoopRatesAfterStableSec[3].size())
+            .arg(means[0], 0, 'f', 4)
+            .arg(means[1], 0, 'f', 4)
+            .arg(means[2], 0, 'f', 4)
+            .arg(means[3], 0, 'f', 4));
+
+    qInfo() << "多阈值子循环结束 阈值" << ch
+            << "舍去前2秒后样本数" << validSampleCount
+            << "探头1平均计数率" << means[0]
+            << "探头2平均计数率" << means[1]
+            << "探头3平均计数率" << means[2]
+            << "探头4平均计数率" << means[3];
+
+    for (int i = 0; i < 4; ++i) {
+        qInfo() << "阈值" << ch
+                << "探头" << (i + 1)
+                << "平均计数率" << means[i]
+                << "有效样本数" << m_subLoopRatesAfterStableSec[i].size();
+    }
+
+    updateSpectrumPlot();
+
+    m_sweepThresholdIndex++;
+    if (m_sweepThresholdIndex >= m_sweepThresholdList.size()) {
+        finishMultiThresholdSweep(false);
+        return;
+    }
+
+    Sleep(tcp_order.waitingTime);
+    startNextThresholdSubLoop();
+}
+
+void mainWindow::updateSpectrumPlot()
+{
+    if (!ui->plot_spectrum)
+        return;
+
+    m_spectrumThresholdLeftPoints.clear();
+    for (int det = 0; det < 4; ++det) {
+        m_spectrumDiffRates[det].clear();
+    }
+
+    const int completedCount = m_sweepMeanCountRatesByThreshold.size();
+    if (completedCount < 2) {
+        ui->plot_spectrum->replot(QCustomPlot::rpQueuedReplot);
+        return;
+    }
+
+    for (int i = 1; i < completedCount; ++i) {
+        const int prevThreshold = m_sweepThresholdList[i - 1];
+        const int currThreshold = m_sweepThresholdList[i];
+        const bool prevIsLeft = (prevThreshold <= currThreshold);
+        const int leftThreshold = prevIsLeft ? prevThreshold : currThreshold;
+
+        const QVector<double>& leftMeans = prevIsLeft
+            ? m_sweepMeanCountRatesByThreshold[i - 1]
+            : m_sweepMeanCountRatesByThreshold[i];
+        const QVector<double>& rightMeans = prevIsLeft
+            ? m_sweepMeanCountRatesByThreshold[i]
+            : m_sweepMeanCountRatesByThreshold[i - 1];
+
+        m_spectrumThresholdLeftPoints.push_back(static_cast<double>(leftThreshold));
+        for (int det = 0; det < 4; ++det) {
+            const double diffRate = leftMeans.value(det, 0.0) - rightMeans.value(det, 0.0);
+            m_spectrumDiffRates[det].push_back(diffRate);
+        }
+    }
+
+    for (int det = 0; det < 4; ++det) {
+        if (pSpectrumGraph[det]) {
+            pSpectrumGraph[det]->setData(m_spectrumThresholdLeftPoints, m_spectrumDiffRates[det]);
+        }
+    }
+
+    ui->plot_spectrum->rescaleAxes();
+    QCPRange yRange = ui->plot_spectrum->yAxis->range();
+    double ySpan = yRange.upper - yRange.lower;
+    double yMargin = ySpan * 0.05;
+    if (yMargin <= 0) {
+        const double baseValue = (yRange.upper >= 0) ? yRange.upper : -yRange.upper;
+        yMargin = (baseValue > 0) ? (baseValue * 0.05) : 1.0;
+    }
+    ui->plot_spectrum->yAxis->setRange(yRange.lower - yMargin, yRange.upper + yMargin);
+    ui->plot_spectrum->replot(QCustomPlot::rpQueuedReplot);
+
+    const int lastDiffIndex = m_spectrumThresholdLeftPoints.size() - 1;
+    if (lastDiffIndex >= 0) {
+        qInfo() << "差分计数率 阈值左端点" << m_spectrumThresholdLeftPoints[lastDiffIndex]
+                << "探头1" << m_spectrumDiffRates[0][lastDiffIndex]
+                << "探头2" << m_spectrumDiffRates[1][lastDiffIndex]
+                << "探头3" << m_spectrumDiffRates[2][lastDiffIndex]
+                << "探头4" << m_spectrumDiffRates[3][lastDiffIndex];
+    }
+}
+
+void mainWindow::finishMultiThresholdSweep(bool stoppedByUser)
+{
+    m_multiLoopTimer->stop();
+    m_subLoopCollectingSamples = false;
+    m_multiThresholdSweepMode = false;
+    MeasureStatus = false;
+
+    ui->Measure_Button->setText(QString("开始测量"));
+    ui->le_savePath->setEnabled(true);
+    ui->experimentNameEdit->setEnabled(true);
+    ui->spinBox_thresholdA->setEnabled(true);
+    ui->spinBox_thresholdB->setEnabled(true);
+    ui->spinBox_leftCh->setEnabled(true);
+    ui->spinBox_rightCh->setEnabled(true);
+    ui->spinBox_deltaCh->setEnabled(true);
+    ui->spinBox_oneLoopTime->setEnabled(true);
+
+    if (stoppedByUser) {
+        qInfo() << "多阈值测量被用户停止，已完成子循环数:" << m_sweepMeanCountRatesByThreshold.size();
+    } else {
+        qInfo() << "多阈值测量全部完成，子循环数:" << m_sweepThresholdList.size()
+                << "保存文件:" << autofilePath;
     }
 }
 
@@ -924,27 +1255,6 @@ void mainWindow::SaveFile(QString filepath, QVector<int>data1, QVector<int>data2
     }
 }
 
-void mainWindow::PlotData(const QVector<double>& x, const QVector<double>& y, QColor color)
-{
-    //black         white        darkGray        gray        lightGray    red        green
-    //blue        cyan        magenta    yellow        darkRed        darkGreen        darkBlue
-    //darkCyan        darkMagenta        darkYellow
-    ui->customPlot->addGraph();//添加一条曲线
-    ui->customPlot->graph()->setData(x, y);//给曲线传递两个参数
-    ui->customPlot->graph()->setPen(QPen(color));//设置曲线颜色
-
-    ui->customPlot->xAxis->setLabel("x");//给曲线的横纵坐标命名
-    ui->customPlot->yAxis->setLabel("y");
-    
-    ui->customPlot->xAxis2->setVisible(true);//显示上方X轴
-    ui->customPlot->xAxis2->setTickLabels(false);//不显示上方X轴 刻度
-    ui->customPlot->yAxis2->setVisible(true);//显示右侧Y轴
-    ui->customPlot->yAxis2->setTickLabels(false);//不显示右侧Y轴 刻度          
-    ui->customPlot->graph()->rescaleAxes(true); //自动调整坐标轴范围
-    ui->customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);//放大拖拽选中等
-    //iRangeDrag 左键点击可拖动; iRangeZoom 范围可通过鼠标滚轮缩放; iSelectPlottables 线条可选中
-}
-
 // 绘制曲线
 // customPlot为绘图对象，num1~num4为要添加的4个探测器计数，也就是纵坐标
 void mainWindow::Show_Plot(QCustomPlot* customPlot, double num1, double num2, double num3, double num4)
@@ -955,7 +1265,8 @@ void mainWindow::Show_Plot(QCustomPlot* customPlot, double num1, double num2, do
     pGraph1_3->addData(plotCount, num3);
     pGraph1_4->addData(plotCount, num4);
     pGraphTotal->addData(plotCount, num1 + num2 + num3 + num4);
-
+    plotCount++;
+    
     // 自动调节坐标轴
     if (RescaleAxesFlag){
         pGraph1_1->rescaleValueAxis(); // 让范围自行缩放，使图0完全适合于可见区域.这里不能带参数true
