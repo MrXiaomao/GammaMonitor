@@ -87,6 +87,7 @@ void RelayDialog::on_connectRelayButton_clicked()
         if (timer->isActive())//判断定时器是否在工作
             timer->stop();
         if(timer) delete timer;
+        timer = Q_NULLPTR;
 
         tcpSocket->abort();//abort函数用于使程序非正常中止/异常退出
         if(tcpSocket) delete tcpSocket;

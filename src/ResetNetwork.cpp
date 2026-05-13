@@ -279,12 +279,13 @@ void ResetNetwork::WaitingSocketWrite(int time) {
 // 响应关闭窗口动作，对一些数据进行销毁，以及ARM进行最后通信
 void ResetNetwork::closeEvent(QCloseEvent* event)
 {
-    qInfo().noquote() << "关闭“修改网络配置”界面";
     // 如果网络连接中，先断开
     if (tcpSocket) {
         tcpSocket->abort(); // 断开连接
+        qInfo().noquote() << "探测器断开连接";
         delete tcpSocket;
         tcpSocket = nullptr;
     }
+    qInfo().noquote() << "关闭“修改网络配置”界面";
     event->accept();
 }
