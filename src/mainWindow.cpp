@@ -965,6 +965,15 @@ void mainWindow::Show_Plot(QCustomPlot* customPlot, double num1, double num2, do
         if (isShowLine[4]) {
             pGraphTotal->rescaleValueAxis();
         }
+
+        QCPRange yRange = customPlot->yAxis->range();
+        double ySpan = yRange.upper - yRange.lower;
+        double yMargin = ySpan * 0.05;
+        if (yMargin <= 0) {
+            double baseValue = (yRange.upper >= 0) ? yRange.upper : -yRange.upper;
+            yMargin = (baseValue > 0) ? (baseValue * 0.05) : 1.0;
+        }
+        customPlot->yAxis->setRange(yRange.lower - yMargin, yRange.upper + yMargin);
     }
     // 设置x坐标轴显示范围，使其自适应缩放x轴，x轴最大显示1000个点
     customPlot->xAxis->setRange((pGraph1_1->dataCount() > 1000) ? (pGraph1_1->dataCount() - 1000) : 0, pGraph1_1->dataCount());
