@@ -659,6 +659,8 @@ void mainWindow::on_Measure_Button_clicked()
         // PC端向ARM端发送停止测量指令
         if (m_cmdHelper->isArmConnected()) {
             m_cmdHelper->sendArm(tcp_order.StopMeasure);
+            WaitingSocketWrite(); Sleep(tcp_order.waitingTime);
+            m_cmdHelper->sendArm(tcp_order.MonitorMessageON);
         }
         else {
             qWarning() << "无法发送停止测量指令，探测器网络状态异常";

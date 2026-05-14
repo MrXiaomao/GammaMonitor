@@ -31,8 +31,6 @@ void ArmDataParser::reset()
 
 void ArmDataParser::parseChunk(const QByteArray& chunk)
 {
-    //打印线程
-    qInfo().nospace() << "ArmDataParser::parseChunk() in thread " << QThread::currentThread();
     m_buffer += chunk;
 
     for (;;) {
@@ -80,7 +78,11 @@ void ArmDataParser::parseChunk(const QByteArray& chunk)
         out.voltA = parseVoltA(onePack, out.equipmentId, m_coefSiPMA);
         out.voltB = parseVoltB(onePack, out.equipmentId, m_coefSiPMB);
         parseCounters(onePack, out.counter);
-
+        // qDebug().nospace() << ", temp=" << out.temperature
+        //            << ", inputVolt=" << out.inputVolt
+        //            << ", voltA=" << out.voltA
+        //            << ", voltB=" << out.voltB
+        //            << ", counters=[" << out.counter[0] << "," << out.counter[1] << "," << out.counter[2] << "," << out.counter[3] << "]";
         emit frameParsed(out);
     }
 }
