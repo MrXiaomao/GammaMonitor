@@ -1,5 +1,10 @@
 ﻿#include "mainWindow.h"
+#include <QtGlobal>
+#include <QFont>
 #include <QtWidgets/QApplication>
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+#include <QGuiApplication>
+#endif
 #include "version.h"
 
 #include <log4qt/log4qt.h>
@@ -60,7 +65,27 @@ void shutdownRootLogger()
 
 int main(int argc, char *argv[])
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
+    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(
+        Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+#endif
+
     QApplication a(argc, argv);
+
+    // 统一默认 UI 字体（点阵随 DPI 缩放），减少不同分辨率/系统缩放下与控件显式字体的差异
+    QFont uiFont = a.font();
+#ifdef Q_OS_WIN
+    uiFont.setFamily(QStringLiteral("Microsoft YaHei UI"));
+#endif
+    uiFont.setPointSize(10);
+    uiFont.setStyleHint(QFont::SansSerif, QFont::PreferAntialias);
+    a.setFont(uiFont);
 
     // 启用新的日子记录类
     QString sConfFilename = "./log4qt.conf";

@@ -1,11 +1,13 @@
 ﻿#include "mainWindow.h"
 #include "ui_mainWindow.h"
+#include <QApplication>
 #include <QFile>
 #include <QJsonDocument>
 #include <Qjsonarray>
 #include <QVector>
 
 #include <QNetworkProxy>
+#include <QLabel>
 
 #include "RelayDialog.h"
 #include "ResetNetwork.h"
@@ -145,6 +147,17 @@ void mainWindow::initUI()
     if (ui->widget_2) {
         const int h2 = ui->widget_2->sizeHint().height();
         ui->widget_2->setFixedHeight(h2);
+    }
+
+    // 各 QLabel 使用与应用程序一致的字体族，保留 .ui 中的 pointSize 层次，避免高分屏下部分走系统字体、部分走 Qt 缩放导致观感不一
+    const QString appFamily = QApplication::font().family();
+    const QList<QLabel*> labels = findChildren<QLabel*>();
+    for (QLabel* lab : labels) {
+        if (!lab)
+            continue;
+        QFont f = lab->font();
+        f.setFamily(appFamily);
+        lab->setFont(f);
     }
 }
 

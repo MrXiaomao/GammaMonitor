@@ -240,7 +240,7 @@
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>16</height>
+              <height>24</height>
              </size>
             </property>
             <property name="text">
@@ -259,7 +259,7 @@
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>16</height>
+              <height>24</height>
              </size>
             </property>
             <property name="text">
@@ -278,7 +278,7 @@
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>16</height>
+              <height>24</height>
              </size>
             </property>
             <property name="text">
@@ -297,7 +297,7 @@
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>16</height>
+              <height>24</height>
              </size>
             </property>
             <property name="text">
@@ -316,7 +316,7 @@
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>16</height>
+              <height>24</height>
              </size>
             </property>
             <property name="text">
@@ -366,7 +366,7 @@
             <property name="maximumSize">
              <size>
               <width>105</width>
-              <height>21</height>
+              <height>24</height>
              </size>
             </property>
             <property name="text">
@@ -385,7 +385,7 @@
             <property name="maximumSize">
              <size>
               <width>105</width>
-              <height>21</height>
+              <height>24</height>
              </size>
             </property>
             <property name="text">
@@ -422,8 +422,8 @@
             </property>
             <property name="maximumSize">
              <size>
-              <width>75</width>
-              <height>21</height>
+              <width>100</width>
+              <height>24</height>
              </size>
             </property>
             <item>
@@ -472,8 +472,8 @@
             </property>
             <property name="maximumSize">
              <size>
-              <width>75</width>
-              <height>21</height>
+              <width>100</width>
+              <height>24</height>
              </size>
             </property>
             <item>
@@ -710,7 +710,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
               <bold>false</bold>
              </font>
             </property>
@@ -760,7 +760,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
               <bold>false</bold>
              </font>
             </property>
@@ -888,7 +888,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -916,7 +916,7 @@
             <property name="maximumSize">
              <size>
               <width>200</width>
-              <height>21</height>
+              <height>24</height>
              </size>
             </property>
             <property name="inputMethodHints">
@@ -1116,7 +1116,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
               <bold>false</bold>
              </font>
             </property>
@@ -1147,7 +1147,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -1177,7 +1177,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -1210,7 +1210,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -1240,7 +1240,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -1273,7 +1273,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -1303,7 +1303,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -1336,7 +1336,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -1366,7 +1366,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="layoutDirection">
@@ -1402,7 +1402,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -1432,7 +1432,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -1465,7 +1465,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -1495,7 +1495,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -1528,7 +1528,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
