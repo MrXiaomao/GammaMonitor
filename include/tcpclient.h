@@ -26,6 +26,8 @@ private slots:
 
 private:
     void scheduleReconnect();
+    /// 在工作线程内同步拆除套接字（禁止 deleteLater：线程 quit 后事件循环不再处理，主线程删 worker 会跨线程销毁 QNativeSocketEngine）
+    void tearDownSocket();
 
 signals:
     void dataReceived(const QByteArray& data);

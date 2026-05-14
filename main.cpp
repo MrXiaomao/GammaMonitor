@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     system_default_message_handler = qInstallMessageHandler(AppMessageHandler);
 
     //打印软件版本号
-    qInfo().noquote() << QObject::tr("系统启动，软件版本号: %1").arg(APP_VERSION);
+    qInfo().noquote() << QObject::tr("系统启动，软件版本号: %1, %2").arg(APP_VERSION).arg(GIT_VERSION);
     w.show();
 
     //运行运行到这里，此时主窗体析构函数还没触发，所以shutdownRootLogger需要在主窗体销毁以后再做处理

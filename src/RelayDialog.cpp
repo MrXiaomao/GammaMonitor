@@ -33,11 +33,11 @@ RelayDialog::~RelayDialog()
         delete timer;
         timer = Q_NULLPTR;
     }
-    if (m_net && m_net->isRelayConnected()) {
-        disconnect(m_net, nullptr, this, nullptr);
-        m_net->disconnectRelay();
-        qInfo().noquote() << "[~RelayDialog]继电器连接已断开";
-    }
+    // if (m_net && m_net->isRelayConnected()) {
+    //     disconnect(m_net, nullptr, this, nullptr);
+    //     m_net->disconnectRelay();
+    //     qInfo().noquote() << "[~RelayDialog]继电器连接已断开";
+    // }
 }
 
 void RelayDialog::closeEvent(QCloseEvent* event)

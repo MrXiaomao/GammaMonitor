@@ -231,7 +231,7 @@ void mainWindow::QPlot_init(QCustomPlot* customPlot)
     
     ui->GetData_comboBox->setCurrentIndex(0);
     ui->TimeLen_ComboBox->setCurrentIndex(2);
-    showTimeType = 0; // 绘图时长，全部时长，10min，5min,默认10min
+    showTimeType = 2; // 绘图时长，全部时长，10min，5min,默认10min
 
     // 设置曲线颜色
     pGraph1_1->setPen(QPen(Qt::red));
@@ -245,7 +245,7 @@ void mainWindow::QPlot_init(QCustomPlot* customPlot)
     customPlot->yAxis->setLabel("计数率/cps");
 
     // 设置x坐标轴显示范围
-    customPlot->xAxis->setRange(0, 1000);
+    customPlot->xAxis->setRange(0, 600);
     customPlot->yAxis->setRange(0, 100);
 
     // 显示图表的图例
@@ -304,18 +304,7 @@ void mainWindow::on_bt_connectDet_clicked()
     {
         qDebug() << "连接网络按钮被点击";
         ui->bt_connectDet->setEnabled(false); // 此时禁止用户点击
-        //=====================创建测试数据的备份文件夹====================
-        // 获取当前exe文件所在路径
-        /*QString Filepath;
-        Filepath = QCoreApplication::applicationDirPath();
-        // 创建
-        QString dirName = Filepath + "/" + "GMCOUNTER";
-        QDir dir(dirName);
-        if (!dir.exists()) {
-            dir.mkdir(dirName);
-            qDebug() << "GMCOUNTER文件夹创建成功";
-        }*/
-        
+        ui->bt_connectDet->setText("连接中");
         //===========获取界面参数，并写入json文件==========
         tcpIp = ui->widget_detIP->getIP();
         tcpPort = ui->Port_LineEdit->text();
@@ -424,6 +413,8 @@ void mainWindow::slotNetError(QAbstractSocket::SocketError err)
     qWarning() << "探测器连接发生错误";
     m_cmdHelper->disconnectArm();
     ui->Measure_Button->setEnabled(false);
+    ui->bt_connectDet->setText("连接网络");
+    ui->bt_connectDet->setEnabled(true);
 }
 
 // 连接成功，更新相应按钮功能
@@ -999,8 +990,8 @@ void mainWindow::Show_Plot(QCustomPlot* customPlot, double num1, double num2, do
     if (RescaleAxesFlag) {
         rescaleYAxisToVisibleGraphs(customPlot, false);
     }
-    // 设置x坐标轴显示范围，使其自适应缩放x轴，x轴最大显示1000个点
-    customPlot->xAxis->setRange((pGraph1_1->dataCount() > 1000) ? (pGraph1_1->dataCount() - 1000) : 0, pGraph1_1->dataCount());
+    // 设置x坐标轴显示范围，使其自适应缩放x轴，x轴最大显示600个点
+    // customPlot->xAxis->setRange((pGraph1_1->dataCount() > 600) ? (pGraph1_1->dataCount() - 600) : 0, pGraph1_1->dataCount());
 
     // 更新绘图，这种方式在高填充下太浪费资源。有另一种方式rpQueuedReplot，可避免重复绘图。
     // 最好的方法还是将数据填充、和更新绘图分隔开。将更新绘图单独用定时器更新。例程数据量较少没用单独定时器更新，实际工程中建议大家加上。
@@ -1244,9 +1235,9 @@ void mainWindow::on_TimeLen_ComboBox_currentIndexChanged(const QString& arg1)
 void mainWindow::adjustXRange()
 {
     // 设置x坐标轴显示范围类型
-    int timeLength = 1000; //图像可显示的时间宽度
+    int timeLength = 600; //图像可显示的时间宽度
     if (showTimeType == 0) { //全部时长
-        timeLength = 1000;
+        timeLength = 600;
         double Xmin = 0;
         double Xmax = (pGraph1_1->dataCount() > timeLength) ? pGraph1_1->dataCount() : timeLength;
         pPlot->xAxis->setRange(Xmin, Xmax);

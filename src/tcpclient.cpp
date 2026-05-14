@@ -39,18 +39,21 @@ void TcpClientThread::start()
         m_heartbeatTimer->start(5000);
 }
 
+void TcpClientThread::tearDownSocket()
+{
+    if (!m_socket)
+        return;
+    QObject::disconnect(m_socket, nullptr, this, nullptr);
+    m_socket->abort();
+    delete m_socket;
+    m_socket = nullptr;
+}
+
 void TcpClientThread::stop()
 {
     m_reconnectTimer->stop();
     m_heartbeatTimer->stop();
-    if (!m_socket)
-        return;
-
-    const QAbstractSocket::SocketState state = m_socket->state();
-    if (state == QAbstractSocket::ConnectedState || state == QAbstractSocket::ConnectingState) {
-        m_socket->disconnectFromHost();
-    }
-    // 与 onDisconnected 互补：已 Unconnected 时 stop 不会触发 socket 的 disconnected，主线程 m_connected / CommandHelper 缓存会滞后
+    tearDownSocket();
     emit connectionStatusChanged(false);
 }
 
@@ -68,10 +71,7 @@ void TcpClientThread::sendData(const QByteArray& data)
 
 void TcpClientThread::connectToHost()
 {
-    if (m_socket) {
-        m_socket->deleteLater();
-        m_socket = nullptr;
-    }
+    tearDownSocket();
 
     m_socket = new QTcpSocket(this);
     m_socket->setProxy(QNetworkProxy::NoProxy);
