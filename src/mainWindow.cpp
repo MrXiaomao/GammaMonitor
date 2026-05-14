@@ -507,130 +507,117 @@ void mainWindow::disconnectUpdata()
 //读取网口数据
 void mainWindow::readMassage()
 {
-    // 从接收缓冲区中读取数据
-    QByteArray buffer = tcpSocket->readAll();
+    if (!tcpSocket)
+        return;
 
-    // 一个包40个字节
-    int StandardPackLength = 40;
-    TotalPackArray += buffer;
-    if (TotalPackArray.size() >= StandardPackLength)
-    {
-        //----------------------------------寻找包头包尾---------------------------------//
-        int HeadIndex = -1; // 赋初值在0-258之外
-        int TailIndex = -1;
+    TotalPackArray += tcpSocket->readAll();
 
-        // DataHead FF FE 
-        for (int i = 0; i < TotalPackArray.size() - 1; i++)
-        {  
-            if ((TotalPackArray.at(i) & 0xFF) == 0xFF)
-                if ((TotalPackArray.at(i + 1) & 0xFF) == 0xFE)
-                {
-                    HeadIndex = i;
-                    break;
-                }
+    const int StandardPackLength = 40;
+    // 无包头时避免 TotalPackArray 无限增长（异常流/断连残留）
+    const int kMaxStickyBuffer = 4096;
+
+    for (;;) {
+        if (TotalPackArray.size() < 2)
+            return;
+
+        int HeadIndex = -1;
+        for (int i = 0; i < TotalPackArray.size() - 1; ++i) {
+            if ((TotalPackArray.at(i) & 0xFF) == 0xFF && (TotalPackArray.at(i + 1) & 0xFF) == 0xFE) {
+                HeadIndex = i;
+                break;
+            }
         }
-
-        // DataTail FF FD
-        for (int i = 0; i < TotalPackArray.size() - 1; i++)
-        {
-            if ((TotalPackArray.at(i) & 0xFF) == 0xFF)
-                if ((TotalPackArray.at(i + 1) & 0xFF) == 0xFD)
-                {
-                    TailIndex = i;
-                    break;
-                }
-        }
-
-        //-----------------------数据包异常处理------------------------//
-        if ((HeadIndex == -1) || (TailIndex == -1))  return; // 如果没有检测到包头或者包尾则返回。不执行后面语句
-
-        if (HeadIndex > TailIndex) // 如果包头大于包尾则清除包头之前的数据
-        {
-            TotalPackArray.remove(0, HeadIndex);
+        if (HeadIndex == -1) {
+            if (TotalPackArray.size() > kMaxStickyBuffer)
+                TotalPackArray.remove(0, TotalPackArray.size() - 255);
             return;
         }
+        if (HeadIndex > 0)
+            TotalPackArray.remove(0, HeadIndex);
 
-        // 先提取一个指定长度的数据包，不要包头包尾，假定是一个完整的数据包
-        QByteArray OnePackArray = TotalPackArray.mid(HeadIndex, TailIndex - HeadIndex+2); // mid(startID,length)
+        // 包尾必须在包头之后查找，避免把包头前噪声里的 FF FD 当成帧尾
+        int TailIndex = -1;
+        for (int i = 2; i < TotalPackArray.size() - 1; ++i) {
+            if ((TotalPackArray.at(i) & 0xFF) == 0xFF && (TotalPackArray.at(i + 1) & 0xFF) == 0xFD) {
+                TailIndex = i;
+                break;
+            }
+        }
+        if (TailIndex == -1)
+            return;
 
-        int OnePackDataLen = OnePackArray.size();
+        const int frameBytes = TailIndex + 2;
+        if (frameBytes != StandardPackLength) {
+            // 长度不对：丢弃当前假包头，避免错位后整段数据作废
+            TotalPackArray.remove(0, 2);
+            continue;
+        }
 
-        TotalPackArray.remove(0, TailIndex + 2); // 清除该部分数据
-        if (OnePackDataLen == StandardPackLength)
+        const QByteArray OnePackArray = TotalPackArray.left(StandardPackLength);
+        TotalPackArray.remove(0, StandardPackLength);
+
+        PackNumber++;
+
+        //-------------获取设备基本状态参数-------------
+        EquipmentID = static_cast<quint8>(OnePackArray.at(18));
+        ui->equipmentID_label->setNum(EquipmentID);
+
+        double temp = GetTemperature(OnePackArray);
+        ui->temperature_label->setText(QString::number(temp, 'f', 1));
+
+        double voltInput = GetOuterVolt(OnePackArray);
+        ui->InputVolt_label->setText(QString::number(voltInput, 'f', 1));
+
+        double voltA = GetVolt_A(OnePackArray);
+        ui->VoltA_label->setText(QString::number(voltA, 'f', 1));
+
+        double voltB = GetVolt_B(OnePackArray);
+        ui->VoltB_label->setText(QString::number(voltB, 'f', 1));
+
+        if (MeasureStatus)
         {
-            PackNumber++;  
-            
-            //-------------获取设备基本状态参数-------------
-            // 设备编号
-            EquipmentID = static_cast<quint8>(OnePackArray.at(18));
-            ui->equipmentID_label->setNum(EquipmentID);
+            nowTime = QDateTime::currentDateTime();
+            timeLength = beginTime.secsTo(nowTime);
+            int hours = timeLength / 3600;
+            int rest_seconds = timeLength - hours * 3600;
+            int minutes = rest_seconds / 60;
+            rest_seconds -= minutes * 60;
+            QString str_Time;
+            if (hours > 0)
+                str_Time = QString::number(hours) + "h" + QString::number(minutes) + "min" + QString::number(rest_seconds);
+            else if (minutes > 0)
+                str_Time = QString::number(minutes) + "min" + QString::number(rest_seconds);
+            else
+                str_Time = QString::number(rest_seconds);
+            ui->measrue_label->setText(str_Time);
 
-            // 获取温度
-            double temp = GetTemperature(OnePackArray);
-            ui->temperature_label->setText(QString::number(temp, 'f', 1));
+            int counter[4];
+            GetCounter(OnePackArray, counter);
 
-            // 获取输入电压
-            double voltInput = GetOuterVolt(OnePackArray);
-            ui->InputVolt_label->setText(QString::number(voltInput, 'f', 1));
+            const int Num1 = counter[0];
+            const int Num2 = counter[1];
+            const int Num3 = counter[2];
+            const int Num4 = counter[3];
 
-            // 获取探测器A组供电电压（SiPM电压）
-            double voltA = GetVolt_A(OnePackArray);
-            ui->VoltA_label->setText(QString::number(voltA, 'f', 1));
+            ui->label_count1->setNum(Num1);
+            ui->label_count2->setNum(Num2);
+            ui->label_count3->setNum(Num3);
+            ui->label_count4->setNum(Num4);
+            ui->label_TotalCount->setNum(Num1 + Num2 + Num3 + Num4);
 
-            // 获取探测器B组供电电压（SiPM电压）
-            double voltB = GetVolt_B(OnePackArray);
-            ui->VoltB_label->setText(QString::number(voltB, 'f', 1));
-
-            // -------------获取探测器计数---------------
-            if (MeasureStatus)
+            while (plotCount < timeLength)
             {
-                // -------计算时间差--------
-                nowTime = QDateTime::currentDateTime();
-                timeLength = beginTime.secsTo(nowTime);
-                int hours = timeLength / 3600;
-                int rest_seconds = timeLength - hours * 3600;
-                int minutes = rest_seconds / 60;
-                rest_seconds -= minutes * 60;
-                QString str_Time = "";
-                if (hours > 0)  str_Time = QString::number(hours) + "h" + QString::number(minutes) + "min" + QString::number(rest_seconds);
-                else if (minutes > 0) str_Time = QString::number(minutes) + "min" + QString::number(rest_seconds);
-                else str_Time = QString::number(rest_seconds);
-                ui->measrue_label->setText(str_Time);
-
-                // -------解析探测器计数数据------
-                int counter[4];
-                GetCounter(OnePackArray,counter);
-
-                int Num1, Num2, Num3, Num4;
-                Num1 = counter[0];
-                Num2 = counter[1];
-                Num3 = counter[2];
-                Num4 = counter[3];
-
-                ui->label_count1->setNum(Num1);
-                ui->label_count2->setNum(Num2);
-                ui->label_count3->setNum(Num3);
-                ui->label_count4->setNum(Num4);
-                ui->label_TotalCount->setNum(Num1 + Num2 + Num3 + Num4);
-
-                // 当绘图点数少于时间，填充数据，若还是少于，则再次补一个数据，确保绘图点数与时间长度相等。
-                // 否则不进行动作，也就是不往容器里存入数据，也不往绘图曲线中存入数据
-                while (plotCount < timeLength) 
-                {
-                    counter1.push_back(Num1);
-                    counter2.push_back(Num2);
-                    counter3.push_back(Num3);
-                    counter4.push_back(Num4);
-                    temperatue.push_back(temp);
-                    plotCount++; 
-                    Show_Plot(pPlot, Num1 * 1.0, Num2 * 1.0, Num3 * 1.0, Num4 * 1.0);
-                }        
-                // 自动保存数据 每镉10秒保存一次数据，防止软件意外崩溃，
-				//    因为保存数据(读写I/O口)比较费时间，所以不能每秒都进行保存，
-                if (timeLength % 30 == 0)
-                {   
-                    SaveFile(autofilePath, counter1, counter2, counter3, counter4, temperatue);//保存这次的测量数据至默认路径
-                }
+                counter1.push_back(Num1);
+                counter2.push_back(Num2);
+                counter3.push_back(Num3);
+                counter4.push_back(Num4);
+                temperatue.push_back(temp);
+                plotCount++;
+                Show_Plot(pPlot, Num1 * 1.0, Num2 * 1.0, Num3 * 1.0, Num4 * 1.0);
+            }
+            if (timeLength % 30 == 0)
+            {
+                SaveFile(autofilePath, counter1, counter2, counter3, counter4, temperatue);
             }
         }
     }
