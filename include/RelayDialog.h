@@ -2,38 +2,37 @@
 
 #include <QDialog>
 #include "ui_RelayDialog.h"
-#include <QTcpSocket>
+#include <QAbstractSocket>
+#include <QPointer>
 #include <QTimer>
 #include "order.h"
 
-// 控制继电器的窗口
+class CommandHelper;
+
+// 继电器控制（TCP 经 CommandHelper / TcpClient 管理）
 class RelayDialog : public QDialog
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	RelayDialog(QWidget *parent = Q_NULLPTR);
-	~RelayDialog();
+    explicit RelayDialog(CommandHelper* netHelper, QWidget* parent = Q_NULLPTR);
+    ~RelayDialog();
 
 protected:
-	void closeEvent(QCloseEvent *event) override;
+    void closeEvent(QCloseEvent* event) override;
 
-private slots:	
-	void readMassage();
-	void slotNetError(QAbstractSocket::SocketError);
-	void connectUpdata();
-	void disconnectUpdata();
-	void on_connectRelayButton_clicked(); // 控制继电器的网络连接
-	void on_controlRelayButton_clicked(); // 控制继电器开关
-	void onTimeOut(); //定时器
+private slots:
+    void onRelayBytes(const QByteArray& data);
+    void slotNetError(QAbstractSocket::SocketError);
+    void onRelayConnectChanged(bool connected);
+    void on_connectRelayButton_clicked();
+    void on_controlRelayButton_clicked();
+    void onTimeOut();
 
 private:
-	Ui::RelayDialog ui;
+    Ui::RelayDialog ui;
+    QPointer<CommandHelper> m_net;
 
-	void WaitingSocketWrite(int time = 30000); // 等待QTcpSocket写入数据
-	QTcpSocket* tcpSocket;// 直接建立TCP套接字类
-	QString tcpIp;// 存储IP地址
-	QString tcpPort;// 存储端口地址
-	Order tcp_order; // PC端发送的指令
-	QTimer* timer; //定时器
+    Order tcp_order;
+    QTimer* timer;
 };

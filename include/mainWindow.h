@@ -2,10 +2,9 @@
 
 #include <QtWidgets/QMainWindow>
 #include "ui_mainWindow.h"
-#include <QTcpServer>
-#include <QTcpSocket>
 #include <QMessageBox>
-#include <QJsonObject> 
+#include <QJsonObject>
+#include "commandhelper.h"
 #include "order.h"
 #include "CustomPlotTooltip.h"
 #include "mytracer.h"
@@ -40,7 +39,7 @@ signals:
     void sigAppendMsg(const QString& msg, QtMsgType msgType);
 
 private slots:
-    void readMassage(); // 读取网口数据
+    void onArmDataReceived(const QByteArray& chunk); // ARM 网口数据（CommandHelper 转发）
     void slotNetError(QAbstractSocket::SocketError);
     void connectUpdata(); // 连接成功，更新各个按钮功能
     void disconnectUpdata(); // 断开连接，更新各个按钮功能
@@ -79,7 +78,8 @@ private:
     void SaveFile(QString filepath, QVector<int>data1, QVector<int>data2,
                   QVector<int>data3, QVector<int>data4, QVector<double>temp, int timeLen = 0);
 
-    QTcpSocket* tcpSocket;//直接建立TCP套接字类
+    CommandHelper* m_cmdHelper;
+
     QString tcpIp;// 存储IP地址
     QString tcpPort;// 存储端口地址
     Order tcp_order; // PC端发送的指令
@@ -139,7 +139,7 @@ private:
     void LoadVoltageCoefficients();
 
     void ARM_Sleep(); // 让ARM进入休眠，停止比较器工作，停止电压监测、温度监测
-    void WaitingSocketWrite(int time = 30000); // 等待QTcpSocket写入数据
+    void WaitingSocketWrite(int time = 30000); // TcpClient 异步发送后占位（原 waitForBytesWritten）
     void GetCounter(QByteArray DataPack,int *count); // 解析四个探测器计数
     double GetTemperature(QByteArray DataPack); // 解析数据包中的温度
     double GetOuterVolt(QByteArray DataPack);// 获取外部电压

@@ -6,7 +6,6 @@
 #include <Qjsonarray>
 #include <QVector>
 
-#include <QNetworkProxy>
 #include <QLabel>
 
 #include "RelayDialog.h"
@@ -37,7 +36,6 @@ mainWindow::mainWindow(QWidget *parent)
     counter3.clear();
     counter4.clear();
     temperatue.clear();
-    tcpSocket = Q_NULLPTR;//使用前先清空 
     timer = Q_NULLPTR;
     mTracer = TracerFlag::NoTracer;
 
@@ -62,6 +60,17 @@ mainWindow::mainWindow(QWidget *parent)
 
     connect(this, SIGNAL(sigAppendMsg(const QString&, QtMsgType)), this, 
         SLOT(slotAppendMsg(const QString&, QtMsgType)));
+
+    m_cmdHelper = new CommandHelper(this);
+    m_cmdHelper->applySettings(ReadSetting());
+    connect(m_cmdHelper, &CommandHelper::armConnectStatusChanged, this, [this](bool on) {
+        if (on)
+            connectUpdata();
+        else
+            disconnectUpdata();
+    });
+    connect(m_cmdHelper, &CommandHelper::armConnectError, this, &mainWindow::slotNetError);
+    connect(m_cmdHelper, &CommandHelper::armDataReceived, this, &mainWindow::onArmDataReceived);
 }
 
 mainWindow::~mainWindow()
@@ -72,7 +81,6 @@ mainWindow::~mainWindow()
             timer->stop();
         delete timer;
     }
-    if(tcpSocket) delete tcpSocket;
     delete ui;
 }
 
@@ -318,6 +326,7 @@ void mainWindow::on_bt_connectDet_clicked()
             msgBox.setWindowTitle("Warning");
             msgBox.setText("IP or PORT is Empty");
             msgBox.exec();
+            ui->bt_connectDet->setEnabled(true);
             return;
         }
         QJsonObject jsonSetting = ReadSetting();
@@ -325,45 +334,35 @@ void mainWindow::on_bt_connectDet_clicked()
         jsonSetting["Port_Detector"] = tcpPort;
         WriteSetting(jsonSetting);
 
-        //===============连接网络==================
-        if (tcpSocket) delete tcpSocket;    //如果有指向其他空间直接删除
-        tcpSocket = new QTcpSocket(this);   //申请堆空间有TCP发送和接受操作
-        // 避免因系统代理导致 "the proxy type is invalid for this operation"
-        tcpSocket->setProxy(QNetworkProxy::NoProxy);
-        connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this,
-            SLOT(slotNetError(QAbstractSocket::SocketError)));  //错误连接
-        connect(tcpSocket, SIGNAL(connected()), this, SLOT(connectUpdata()));   //更新连接之后按钮的使能
-        connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readMassage())); //读取信息的连接
-        tcpSocket->connectToHost(tcpIp, tcpPort.toInt());   //连接主机
+        m_cmdHelper->applySettings(ReadSetting());
+        m_cmdHelper->connectArm();
     }
     else if (ui->bt_connectDet->text() == "断开网络")
     {
         qDebug() << "断开网络按钮被点击";
-        //============断网前最后通信，让ARM回到待机状态========
-        if (tcpSocket) {
+        if (m_cmdHelper->isArmConnected()) {
             ARM_Sleep();
-            tcpSocket->abort();//abort函数用于使程序非正常中止/异常退出
-            delete tcpSocket;
+            m_cmdHelper->disconnectArm();
+        } else {
+            disconnectUpdata();
         }
-        
-        tcpSocket = Q_NULLPTR;
-        disconnectUpdata();
     }
 }
 
 //继电器菜单栏响应
 void mainWindow::on_relayMenu_triggered()
 {
-    RelayDialog* dialog = new RelayDialog();
-
-    dialog->exec();	//如果是myDialod继承于QDialog，则使用该方法显示模态窗口								
-    //dialog->show(); //如果是myDialod继承于QDialog，则使用该方法设置非模态窗口
+    // 使用栈对象：exec() 返回后立即析构，避免堆上子窗口长期挂到主窗口退出时才析构，
+    // 与 TcpClient / CommandHelper 析构顺序产生竞态（曾诱发 disconnectFromHost 访问无效内存）。
+    RelayDialog dialog(m_cmdHelper, this);
+    qInfo().noquote() << "打开“继电器控制”界面";
+    dialog.exec();
 }
 
 // 菜单栏网络设置
 void mainWindow::on_networkSettingMenu_triggered()
 {
-    if (tcpSocket) {
+    if (m_cmdHelper->isArmConnected()) {
         QMessageBox::warning(this, tr("Warnning"), "请先在主界面断开网络后再进行网络设置");
         return;
     }
@@ -419,27 +418,12 @@ void mainWindow::on_netLog_triggered() {
 }
 
 // 错误连接，在点击连接后，无法连接网络/失去连接，则进入该函数
-void mainWindow::slotNetError(QAbstractSocket::SocketError)
+void mainWindow::slotNetError(QAbstractSocket::SocketError err)
 {
-    qWarning() << "探测器连接发生错误:" << tcpSocket->errorString();
-    tcpSocket->close();
-    tcpSocket = Q_NULLPTR;
+    Q_UNUSED(err);
+    qWarning() << "探测器连接发生错误";
+    m_cmdHelper->disconnectArm();
     ui->Measure_Button->setEnabled(false);
-
-    ui->connectStatusLabel->setStyleSheet(
-        "QLineEdit{"
-        "color:rgba(255,0,0);"//红色
-        "border: 2px solid rgb(178, 34, 34);"
-        "}"
-        "QLineEdit:hover{"
-        "border: 2px solid rgb(255, 165, 0);"
-        "}");
-
-    ui->connectStatusLabel->setText("无法连接");
-    ui->bt_connectDet->setText("连接网络"); // 没有连接到任何网络，所以恢复到连接状态
-    ui->bt_connectDet->setEnabled(true);
-    ui->widget_detIP->setEnabled(true); // 可输入状态
-    ui->Port_LineEdit->setEnabled(true); // 可输入状态
 }
 
 // 连接成功，更新相应按钮功能
@@ -460,22 +444,22 @@ void mainWindow::connectUpdata()
     //-------------开启硬件电源---------
     // 探测器组A、组B以及外接设备开启电压
     int waitTime = tcp_order.waitingTime;
-    if(tcpSocket->state() == QAbstractSocket::ConnectedState) {
-        tcpSocket->write(tcp_order.DetecA_ON);  WaitingSocketWrite(); Sleep(waitTime);
-        tcpSocket->write(tcp_order.DetecB_ON);  WaitingSocketWrite(); Sleep(waitTime);
-        tcpSocket->write(tcp_order.ExtDeviceON);  WaitingSocketWrite(); Sleep(waitTime);
+    if (m_cmdHelper->isArmConnected()) {
+        m_cmdHelper->sendArm(tcp_order.DetecA_ON);  WaitingSocketWrite(); Sleep(waitTime);
+        m_cmdHelper->sendArm(tcp_order.DetecB_ON);  WaitingSocketWrite(); Sleep(waitTime);
+        m_cmdHelper->sendArm(tcp_order.ExtDeviceON);  WaitingSocketWrite(); Sleep(waitTime);
 
         //-------------设置比较器阈值-------------
-        tcpSocket->write(tcp_order.DetectorThread);  WaitingSocketWrite(); Sleep(waitTime);
+        m_cmdHelper->sendArm(tcp_order.DetectorThread);  WaitingSocketWrite(); Sleep(waitTime);
 
         //-------------对各个硬件状态监测开启（目前不考虑关闭监测）-------------
-        tcpSocket->write(tcp_order.VoltageA_MonitorON); WaitingSocketWrite(); Sleep(waitTime);
-        tcpSocket->write(tcp_order.VoltageB_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
-        tcpSocket->write(tcp_order.InputVoltage_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
-        tcpSocket->write(tcp_order.Temp_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
+        m_cmdHelper->sendArm(tcp_order.VoltageA_MonitorON); WaitingSocketWrite(); Sleep(waitTime);
+        m_cmdHelper->sendArm(tcp_order.VoltageB_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
+        m_cmdHelper->sendArm(tcp_order.InputVoltage_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
+        m_cmdHelper->sendArm(tcp_order.Temp_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
         
         //-------------开始检测ARM硬件电路的基本状态-------------
-        tcpSocket->write(tcp_order.MonitorMessageON);  WaitingSocketWrite(); Sleep(waitTime);
+        m_cmdHelper->sendArm(tcp_order.MonitorMessageON);  WaitingSocketWrite(); Sleep(waitTime);
     }
     else {
         qWarning() << "连接成功后，探测器状态异常，无法发送初始化指令";
@@ -517,13 +501,14 @@ void mainWindow::disconnectUpdata()
     ui->Port_LineEdit->setEnabled(true);
 }
 
-//读取网口数据
-void mainWindow::readMassage()
+//读取网口数据（由 CommandHelper / TcpClient 工作线程转发字节流）
+void mainWindow::onArmDataReceived(const QByteArray& chunk)
 {
-    if (!tcpSocket)
-        return;
+    //打印线程信息
+    const Qt::HANDLE threadId = QThread::currentThreadId();
+    qDebug() << "onArmDataReceived called in thread:" << threadId;
 
-    TotalPackArray += tcpSocket->readAll();
+    TotalPackArray += chunk;
 
     const int StandardPackLength = 40;
     // 无包头时避免 TotalPackArray 无限增长（异常流/断连残留）
@@ -774,6 +759,10 @@ void mainWindow::on_Measure_Button_clicked()
 {
     if (ui->Measure_Button->text() == "开始测量")
     {
+        //打印线程信息
+        const Qt::HANDLE threadId = QThread::currentThreadId();
+        qDebug() << "on_Measure_Button_clicked called in thread:" << threadId;
+
         //===============检查保存文件路径====================
         const QString saveDir = ui->le_savePath->toPlainText().trimmed();
         if (saveDir.isEmpty()) {
@@ -829,13 +818,13 @@ void mainWindow::on_Measure_Button_clicked()
         msg[4] = static_cast<char>(static_cast<quint8>((t2 >> 8) & 0xFF));
         msg[5] = static_cast<char>(static_cast<quint8>(t2 & 0xFF));
         
-        if(tcpSocket!=Q_NULLPTR && tcpSocket->state() == QAbstractSocket::ConnectedState) {
+        if (m_cmdHelper->isArmConnected()) {
             // PC端向ARM端发送设置比较器阈值指令
-            tcpSocket->write(msg);
-            WaitingSocketWrite(); 
+            m_cmdHelper->sendArm(msg);
+            WaitingSocketWrite();
             Sleep(tcp_order.waitingTime);
             // =========PC端向ARM端发送开始测量指令==============
-            tcpSocket->write(tcp_order.StartMeasure);
+            m_cmdHelper->sendArm(tcp_order.StartMeasure);
         }
         else {
             qWarning() << "无法发送开始测量指令，探测器网络状态异常";
@@ -864,8 +853,8 @@ void mainWindow::on_Measure_Button_clicked()
     {
         MeasureStatus = false;
         // PC端向ARM端发送停止测量指令
-        if(tcpSocket!=Q_NULLPTR && tcpSocket->state() == QAbstractSocket::ConnectedState) {
-            tcpSocket->write(tcp_order.StopMeasure);
+        if (m_cmdHelper->isArmConnected()) {
+            m_cmdHelper->sendArm(tcp_order.StopMeasure);
         }
         else {
             qWarning() << "无法发送停止测量指令，探测器网络状态异常";
@@ -1415,8 +1404,8 @@ void mainWindow::closeAction()
     // 关闭前处于测量状态，PC端向ARM端发送停止测量指令
     if (ui->Measure_Button->text() == "停止测量")
     {
-        if(tcpSocket!=Q_NULLPTR && tcpSocket->state() == QAbstractSocket::ConnectedState) {
-            tcpSocket->write(tcp_order.StopMeasure);  WaitingSocketWrite();
+        if (m_cmdHelper->isArmConnected()) {
+            m_cmdHelper->sendArm(tcp_order.StopMeasure);  WaitingSocketWrite();
         }
         // 延时关闭窗口，以确保网口能够把指令发送给ARM
         QTime t;
@@ -1434,29 +1423,28 @@ void mainWindow::closeAction()
 // 让ARM停止发送设备状态信息（温度、输入电源、探测器A组电压、探测器B组电压）
 void mainWindow::ARM_Sleep()
 {
-    if(tcpSocket!=Q_NULLPTR && tcpSocket->state() == QAbstractSocket::ConnectedState) {
+    if (m_cmdHelper->isArmConnected()) {
         int waitTime = tcp_order.waitingTime;
-        tcpSocket->write(tcp_order.DetecA_OFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭探测器A组电压
-        tcpSocket->write(tcp_order.DetecB_OFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭探测器B组电压
-        tcpSocket->write(tcp_order.ExtDeviceOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭外接设备电压
+        m_cmdHelper->sendArm(tcp_order.DetecA_OFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭探测器A组电压
+        m_cmdHelper->sendArm(tcp_order.DetecB_OFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭探测器B组电压
+        m_cmdHelper->sendArm(tcp_order.ExtDeviceOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭外接设备电压
 
-        tcpSocket->write(tcp_order.DetectorThreadOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭比较器
+        m_cmdHelper->sendArm(tcp_order.DetectorThreadOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭比较器
 
-        tcpSocket->write(tcp_order.VoltageA_MonitorOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭A组偏压监测
-        tcpSocket->write(tcp_order.VoltageB_MonitorOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭B组偏压监测
-        tcpSocket->write(tcp_order.InputVoltage_MonitorOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭5V电压监测
-        tcpSocket->write(tcp_order.Temp_MonitorOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭温度监测
+        m_cmdHelper->sendArm(tcp_order.VoltageA_MonitorOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭A组偏压监测
+        m_cmdHelper->sendArm(tcp_order.VoltageB_MonitorOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭B组偏压监测
+        m_cmdHelper->sendArm(tcp_order.InputVoltage_MonitorOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭5V电压监测
+        m_cmdHelper->sendArm(tcp_order.Temp_MonitorOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭温度监测
 
-        tcpSocket->write(tcp_order.MonitorMessageOFF); WaitingSocketWrite(); Sleep(waitTime);  // 让ARM停止发送数据
+        m_cmdHelper->sendArm(tcp_order.MonitorMessageOFF); WaitingSocketWrite(); Sleep(waitTime);  // 让ARM停止发送数据
     }
 }
 
 // 等待QTcpSocket写入数据
 // 等待发送完毕，设置超时时间ms
 void mainWindow::WaitingSocketWrite(int time) {
-    if (!tcpSocket->waitForBytesWritten(time)) {
-        return;
-    }
+    Q_UNUSED(time);
+    // TcpClient 在工作线程异步 write，不再使用主线程 waitForBytesWritten
 }
 
 // 选择存储路径
