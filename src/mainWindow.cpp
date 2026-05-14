@@ -208,8 +208,8 @@ void mainWindow::QPlot_init(QCustomPlot* customPlot)
     ui->rescaleAxesCheckBox->setCheckState(Qt::Checked); // 坐标轴自适应
     ui->refreshPlotCheckBox->setCheckState(Qt::Checked); // 图像刷新
     
-    ui->GetData_comboBox->setCurrentIndex(2);
-    ui->TimeLen_ComboBox->setCurrentIndex(0);
+    ui->GetData_comboBox->setCurrentIndex(0);
+    ui->TimeLen_ComboBox->setCurrentIndex(2);
     showTimeType = 0; // 绘图时长，全部时长，10min，5min,默认10min
 
     // 设置曲线颜色
@@ -932,6 +932,56 @@ void mainWindow::PlotData(const QVector<double>& x, const QVector<double>& y, QC
     //iRangeDrag 左键点击可拖动; iRangeZoom 范围可通过鼠标滚轮缩放; iSelectPlottables 线条可选中
 }
 
+void mainWindow::rescaleYAxisToVisibleGraphs(QCustomPlot* customPlot, bool onlyEnlarge)
+{
+    QCPGraph* graphs[5] = { pGraph1_1, pGraph1_2, pGraph1_3, pGraph1_4, pGraphTotal };
+
+    bool anyFound = false;
+    QCPRange yCombined(0, 0);
+    for (int i = 0; i < 5; ++i) {
+        if (!isShowLine[i])
+            continue;
+        if (graphs[i]->data()->isEmpty())
+            continue;
+        bool vrFound = false;
+        const QCPRange vr = graphs[i]->data()->valueRange(vrFound, QCP::sdBoth);
+        if (!vrFound)
+            continue;
+        if (!anyFound) {
+            yCombined = vr;
+            anyFound = true;
+        } else {
+            yCombined.expand(vr);
+        }
+    }
+
+    if (!anyFound) {
+        if (!onlyEnlarge)
+            customPlot->yAxis->setRange(0, 100);
+        return;
+    }
+
+    yCombined.normalize();
+    const double ySpan = yCombined.size();
+    double yMargin = ySpan * 0.05;
+    if (yMargin <= 0 || ySpan < 1e-15) {
+        const double base = qMax(qAbs(yCombined.upper), qAbs(yCombined.lower));
+        yMargin = (base > 0) ? base * 0.05 : 1.0;
+    }
+
+    QCPRange target(yCombined.lower - yMargin, yCombined.upper + yMargin);
+    target.normalize();
+
+    if (onlyEnlarge) {
+        QCPRange cur = customPlot->yAxis->range();
+        cur.expand(target);
+        cur.normalize();
+        customPlot->yAxis->setRange(cur.lower, cur.upper);
+    } else {
+        customPlot->yAxis->setRange(target.lower, target.upper);
+    }
+}
+
 // 绘制曲线
 // customPlot为绘图对象，num1~num4为要添加的4个探测器计数，也就是纵坐标
 void mainWindow::Show_Plot(QCustomPlot* customPlot, double num1, double num2, double num3, double num4)
@@ -943,24 +993,9 @@ void mainWindow::Show_Plot(QCustomPlot* customPlot, double num1, double num2, do
     pGraph1_4->addData(plotCount, num4);
     pGraphTotal->addData(plotCount, num1 + num2 + num3 + num4);
 
-    // 自动调节坐标轴
-    if (RescaleAxesFlag){
-        pGraph1_1->rescaleValueAxis(); // 让范围自行缩放，使图0完全适合于可见区域.这里不能带参数true
-        pGraph1_2->rescaleValueAxis(); // 图1也是一样自动调整范围，但只是放大或不变范围
-        pGraph1_3->rescaleValueAxis();
-        pGraph1_4->rescaleValueAxis();
-        if (isShowLine[4]) {
-            pGraphTotal->rescaleValueAxis();
-        }
-
-        QCPRange yRange = customPlot->yAxis->range();
-        double ySpan = yRange.upper - yRange.lower;
-        double yMargin = ySpan * 0.05;
-        if (yMargin <= 0) {
-            double baseValue = (yRange.upper >= 0) ? yRange.upper : -yRange.upper;
-            yMargin = (baseValue > 0) ? (baseValue * 0.05) : 1.0;
-        }
-        customPlot->yAxis->setRange(yRange.lower - yMargin, yRange.upper + yMargin);
+    // 自动调节坐标轴（Y 按全部可见曲线并集缩放，避免后调用的曲线把 Y 轴压窄）
+    if (RescaleAxesFlag) {
+        rescaleYAxisToVisibleGraphs(customPlot, false);
     }
     // 设置x坐标轴显示范围，使其自适应缩放x轴，x轴最大显示1000个点
     customPlot->xAxis->setRange((pGraph1_1->dataCount() > 1000) ? (pGraph1_1->dataCount() - 1000) : 0, pGraph1_1->dataCount());
@@ -1092,13 +1127,7 @@ void mainWindow::on_cb_TotalCount_stateChanged(int arg1)
         pGraphTotal->setVisible(false);//void QCPLayerable::setVisible(bool on)
     }
     if (RescaleAxesFlag) {
-        pGraph1_1->rescaleValueAxis();
-        pGraph1_2->rescaleValueAxis();
-        pGraph1_3->rescaleValueAxis();
-        pGraph1_4->rescaleValueAxis();
-        if (isShowLine[4]) {
-            pGraphTotal->rescaleValueAxis();
-        }
+        rescaleYAxisToVisibleGraphs(pPlot, false);
     }
     pPlot->replot();
 }
@@ -1313,17 +1342,11 @@ void mainWindow::on_rescaleAxesCheckBox_stateChanged(int arg1)
 {
     if (arg1 == Qt::Checked) { //选中
         RescaleAxesFlag = true;
-        pGraph1_1->rescaleAxes(); // 让范围自行缩放，使图0完全适合于可见区域.这里不能带参数true
-        pGraph1_2->rescaleAxes(); // 图1也是一样自动调整范围，但只是放大或不变范围
-        pGraph1_3->rescaleAxes();
-        pGraph1_4->rescaleAxes();
+        rescaleYAxisToVisibleGraphs(pPlot, false);
     }
-    else { //未选中
+    else { //未选中：仅扩展 Y 轴以包住数据，不主动缩小（与原先 rescaleAxes(true) 意图一致）
         RescaleAxesFlag = false;
-        pGraph1_1->rescaleAxes(true);  //true 表示 只扩展坐标轴范围，不覆盖前面已经算好的范围。
-        pGraph1_2->rescaleAxes(true); 
-        pGraph1_3->rescaleAxes(true);
-        pGraph1_4->rescaleAxes(true);
+        rescaleYAxisToVisibleGraphs(pPlot, true);
     }
     adjustXRange();
     pPlot->replot();

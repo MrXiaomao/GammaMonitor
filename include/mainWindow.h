@@ -134,6 +134,8 @@ private:
 
     void QPlot_init(QCustomPlot* customPlot);
     void Show_Plot(QCustomPlot* customPlot, double num1,double num2,double num3, double num4);
+    /// 按当前勾选的多条曲线合并后的数值范围设置 Y 轴（避免逐条 rescaleValueAxis 互相覆盖导致越界）
+    void rescaleYAxisToVisibleGraphs(QCustomPlot* customPlot, bool onlyEnlarge);
     void LoadVoltageCoefficients();
 
     void ARM_Sleep(); // 让ARM进入休眠，停止比较器工作，停止电压监测、温度监测
