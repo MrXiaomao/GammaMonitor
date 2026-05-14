@@ -39,7 +39,7 @@ signals:
     void sigAppendMsg(const QString& msg, QtMsgType msgType);
 
 private slots:
-    void onArmDataReceived(const QByteArray& chunk); // ARM 网口数据（CommandHelper 转发）
+    void onArmFrameParsed(const ArmFrameData& frame); // ARM 解析结果（CommandHelper 子线程解析后投递主线程）
     void slotNetError(QAbstractSocket::SocketError);
     void connectUpdata(); // 连接成功，更新各个按钮功能
     void disconnectUpdata(); // 断开连接，更新各个按钮功能
@@ -86,8 +86,6 @@ private:
 
     int PackNumber; // 记录数据包的数目
     int EquipmentID; // 设备编号
-    QByteArray TotalPackArray; // 接受的来自网口的数据
-    QByteArray dataOnePack; // 单个包的数据
 
     QString experimentName; // 实验名称
     QString autofilePath; // 自动备份的文件路径
@@ -140,11 +138,6 @@ private:
 
     void ARM_Sleep(); // 让ARM进入休眠，停止比较器工作，停止电压监测、温度监测
     void WaitingSocketWrite(int time = 30000); // TcpClient 异步发送后占位（原 waitForBytesWritten）
-    void GetCounter(QByteArray DataPack,int *count); // 解析四个探测器计数
-    double GetTemperature(QByteArray DataPack); // 解析数据包中的温度
-    double GetOuterVolt(QByteArray DataPack);// 获取外部电压
-    double GetVolt_A(QByteArray DataPack);// 获取探测器A组偏压
-    double GetVolt_B(QByteArray DataPack);// 获取探测器B组偏压
 
     QCPItemTracer* plottracer[4]; //定义一个鼠标追踪变量
 };

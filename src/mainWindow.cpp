@@ -20,6 +20,14 @@ using namespace std;
 
 #pragma execution_character_set("utf-8") 
 
+static ArmCoefMap coefMapToQMap(const std::map<int, double>& sm)
+{
+    ArmCoefMap q;
+    for (const auto& p : sm)
+        q.insert(p.first, p.second);
+    return q;
+}
+
 mainWindow::mainWindow(QWidget *parent)
     : QMainWindow(parent),ui(new Ui::mainWindowClass)
 {     
@@ -30,7 +38,6 @@ mainWindow::mainWindow(QWidget *parent)
     plotCount = 0;
     timeLength = 0;
     MeasureStatus = false;
-    TotalPackArray.clear();
     counter1.clear();
     counter2.clear();
     counter3.clear();
@@ -70,7 +77,10 @@ mainWindow::mainWindow(QWidget *parent)
             disconnectUpdata();
     });
     connect(m_cmdHelper, &CommandHelper::armConnectError, this, &mainWindow::slotNetError);
-    connect(m_cmdHelper, &CommandHelper::armDataReceived, this, &mainWindow::onArmDataReceived);
+    connect(m_cmdHelper, &CommandHelper::armDataParsed, this, &mainWindow::onArmFrameParsed);
+    m_cmdHelper->setArmParserCoefficients(coefMapToQMap(coef_SiPMA_Volt),
+                                          coefMapToQMap(coef_SiPMB_Volt),
+                                          coefMapToQMap(coef_InputVolt));
 }
 
 mainWindow::~mainWindow()
@@ -492,257 +502,60 @@ void mainWindow::disconnectUpdata()
     ui->Port_LineEdit->setEnabled(true);
 }
 
-//读取网口数据（由 CommandHelper / TcpClient 工作线程转发字节流）
-void mainWindow::onArmDataReceived(const QByteArray& chunk)
+// ARM 完整帧已由 CommandHelper::ArmDataParser 在工作线程解析，本槽在主线程刷新界面
+void mainWindow::onArmFrameParsed(const ArmFrameData& f)
 {
-    //打印线程信息
-    const Qt::HANDLE threadId = QThread::currentThreadId();
-    qDebug() << "onArmDataReceived called in thread:" << threadId;
+    PackNumber++;
 
-    TotalPackArray += chunk;
+    EquipmentID = f.equipmentId;
+    ui->equipmentID_label->setNum(EquipmentID);
 
-    const int StandardPackLength = 40;
-    // 无包头时避免 TotalPackArray 无限增长（异常流/断连残留）
-    const int kMaxStickyBuffer = 4096;
+    ui->temperature_label->setText(QString::number(f.temperature, 'f', 1));
+    ui->InputVolt_label->setText(QString::number(f.inputVolt, 'f', 1));
+    ui->VoltA_label->setText(QString::number(f.voltA, 'f', 1));
+    ui->VoltB_label->setText(QString::number(f.voltB, 'f', 1));
 
-    for (;;) {
-        if (TotalPackArray.size() < 2)
-            return;
-
-        int HeadIndex = -1;
-        for (int i = 0; i < TotalPackArray.size() - 1; ++i) {
-            if ((TotalPackArray.at(i) & 0xFF) == 0xFF && (TotalPackArray.at(i + 1) & 0xFF) == 0xFE) {
-                HeadIndex = i;
-                break;
-            }
-        }
-        if (HeadIndex == -1) {
-            if (TotalPackArray.size() > kMaxStickyBuffer)
-                TotalPackArray.remove(0, TotalPackArray.size() - 255);
-            return;
-        }
-        if (HeadIndex > 0)
-            TotalPackArray.remove(0, HeadIndex);
-
-        // 包尾必须在包头之后查找，避免把包头前噪声里的 FF FD 当成帧尾
-        int TailIndex = -1;
-        for (int i = 2; i < TotalPackArray.size() - 1; ++i) {
-            if ((TotalPackArray.at(i) & 0xFF) == 0xFF && (TotalPackArray.at(i + 1) & 0xFF) == 0xFD) {
-                TailIndex = i;
-                break;
-            }
-        }
-        if (TailIndex == -1)
-            return;
-
-        const int frameBytes = TailIndex + 2;
-        if (frameBytes != StandardPackLength) {
-            // 长度不对：丢弃当前假包头，避免错位后整段数据作废
-            TotalPackArray.remove(0, 2);
-            continue;
-        }
-
-        const QByteArray OnePackArray = TotalPackArray.left(StandardPackLength);
-        TotalPackArray.remove(0, StandardPackLength);
-
-        PackNumber++;
-
-        //-------------获取设备基本状态参数-------------
-        EquipmentID = static_cast<quint8>(OnePackArray.at(18));
-        ui->equipmentID_label->setNum(EquipmentID);
-
-        double temp = GetTemperature(OnePackArray);
-        ui->temperature_label->setText(QString::number(temp, 'f', 1));
-
-        double voltInput = GetOuterVolt(OnePackArray);
-        ui->InputVolt_label->setText(QString::number(voltInput, 'f', 1));
-
-        double voltA = GetVolt_A(OnePackArray);
-        ui->VoltA_label->setText(QString::number(voltA, 'f', 1));
-
-        double voltB = GetVolt_B(OnePackArray);
-        ui->VoltB_label->setText(QString::number(voltB, 'f', 1));
-
-        if (MeasureStatus)
-        {
-            nowTime = QDateTime::currentDateTime();
-            timeLength = beginTime.secsTo(nowTime);
-            int hours = timeLength / 3600;
-            int rest_seconds = timeLength - hours * 3600;
-            int minutes = rest_seconds / 60;
-            rest_seconds -= minutes * 60;
-            QString str_Time;
-            if (hours > 0)
-                str_Time = QString::number(hours) + "h" + QString::number(minutes) + "min" + QString::number(rest_seconds);
-            else if (minutes > 0)
-                str_Time = QString::number(minutes) + "min" + QString::number(rest_seconds);
-            else
-                str_Time = QString::number(rest_seconds);
-            ui->measrue_label->setText(str_Time);
-
-            int counter[4];
-            GetCounter(OnePackArray, counter);
-
-            const int Num1 = counter[0];
-            const int Num2 = counter[1];
-            const int Num3 = counter[2];
-            const int Num4 = counter[3];
-
-            ui->label_count1->setNum(Num1);
-            ui->label_count2->setNum(Num2);
-            ui->label_count3->setNum(Num3);
-            ui->label_count4->setNum(Num4);
-            ui->label_TotalCount->setNum(Num1 + Num2 + Num3 + Num4);
-
-            while (plotCount < timeLength)
-            {
-                counter1.push_back(Num1);
-                counter2.push_back(Num2);
-                counter3.push_back(Num3);
-                counter4.push_back(Num4);
-                temperatue.push_back(temp);
-                plotCount++;
-                Show_Plot(pPlot, Num1 * 1.0, Num2 * 1.0, Num3 * 1.0, Num4 * 1.0);
-            }
-            if (timeLength % 30 == 0)
-            {
-                SaveFile(autofilePath, counter1, counter2, counter3, counter4, temperatue);
-            }
-        }
-    }
-}
-
-// 从ARM发来的数据中解析四个探测器的计数信息
-// DataPack是不包含包头的数据包,包头2字节
-void mainWindow::GetCounter(QByteArray DataPack, int* count)
-{
-    if (DataPack.size() < 16) {
-        count[0] = count[1] = count[2] = count[3] = 0;
+    if (!MeasureStatus)
         return;
+
+    nowTime = QDateTime::currentDateTime();
+    timeLength = beginTime.secsTo(nowTime);
+    int hours = timeLength / 3600;
+    int rest_seconds = timeLength - hours * 3600;
+    int minutes = rest_seconds / 60;
+    rest_seconds -= minutes * 60;
+    QString str_Time;
+    if (hours > 0)
+        str_Time = QString::number(hours) + "h" + QString::number(minutes) + "min" + QString::number(rest_seconds);
+    else if (minutes > 0)
+        str_Time = QString::number(minutes) + "min" + QString::number(rest_seconds);
+    else
+        str_Time = QString::number(rest_seconds);
+    ui->measrue_label->setText(str_Time);
+
+    const int Num1 = f.counter[0];
+    const int Num2 = f.counter[1];
+    const int Num3 = f.counter[2];
+    const int Num4 = f.counter[3];
+
+    ui->label_count1->setNum(Num1);
+    ui->label_count2->setNum(Num2);
+    ui->label_count3->setNum(Num3);
+    ui->label_count4->setNum(Num4);
+    ui->label_TotalCount->setNum(Num1 + Num2 + Num3 + Num4);
+
+    while (plotCount < timeLength) {
+        counter1.push_back(Num1);
+        counter2.push_back(Num2);
+        counter3.push_back(Num3);
+        counter4.push_back(Num4);
+        temperatue.push_back(f.temperature);
+        plotCount++;
+        Show_Plot(pPlot, Num1 * 1.0, Num2 * 1.0, Num3 * 1.0, Num4 * 1.0);
     }
-    // 将16进制的QByteArray转化为十进制的int
-    int i = 2; // DataPack 含包包头，从第2字节开始
-    int detectorID1 = DataPack.at(i++) & 0xFF; // 探测器编号
-    int high = DataPack.at(i++) & 0xFF;      // 高八位
-    int middle = DataPack.at(i++) & 0xFF;   // 中八位
-    int low = DataPack.at(i++) & 0xFF;      // 低八位
-    count[0] = (high << 16) | (middle << 8) | low; // 24位大端组合
-    
-    int detectorID2 = DataPack.at(i++) & 0xFF;
-    high = DataPack.at(i++) & 0xFF;
-    middle = DataPack.at(i++) & 0xFF;
-    low = DataPack.at(i++) & 0xFF;
-    count[1] = (high << 16) | (middle << 8) | low;
-    
-    int detectorID3 = DataPack.at(i++) & 0xFF;
-    high = DataPack.at(i++) & 0xFF;
-    middle = DataPack.at(i++) & 0xFF;
-    low = DataPack.at(i++) & 0xFF;
-    count[2] = (high << 16) | (middle << 8) | low;
-
-    int detectorID4 = DataPack.at(i++) & 0xFF;
-    high = DataPack.at(i++) & 0xFF;
-    middle = DataPack.at(i++) & 0xFF;
-    low = DataPack.at(i++) & 0xFF;
-    count[3] = (high << 16) | (middle << 8) | low;
-}
-
-// 获取温度
-// DataPack是不包含包头的数据包,包头2字节
-double mainWindow::GetTemperature(QByteArray DataPack)
-{
-    if (DataPack.size() < 20) {
-        return 0.0;
+    if (timeLength % 30 == 0) {
+        SaveFile(autofilePath, counter1, counter2, counter3, counter4, temperatue);
     }
-    // 读取温度信息（16位大端补码）
-    quint8 high = static_cast<quint8>(DataPack.at(19));
-    quint8 low = static_cast<quint8>(DataPack.at(20));
-    unsigned short int temp = (high << 8) | low;
-
-    double temperature = 0.0;
-    if (temp & 0x8000) { // 负数：转换为原码
-        unsigned short int original = (~temp) + 1;
-        // 整数部分：位14~7 (8位)
-        int int_part = (original >> 7) & 0xFF;
-        // 小数部分：位6~0 (7位)
-        int frac_part = original & 0x7F;
-        temperature = -(int_part + frac_part / 128.0);
-    } else { // 正数
-        // 整数部分：位14~7 (8位)
-        int int_part = (temp >> 7) & 0xFF;
-        // 小数部分：位6~0 (7位)
-        int frac_part = temp & 0x7F;
-        temperature = int_part + frac_part / 128.0;
-    }
-    return temperature;
-}
-
-// 获取外部电压
-// DataPack是不包含包头的数据包, 包头2字节
-double mainWindow::GetOuterVolt(QByteArray DataPack)
-{
-    if (DataPack.size() < 23) {
-        return 0.0;
-    }
-    quint8 high = static_cast<quint8>(DataPack.at(21));
-    quint8 low  = static_cast<quint8>(DataPack.at(22));
-    int outervoltage_adc = (high << 8) | low;
-    
-    double coefficient = 0.002762;
-	auto it = coef_InputVolt.find(EquipmentID);
-	if (it != coef_InputVolt.end()) {
-		// 键存在
-		coefficient = coef_InputVolt[EquipmentID];
-	}
-
-    double outervoltage = 0.0;
-    outervoltage = outervoltage_adc * coefficient;	
-    return outervoltage;
-}
-
-// 获取探测器A组偏压
-// DataPack是不包含包头的数据包,包头2字节
-double mainWindow::GetVolt_A(QByteArray DataPack)
-{
-    if (DataPack.size() < 25) {
-        return 0.0;
-    }
-    quint8 high = static_cast<quint8>(DataPack.at(23));
-    quint8 low  = static_cast<quint8>(DataPack.at(24));
-    int sipmvoltege_A_adc = (high << 8) | low;
-
-    double coefficient = 0.023297; //默认值
-	auto it = coef_SiPMA_Volt.find(EquipmentID);
-	if (it != coef_SiPMA_Volt.end()) {
-		coefficient = coef_SiPMA_Volt[EquipmentID];
-	}
-
-    double sipmvoltege_A = 0.0;
-	sipmvoltege_A = sipmvoltege_A_adc * coefficient;
-    return sipmvoltege_A;
-}
-
-// 获取探测器B组偏压
-// DataPack是不包含包头的数据包,包头2字节
-double mainWindow::GetVolt_B(QByteArray DataPack)
-{
-    if (DataPack.size() < 27) {
-        return 0.0;
-    }
-
-    quint8 high = static_cast<quint8>(DataPack.at(25));
-    quint8 low  = static_cast<quint8>(DataPack.at(26));
-    int sipmvoltege_B_adc = (high << 8) | low;
-	
-    double coefficient = 0.023297; //默认值
-	auto it = coef_SiPMB_Volt.find(EquipmentID);
-	if (it != coef_SiPMB_Volt.end()) {
-		coefficient = coef_SiPMB_Volt[EquipmentID];
-	}
-
-    double sipmvoltege_B = 0.0;
-	sipmvoltege_B = sipmvoltege_B_adc * coefficient;
-    return sipmvoltege_B;
 }
 
 //开始测量&停止测量按钮
@@ -783,7 +596,7 @@ void mainWindow::on_Measure_Button_clicked()
 
         //====================重置部分变量，以及控件=====================
         //-----------变量-----------
-        TotalPackArray.clear();
+        m_cmdHelper->resetArmParserBuffer();
         PackNumber = 0; // 每次点击开始按钮，清空前一次的包个数
         plotCount = 0; // 绘图点个数重制
         timeLength = 0;

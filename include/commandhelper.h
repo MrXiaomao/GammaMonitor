@@ -5,17 +5,62 @@
 #include <QJsonObject>
 #include <QPointer>
 #include <QAbstractSocket>
+#include <QByteArray>
+#include <QMap>
+#include <QThread>
 #include "tcpclient.h"
 
-/// 统一管理 ARM 探测器与继电器两路 TCP（底层为 TcpClient 工作线程收发）
+using ArmCoefMap = QMap<int, double>;
+Q_DECLARE_METATYPE(ArmCoefMap)
+
+/// Parsed one ARM 40-byte frame (for main window UI update).
+struct ArmFrameData
+{
+    int equipmentId = 0;
+    int counter[4] = {0, 0, 0, 0};
+    double temperature = 0.0;
+    double inputVolt = 0.0;
+    double voltA = 0.0;
+    double voltB = 0.0;
+};
+Q_DECLARE_METATYPE(ArmFrameData)
+
+/// Framing + field decode on a dedicated thread (no QWidget).
+class ArmDataParser : public QObject
+{
+    Q_OBJECT
+public:
+    explicit ArmDataParser(QObject* parent = nullptr);
+
+public slots:
+    void applyCoefficients(ArmCoefMap siPmA, ArmCoefMap siPmB, ArmCoefMap inputVolt);
+    void reset();
+    void parseChunk(const QByteArray& chunk);
+
+signals:
+    void frameParsed(const ArmFrameData& frame);
+
+private:
+    static void parseCounters(const QByteArray& frame, int* count);
+    static double parseTemperature(const QByteArray& frame);
+    static double parseInputVolt(const QByteArray& frame, int equipmentId, const ArmCoefMap& coef);
+    static double parseVoltA(const QByteArray& frame, int equipmentId, const ArmCoefMap& coef);
+    static double parseVoltB(const QByteArray& frame, int equipmentId, const ArmCoefMap& coef);
+
+    QByteArray m_buffer;
+    ArmCoefMap m_coefSiPMA;
+    ArmCoefMap m_coefSiPMB;
+    ArmCoefMap m_coefInputVolt;
+};
+
+/// ARM + relay TCP; ARM raw bytes from TcpClient, parse on ArmDataParser thread.
 class CommandHelper : public QObject
 {
     Q_OBJECT
 public:
-    explicit CommandHelper(QObject *parent = nullptr);
+    explicit CommandHelper(QObject* parent = nullptr);
     ~CommandHelper();
 
-    /// 从 GammaMonitor 的 setting.json（ReadSetting）字段更新地址
     void applySettings(const QJsonObject& json);
 
     void connectArm();
@@ -29,10 +74,17 @@ public:
     bool isArmConnected() const { return m_armOnline; }
     bool isRelayConnected() const { return m_relayOnline; }
 
+    /// Push voltage coeffs from main window (call from GUI thread).
+    void setArmParserCoefficients(const ArmCoefMap& siPmA,
+                                  const ArmCoefMap& siPmB,
+                                  const ArmCoefMap& inputVolt);
+    /// Clear sticky buffer (start measure, disconnect ARM, etc.).
+    void resetArmParserBuffer();
+
 signals:
     void sigAppendMsg(const QString& msg, QtMsgType msgType);
 
-    void armDataReceived(const QByteArray& data);
+    void armDataParsed(const ArmFrameData& frame);
     void armConnectStatusChanged(bool connected);
     void armConnectError(QAbstractSocket::SocketError error);
 
@@ -43,6 +95,9 @@ signals:
 private:
     QPointer<TcpClient> m_clientArm;
     QPointer<TcpClient> m_clientRelay;
+
+    QThread* m_armParserThread = nullptr;
+    ArmDataParser* m_armParser = nullptr;
 
     QString m_ipArm;
     quint16 m_portArm = 0;
