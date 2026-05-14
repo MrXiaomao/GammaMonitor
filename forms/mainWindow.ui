@@ -559,7 +559,7 @@
               </spacer>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton">
+              <widget class="QPushButton" name="bt_ClearLog">
                <property name="maximumSize">
                 <size>
                  <width>100</width>

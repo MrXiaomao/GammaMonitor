@@ -68,6 +68,11 @@ mainWindow::mainWindow(QWidget *parent)
     connect(this, SIGNAL(sigAppendMsg(const QString&, QtMsgType)), this, 
         SLOT(slotAppendMsg(const QString&, QtMsgType)));
 
+    // 清除日志按钮点击信号连接槽函数
+    connect(ui->bt_ClearLog, &QPushButton::clicked, this, [this]() {
+        ui->plainTextEdit_log->clear();
+    });
+
     m_cmdHelper = new CommandHelper(this);
     m_cmdHelper->applySettings(ReadSetting());
     connect(m_cmdHelper, &CommandHelper::armConnectStatusChanged, this, [this](bool on) {
@@ -563,9 +568,7 @@ void mainWindow::on_Measure_Button_clicked()
 {
     if (ui->Measure_Button->text() == "开始测量")
     {
-        //打印线程信息
-        const Qt::HANDLE threadId = QThread::currentThreadId();
-        qDebug() << "on_Measure_Button_clicked called in thread:" << threadId;
+        qDebug() << "点击开始测量";
 
         //===============检查保存文件路径====================
         const QString saveDir = ui->le_savePath->toPlainText().trimmed();
@@ -608,6 +611,7 @@ void mainWindow::on_Measure_Button_clicked()
         ui->spinBox_thresholdB->setEnabled(false);//禁止输入状态
         ui->le_savePath->setEnabled(false);//禁止输入状态
         ui->experimentNameEdit->setEnabled(false);//禁止输入状态
+        ui->savePathButton->setEnabled(false);
 
         // 设置触发阈值（两字节大端；显式类型避免 int→char 隐式窄化）
         const quint16 t1 = static_cast<quint16>(ui->spinBox_thresholdA->value());
@@ -655,6 +659,7 @@ void mainWindow::on_Measure_Button_clicked()
     }
     else if (ui->Measure_Button->text() == "停止测量")
     {
+        qDebug() << "点击开始测量";
         MeasureStatus = false;
         // PC端向ARM端发送停止测量指令
         if (m_cmdHelper->isArmConnected()) {
@@ -679,6 +684,7 @@ void mainWindow::on_Measure_Button_clicked()
         ui->experimentNameEdit->setEnabled(true);//恢复输入状态
         ui->spinBox_thresholdA->setEnabled(true);//恢复输入状态
         ui->spinBox_thresholdB->setEnabled(true);//恢复输入状态
+        ui->savePathButton->setEnabled(true);
         qInfo() << "停止测量";
     }
 }
