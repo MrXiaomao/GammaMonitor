@@ -2,7 +2,8 @@
 
 #include <QtGlobal>
 #include <QMetaType>
-
+#include <QTimer>
+#include "order.h"
 namespace {
 
 constexpr int kStandardPackLength = 40;
@@ -232,6 +233,12 @@ CommandHelper::CommandHelper(QObject* parent)
     });
     connect(m_clientRelay, &TcpClient::sigconnectError, this, &CommandHelper::relayConnectError);
 
+    m_cmdArmTimer = new QTimer(this);
+    m_cmdArmTimer->setSingleShot(true);
+
+    connect(m_cmdArmTimer, &QTimer::timeout,
+            this, &CommandHelper::sendNextArmCommand);
+
     m_armParserThread->start();
 }
 
@@ -281,6 +288,32 @@ void CommandHelper::disconnectArm()
     if (!m_clientArm)
         return;
     m_clientArm->disconnectFromHost();
+}
+
+void CommandHelper::enqueueArmCommand(const QByteArray &cmd)
+{
+    m_cmdArmQueue.enqueue(cmd);
+
+    if (!m_Armsending) {
+        m_Armsending = true;
+        m_cmdArmTimer->start(0);
+    }
+}
+
+void CommandHelper::sendNextArmCommand()
+{
+    if (m_cmdArmQueue.isEmpty()) {
+        m_Armsending = false;
+        return;
+    }
+
+    QByteArray cmd = m_cmdArmQueue.dequeue();
+
+    m_clientArm->send(cmd);
+
+    // 关键：下一条指令延后发送
+    Order tcp_order;
+    m_cmdArmTimer->start(tcp_order.waitingTime); 
 }
 
 void CommandHelper::sendArm(const QByteArray& data)

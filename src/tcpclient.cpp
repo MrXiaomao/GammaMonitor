@@ -66,6 +66,7 @@ void TcpClientThread::sendData(const QByteArray& data)
     const int chunkSize = 4096;
     for (int i = 0; i < data.size(); i += chunkSize) {
         m_socket->write(data.mid(i, chunkSize));
+        m_socket->flush(); //本项目的指令发送都比较小，且需要尽快到达，发送后立即 flush。对于大数据传输不可用该方法。
     }
 }
 

@@ -65,7 +65,6 @@ public:
 
     void connectArm();
     void disconnectArm();
-    void sendArm(const QByteArray& data);
 
     void connectRelay();
     void disconnectRelay();
@@ -80,6 +79,11 @@ public:
                                   const ArmCoefMap& inputVolt);
     /// Clear sticky buffer (start measure, disconnect ARM, etc.).
     void resetArmParserBuffer();
+    void enqueueArmCommand(const QByteArray &cmd);
+    void sendNextArmCommand();
+
+private:
+    void sendArm(const QByteArray& data);
 
 signals:
     void sigAppendMsg(const QString& msg, QtMsgType msgType);
@@ -106,6 +110,10 @@ private:
 
     bool m_armOnline = false;
     bool m_relayOnline = false;
+    
+    QQueue<QByteArray> m_cmdArmQueue;
+    QTimer *m_cmdArmTimer = nullptr;
+    bool m_Armsending = false;
 };
 
 #endif // COMMANDHELPER_H

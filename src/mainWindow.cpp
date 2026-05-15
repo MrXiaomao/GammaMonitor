@@ -451,21 +451,23 @@ void mainWindow::connectUpdata()
     // 探测器组A、组B以及外接设备开启电压
     int waitTime = tcp_order.waitingTime;
     if (m_cmdHelper->isArmConnected()) {
-        m_cmdHelper->sendArm(tcp_order.DetecA_ON);  WaitingSocketWrite(); Sleep(waitTime);
-        m_cmdHelper->sendArm(tcp_order.DetecB_ON);  WaitingSocketWrite(); Sleep(waitTime);
-        m_cmdHelper->sendArm(tcp_order.ExtDeviceON);  WaitingSocketWrite(); Sleep(waitTime);
+        m_cmdHelper->enqueueArmCommand(tcp_order.DetecA_ON);
+        m_cmdHelper->enqueueArmCommand(tcp_order.DetecB_ON);
+        m_cmdHelper->enqueueArmCommand(tcp_order.ExtDeviceON);
 
         //-------------设置比较器阈值-------------
-        m_cmdHelper->sendArm(tcp_order.DetectorThread);  WaitingSocketWrite(); Sleep(waitTime);
+        m_cmdHelper->enqueueArmCommand(tcp_order.DetectorThread);
 
         //-------------对各个硬件状态监测开启（目前不考虑关闭监测）-------------
-        m_cmdHelper->sendArm(tcp_order.VoltageA_MonitorON); WaitingSocketWrite(); Sleep(waitTime);
-        m_cmdHelper->sendArm(tcp_order.VoltageB_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
-        m_cmdHelper->sendArm(tcp_order.InputVoltage_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
-        m_cmdHelper->sendArm(tcp_order.Temp_MonitorON);  WaitingSocketWrite(); Sleep(waitTime);
+        m_cmdHelper->enqueueArmCommand(tcp_order.VoltageA_MonitorON);
+        m_cmdHelper->enqueueArmCommand(tcp_order.VoltageB_MonitorON);
+        m_cmdHelper->enqueueArmCommand(tcp_order.InputVoltage_MonitorON);
+        m_cmdHelper->enqueueArmCommand(tcp_order.Temp_MonitorON);
         
         //-------------开始检测ARM硬件电路的基本状态-------------
-        m_cmdHelper->sendArm(tcp_order.MonitorMessageON);  WaitingSocketWrite(); Sleep(waitTime);
+        m_cmdHelper->enqueueArmCommand(tcp_order.MonitorMessageON);
+        m_cmdHelper->sendNextArmCommand();
+
     }
     else {
         qWarning() << "连接成功后，探测器状态异常，无法发送初始化指令";
@@ -531,11 +533,11 @@ void mainWindow::onArmFrameParsed(const ArmFrameData& f)
     rest_seconds -= minutes * 60;
     QString str_Time;
     if (hours > 0)
-        str_Time = QString::number(hours) + "h" + QString::number(minutes) + "min" + QString::number(rest_seconds);
+        str_Time = QString::number(hours) + "h" + QString::number(minutes) + "min" + QString::number(rest_seconds) + "s";
     else if (minutes > 0)
-        str_Time = QString::number(minutes) + "min" + QString::number(rest_seconds);
+        str_Time = QString::number(minutes) + "min" + QString::number(rest_seconds) + "s";
     else
-        str_Time = QString::number(rest_seconds);
+        str_Time = QString::number(rest_seconds) + "s";
     ui->measrue_label->setText(str_Time);
 
     const int Num1 = f.counter[0];
@@ -628,11 +630,10 @@ void mainWindow::on_Measure_Button_clicked()
         
         if (m_cmdHelper->isArmConnected()) {
             // PC端向ARM端发送设置比较器阈值指令
-            m_cmdHelper->sendArm(msg);
-            WaitingSocketWrite();
-            Sleep(tcp_order.waitingTime);
+            m_cmdHelper->enqueueArmCommand(msg);
             // =========PC端向ARM端发送开始测量指令==============
-            m_cmdHelper->sendArm(tcp_order.StartMeasure);
+            m_cmdHelper->enqueueArmCommand(tcp_order.StartMeasure);
+            m_cmdHelper->sendNextArmCommand();
         }
         else {
             qWarning() << "无法发送开始测量指令，探测器网络状态异常";
@@ -663,9 +664,9 @@ void mainWindow::on_Measure_Button_clicked()
         MeasureStatus = false;
         // PC端向ARM端发送停止测量指令
         if (m_cmdHelper->isArmConnected()) {
-            m_cmdHelper->sendArm(tcp_order.StopMeasure);
-            WaitingSocketWrite(); Sleep(tcp_order.waitingTime);
-            m_cmdHelper->sendArm(tcp_order.MonitorMessageON);
+            m_cmdHelper->enqueueArmCommand(tcp_order.StopMeasure);
+            m_cmdHelper->enqueueArmCommand(tcp_order.MonitorMessageON);
+            m_cmdHelper->sendNextArmCommand();
         }
         else {
             qWarning() << "无法发送停止测量指令，探测器网络状态异常";
@@ -1217,7 +1218,8 @@ void mainWindow::closeAction()
     if (ui->Measure_Button->text() == "停止测量")
     {
         if (m_cmdHelper->isArmConnected()) {
-            m_cmdHelper->sendArm(tcp_order.StopMeasure);  WaitingSocketWrite();
+            m_cmdHelper->enqueueArmCommand(tcp_order.StopMeasure);
+            m_cmdHelper->sendNextArmCommand();
         }
         // 延时关闭窗口，以确保网口能够把指令发送给ARM
         QTime t;
@@ -1237,18 +1239,18 @@ void mainWindow::ARM_Sleep()
 {
     if (m_cmdHelper->isArmConnected()) {
         int waitTime = tcp_order.waitingTime;
-        m_cmdHelper->sendArm(tcp_order.DetecA_OFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭探测器A组电压
-        m_cmdHelper->sendArm(tcp_order.DetecB_OFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭探测器B组电压
-        m_cmdHelper->sendArm(tcp_order.ExtDeviceOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭外接设备电压
+        m_cmdHelper->enqueueArmCommand(tcp_order.DetecA_OFF); // 关闭探测器A组电压
+        m_cmdHelper->enqueueArmCommand(tcp_order.DetecB_OFF); // 关闭探测器B组电压
+        m_cmdHelper->enqueueArmCommand(tcp_order.ExtDeviceOFF); // 关闭外接设备电压
 
-        m_cmdHelper->sendArm(tcp_order.DetectorThreadOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭比较器
+        m_cmdHelper->enqueueArmCommand(tcp_order.DetectorThreadOFF);  // 关闭比较器
+        m_cmdHelper->enqueueArmCommand(tcp_order.VoltageA_MonitorOFF); // 关闭A组偏压监测
+        m_cmdHelper->enqueueArmCommand(tcp_order.VoltageB_MonitorOFF); // 关闭B组偏压监测
+        m_cmdHelper->enqueueArmCommand(tcp_order.InputVoltage_MonitorOFF); // 关闭5V电压监测
+        m_cmdHelper->enqueueArmCommand(tcp_order.Temp_MonitorOFF);  // 关闭温度监测
 
-        m_cmdHelper->sendArm(tcp_order.VoltageA_MonitorOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭A组偏压监测
-        m_cmdHelper->sendArm(tcp_order.VoltageB_MonitorOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭B组偏压监测
-        m_cmdHelper->sendArm(tcp_order.InputVoltage_MonitorOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭5V电压监测
-        m_cmdHelper->sendArm(tcp_order.Temp_MonitorOFF); WaitingSocketWrite(); Sleep(waitTime); // 关闭温度监测
-
-        m_cmdHelper->sendArm(tcp_order.MonitorMessageOFF); WaitingSocketWrite(); Sleep(waitTime);  // 让ARM停止发送数据
+        m_cmdHelper->enqueueArmCommand(tcp_order.MonitorMessageOFF);// 让ARM停止发送数据
+        m_cmdHelper->sendNextArmCommand(); //开始排队发送指令
     }
 }
 
