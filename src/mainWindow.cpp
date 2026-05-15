@@ -330,6 +330,7 @@ void mainWindow::on_bt_connectDet_clicked()
             msgBox.setWindowTitle("Warning");
             msgBox.setText("IP or PORT is Empty");
             msgBox.exec();
+
             ui->bt_connectDet->setEnabled(true);
             return;
         }
@@ -451,21 +452,21 @@ void mainWindow::connectUpdata()
     // 探测器组A、组B以及外接设备开启电压
     int waitTime = tcp_order.waitingTime;
     if (m_cmdHelper->isArmConnected()) {
-        m_cmdHelper->enqueueArmCommand(tcp_order.DetecA_ON);
-        m_cmdHelper->enqueueArmCommand(tcp_order.DetecB_ON);
-        m_cmdHelper->enqueueArmCommand(tcp_order.ExtDeviceON);
+        m_cmdHelper->enqueueArmCommand(CommandItem("开启探测器组A电源", tcp_order.DetecA_ON));
+        m_cmdHelper->enqueueArmCommand(CommandItem("开启探测器组B电源", tcp_order.DetecB_ON));
+        m_cmdHelper->enqueueArmCommand(CommandItem("开启外接设备电源", tcp_order.ExtDeviceON));
 
         //-------------设置比较器阈值-------------
-        m_cmdHelper->enqueueArmCommand(tcp_order.DetectorThread);
+        m_cmdHelper->enqueueArmCommand(CommandItem("设置比较器阈值", tcp_order.DetectorThread));
 
         //-------------对各个硬件状态监测开启（目前不考虑关闭监测）-------------
-        m_cmdHelper->enqueueArmCommand(tcp_order.VoltageA_MonitorON);
-        m_cmdHelper->enqueueArmCommand(tcp_order.VoltageB_MonitorON);
-        m_cmdHelper->enqueueArmCommand(tcp_order.InputVoltage_MonitorON);
-        m_cmdHelper->enqueueArmCommand(tcp_order.Temp_MonitorON);
-        
+        m_cmdHelper->enqueueArmCommand(CommandItem("开启电压A监测", tcp_order.VoltageA_MonitorON));
+        m_cmdHelper->enqueueArmCommand(CommandItem("开启电压B监测", tcp_order.VoltageB_MonitorON));
+        m_cmdHelper->enqueueArmCommand(CommandItem("开启温度监测", tcp_order.Temp_MonitorON));
+        m_cmdHelper->enqueueArmCommand(CommandItem("开启输入电压监测", tcp_order.InputVoltage_MonitorON));
+
         //-------------开始检测ARM硬件电路的基本状态-------------
-        m_cmdHelper->enqueueArmCommand(tcp_order.MonitorMessageON);
+        m_cmdHelper->enqueueArmCommand(CommandItem("开启监测数据返回", tcp_order.MonitorMessageON));
         m_cmdHelper->sendNextArmCommand();
 
     }
@@ -614,6 +615,7 @@ void mainWindow::on_Measure_Button_clicked()
         ui->le_savePath->setEnabled(false);//禁止输入状态
         ui->experimentNameEdit->setEnabled(false);//禁止输入状态
         ui->savePathButton->setEnabled(false);
+        ui->Measure_Button->setEnabled(false); //禁止点击状态
 
         // 设置触发阈值（两字节大端；显式类型避免 int→char 隐式窄化）
         const quint16 t1 = static_cast<quint16>(ui->spinBox_thresholdA->value());
@@ -630,9 +632,9 @@ void mainWindow::on_Measure_Button_clicked()
         
         if (m_cmdHelper->isArmConnected()) {
             // PC端向ARM端发送设置比较器阈值指令
-            m_cmdHelper->enqueueArmCommand(msg);
+            m_cmdHelper->enqueueArmCommand(CommandItem("设置比较器阈值", msg));
             // =========PC端向ARM端发送开始测量指令==============
-            m_cmdHelper->enqueueArmCommand(tcp_order.StartMeasure);
+            m_cmdHelper->enqueueArmCommand(CommandItem("开始测量", tcp_order.StartMeasure));
             m_cmdHelper->sendNextArmCommand();
         }
         else {
@@ -657,15 +659,23 @@ void mainWindow::on_Measure_Button_clicked()
         qInfo() << "开始测量";
         qInfo() << "触发阈值：" << t1 << " " << t2;
         qInfo() << "保存文件路径：" << autofilePath;
+        
+        // 延时1秒，恢复按钮可点击状态，避免用户连续点击导致的异常
+        QTimer::singleShot(1000, this, [=]()
+        {
+            ui->Measure_Button->setEnabled(true);
+        });
     }
     else if (ui->Measure_Button->text() == "停止测量")
     {
         qDebug() << "点击开始测量";
+        ui->Measure_Button->setEnabled(false);
         MeasureStatus = false;
         // PC端向ARM端发送停止测量指令
         if (m_cmdHelper->isArmConnected()) {
-            m_cmdHelper->enqueueArmCommand(tcp_order.StopMeasure);
-            m_cmdHelper->enqueueArmCommand(tcp_order.MonitorMessageON);
+            m_cmdHelper->enqueueArmCommand(CommandItem("停止测量", tcp_order.StopMeasure));
+            m_cmdHelper->enqueueArmCommand(CommandItem("开启监测数据返回", tcp_order.MonitorMessageON));
+            //m_cmdHelper->enqueueArmCommand(CommandItem("关闭监测数据返回", tcp_order.MonitorMessageOFF));
             m_cmdHelper->sendNextArmCommand();
         }
         else {
@@ -681,6 +691,11 @@ void mainWindow::on_Measure_Button_clicked()
         
         // 恢复使用
         ui->Measure_Button->setText(QString("开始测量")); //按钮翻转
+        // 延时1秒，恢复按钮可点击状态，避免用户连续点击导致的异常
+        QTimer::singleShot(1000, this, [=]()
+        {
+            ui->Measure_Button->setEnabled(true);
+        });
         ui->le_savePath->setEnabled(true);//恢复输入状态
         ui->experimentNameEdit->setEnabled(true);//恢复输入状态
         ui->spinBox_thresholdA->setEnabled(true);//恢复输入状态
@@ -1218,7 +1233,7 @@ void mainWindow::closeAction()
     if (ui->Measure_Button->text() == "停止测量")
     {
         if (m_cmdHelper->isArmConnected()) {
-            m_cmdHelper->enqueueArmCommand(tcp_order.StopMeasure);
+            m_cmdHelper->enqueueArmCommand(CommandItem("停止测量", tcp_order.StopMeasure));
             m_cmdHelper->sendNextArmCommand();
         }
         // 延时关闭窗口，以确保网口能够把指令发送给ARM
@@ -1239,17 +1254,17 @@ void mainWindow::ARM_Sleep()
 {
     if (m_cmdHelper->isArmConnected()) {
         int waitTime = tcp_order.waitingTime;
-        m_cmdHelper->enqueueArmCommand(tcp_order.DetecA_OFF); // 关闭探测器A组电压
-        m_cmdHelper->enqueueArmCommand(tcp_order.DetecB_OFF); // 关闭探测器B组电压
-        m_cmdHelper->enqueueArmCommand(tcp_order.ExtDeviceOFF); // 关闭外接设备电压
+        m_cmdHelper->enqueueArmCommand(CommandItem("关闭探测器组A电源", tcp_order.DetecA_OFF)); // 关闭探测器A组电压
+        m_cmdHelper->enqueueArmCommand(CommandItem("关闭探测器组B电源", tcp_order.DetecB_OFF)); // 关闭探测器B组电压
+        m_cmdHelper->enqueueArmCommand(CommandItem("关闭外接设备电源", tcp_order.ExtDeviceOFF)); // 关闭外接设备电压
 
-        m_cmdHelper->enqueueArmCommand(tcp_order.DetectorThreadOFF);  // 关闭比较器
-        m_cmdHelper->enqueueArmCommand(tcp_order.VoltageA_MonitorOFF); // 关闭A组偏压监测
-        m_cmdHelper->enqueueArmCommand(tcp_order.VoltageB_MonitorOFF); // 关闭B组偏压监测
-        m_cmdHelper->enqueueArmCommand(tcp_order.InputVoltage_MonitorOFF); // 关闭5V电压监测
-        m_cmdHelper->enqueueArmCommand(tcp_order.Temp_MonitorOFF);  // 关闭温度监测
+        m_cmdHelper->enqueueArmCommand(CommandItem("关闭比较器", tcp_order.DetectorThreadOFF));  // 关闭比较器
+        m_cmdHelper->enqueueArmCommand(CommandItem("关闭电压A监测", tcp_order.VoltageA_MonitorOFF)); // 关闭A组偏压监测
+        m_cmdHelper->enqueueArmCommand(CommandItem("关闭电压B监测", tcp_order.VoltageB_MonitorOFF)); // 关闭B组偏压监测
+        m_cmdHelper->enqueueArmCommand(CommandItem("关闭温度监测", tcp_order.Temp_MonitorOFF));  // 关闭温度监测
+        m_cmdHelper->enqueueArmCommand(CommandItem("关闭输入电压监测", tcp_order.InputVoltage_MonitorOFF)); // 关闭5V电压监测
 
-        m_cmdHelper->enqueueArmCommand(tcp_order.MonitorMessageOFF);// 让ARM停止发送数据
+        m_cmdHelper->enqueueArmCommand(CommandItem("关闭监测数据返回", tcp_order.MonitorMessageOFF));// 让ARM停止发送数据
         m_cmdHelper->sendNextArmCommand(); //开始排队发送指令
     }
 }

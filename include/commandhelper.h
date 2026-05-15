@@ -25,6 +25,16 @@ struct ArmFrameData
 };
 Q_DECLARE_METATYPE(ArmFrameData)
 
+struct CommandItem
+{
+    QString name;      // 指令名称（中文或英文描述）
+    QByteArray data;   // 实际发送的指令内容
+
+    CommandItem() {}
+    CommandItem(const QString &n, const QByteArray &d)
+        : name(n), data(d) {}
+};
+
 /// Framing + field decode on a dedicated thread (no QWidget).
 class ArmDataParser : public QObject
 {
@@ -79,7 +89,7 @@ public:
                                   const ArmCoefMap& inputVolt);
     /// Clear sticky buffer (start measure, disconnect ARM, etc.).
     void resetArmParserBuffer();
-    void enqueueArmCommand(const QByteArray &cmd);
+    void enqueueArmCommand(CommandItem cmd);
     void sendNextArmCommand();
 
 private:
@@ -111,9 +121,10 @@ private:
     bool m_armOnline = false;
     bool m_relayOnline = false;
     
-    QQueue<QByteArray> m_cmdArmQueue;
+    QVector<CommandItem> m_cmdArmItems;
     QTimer *m_cmdArmTimer = nullptr;
     bool m_Armsending = false;
+    bool m_disconnectingArm = false;
 };
 
 #endif // COMMANDHELPER_H

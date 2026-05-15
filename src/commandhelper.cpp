@@ -278,6 +278,7 @@ void CommandHelper::connectArm()
         return;
     if (m_armParser)
         QMetaObject::invokeMethod(m_armParser, "reset", Qt::BlockingQueuedConnection);
+    m_disconnectingArm = false;  // Reset disconnect flag on connect
     m_clientArm->connectToHost(m_ipArm, m_portArm);
 }
 
@@ -287,12 +288,19 @@ void CommandHelper::disconnectArm()
         QMetaObject::invokeMethod(m_armParser, "reset", Qt::BlockingQueuedConnection);
     if (!m_clientArm)
         return;
+
+    // If there are commands in the queue, wait for them to be sent before disconnecting
+    if (!m_cmdArmItems.isEmpty() || m_Armsending) {
+        m_disconnectingArm = true;
+        return;
+    }
+
     m_clientArm->disconnectFromHost();
 }
 
-void CommandHelper::enqueueArmCommand(const QByteArray &cmd)
+void CommandHelper::enqueueArmCommand(CommandItem cmd)
 {
-    m_cmdArmQueue.enqueue(cmd);
+    m_cmdArmItems.append(cmd); // Store command item for reference (e.g., logging)
 
     if (!m_Armsending) {
         m_Armsending = true;
@@ -302,15 +310,24 @@ void CommandHelper::enqueueArmCommand(const QByteArray &cmd)
 
 void CommandHelper::sendNextArmCommand()
 {
-    if (m_cmdArmQueue.isEmpty()) {
+    if (m_cmdArmItems.isEmpty()) {
         m_Armsending = false;
+        // If disconnect was requested while commands were pending, disconnect now
+        if (m_disconnectingArm) {
+            m_disconnectingArm = false;
+            if (m_clientArm) {
+                m_clientArm->disconnectFromHost();
+            }
+        }
         return;
     }
 
-    QByteArray cmd = m_cmdArmQueue.dequeue();
+    CommandItem cmdItem = m_cmdArmItems.first();
+    m_cmdArmItems.removeFirst();
+    m_clientArm->send(cmdItem.data);
 
-    m_clientArm->send(cmd);
-
+    qDebug()<<QString("Send HEX: %1[%2]").arg(QString(cmdItem.data.toHex(' '))).arg(cmdItem.name);
+    
     // 关键：下一条指令延后发送
     Order tcp_order;
     m_cmdArmTimer->start(tcp_order.waitingTime); 
