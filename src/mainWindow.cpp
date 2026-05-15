@@ -632,7 +632,7 @@ void mainWindow::on_Measure_Button_clicked()
         
         if (m_cmdHelper->isArmConnected()) {
             // PC端向ARM端发送设置比较器阈值指令
-            m_cmdHelper->enqueueArmCommand(CommandItem("设置比较器阈值", msg));
+             m_cmdHelper->enqueueArmCommand(CommandItem("设置比较器阈值", msg));
             // =========PC端向ARM端发送开始测量指令==============
             m_cmdHelper->enqueueArmCommand(CommandItem("开始测量", tcp_order.StartMeasure));
             m_cmdHelper->sendNextArmCommand();
@@ -674,8 +674,7 @@ void mainWindow::on_Measure_Button_clicked()
         // PC端向ARM端发送停止测量指令
         if (m_cmdHelper->isArmConnected()) {
             m_cmdHelper->enqueueArmCommand(CommandItem("停止测量", tcp_order.StopMeasure));
-            m_cmdHelper->enqueueArmCommand(CommandItem("开启监测数据返回", tcp_order.MonitorMessageON));
-            //m_cmdHelper->enqueueArmCommand(CommandItem("关闭监测数据返回", tcp_order.MonitorMessageOFF));
+             m_cmdHelper->enqueueArmCommand(CommandItem("开启监测数据返回", tcp_order.MonitorMessageON));
             m_cmdHelper->sendNextArmCommand();
         }
         else {

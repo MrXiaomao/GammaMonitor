@@ -75,7 +75,7 @@ void TcpClientThread::connectToHost()
     tearDownSocket();
 
     m_socket = new QTcpSocket(this);
-    m_socket->setProxy(QNetworkProxy::NoProxy);
+    m_socket->setProxy(QNetworkProxy::NoProxy); //无代理
 
     const int bufferSize = 4 * 1024 * 1024;
     m_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, bufferSize);
@@ -96,6 +96,9 @@ void TcpClientThread::connectToHost()
 
 void TcpClientThread::onConnected()
 {
+    // 禁用 Nagle 算法，减少小包合并，降低发送延迟。
+    // Nagle 算法:小包先攒一攒,再一起发
+    m_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     m_reconnectAttempts = 0;
     emit connectionStatusChanged(true);
 }
