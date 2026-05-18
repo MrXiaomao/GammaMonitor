@@ -326,9 +326,20 @@ void CommandHelper::sendNextArmCommand()
     m_cmdArmItems.removeFirst();
     m_clientArm->send(cmdItem.data);
 
-    qDebug()<<QString("Send HEX: %1[%2]").arg(QString(cmdItem.data.toHex(' '))).arg(cmdItem.name);
+    qDebug().noquote() << QString("Send HEX: %1[%2]").arg(QString(cmdItem.data.toHex(' '))).arg(cmdItem.name);
     
     // 关键：下一条指令延后发送
+    // if(m_cmdArmItems.isEmpty()) {
+    //     m_Armsending = false;
+    //     // If disconnect was requested while commands were pending, disconnect now
+    //     if (m_disconnectingArm) {
+    //         m_disconnectingArm = false;
+    //         if (m_clientArm) {
+    //             m_clientArm->disconnectFromHost();
+    //         }
+    //     }
+    //     return;
+    // }
     Order tcp_order;
     m_cmdArmTimer->start(tcp_order.waitingTime); 
 }

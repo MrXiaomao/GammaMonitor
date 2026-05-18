@@ -360,7 +360,7 @@ void mainWindow::on_relayMenu_triggered()
     // 使用栈对象：exec() 返回后立即析构，避免堆上子窗口长期挂到主窗口退出时才析构，
     // 与 TcpClient / CommandHelper 析构顺序产生竞态（曾诱发 disconnectFromHost 访问无效内存）。
     RelayDialog dialog(m_cmdHelper, this);
-    qInfo().noquote() << "打开“继电器控制”界面";
+    qInfo().noquote() << "打开继电器控制界面";
     dialog.exec();
 }
 
@@ -436,7 +436,7 @@ void mainWindow::slotNetError(QAbstractSocket::SocketError err)
 // 连接成功，更新相应按钮功能
 void mainWindow::connectUpdata()
 {
-    qInfo().noquote() << "探测器连接成功";
+    qInfo().noquote() << "探测器连接成功,硬件初始化中...";
     ui->connectStatusLabel->setStyleSheet(
         "QLineEdit{"
         "color:rgba(0,0,0);" //黑色
@@ -450,7 +450,6 @@ void mainWindow::connectUpdata()
     //================对单片机硬件初始化==================
     //-------------开启硬件电源---------
     // 探测器组A、组B以及外接设备开启电压
-    int waitTime = tcp_order.waitingTime;
     if (m_cmdHelper->isArmConnected()) {
         m_cmdHelper->enqueueArmCommand(CommandItem("开启探测器组A电源", tcp_order.DetecA_ON));
         m_cmdHelper->enqueueArmCommand(CommandItem("开启探测器组B电源", tcp_order.DetecB_ON));
@@ -468,11 +467,18 @@ void mainWindow::connectUpdata()
         //-------------开始检测ARM硬件电路的基本状态-------------
         m_cmdHelper->enqueueArmCommand(CommandItem("开启监测数据返回", tcp_order.MonitorMessageON));
         m_cmdHelper->sendNextArmCommand();
-
     }
     else {
         qWarning() << "连接成功后，探测器状态异常，无法发送初始化指令";
     }
+
+    // 整一个定时器，待所指指令发送后再启动开始测量按钮
+    int waitTime = tcp_order.waitingTime * 9; // 9条指令
+    QTimer::singleShot(waitTime, this, [this]() {
+        ui->Measure_Button->setEnabled(true);
+        qInfo().noquote() << "探测器硬件初始化完成，已准备好测量";
+    });
+    
     // ==================连接成功，相关按钮翻转=================
     ui->bt_connectDet->setText("断开网络");
     ui->bt_connectDet->setEnabled(true);
@@ -661,7 +667,7 @@ void mainWindow::on_Measure_Button_clicked()
         qInfo() << "保存文件路径：" << autofilePath;
         
         // 延时1秒，恢复按钮可点击状态，避免用户连续点击导致的异常
-        QTimer::singleShot(1000, this, [=]()
+        QTimer::singleShot(500, this, [=]()
         {
             ui->Measure_Button->setEnabled(true);
         });
@@ -691,7 +697,7 @@ void mainWindow::on_Measure_Button_clicked()
         // 恢复使用
         ui->Measure_Button->setText(QString("开始测量")); //按钮翻转
         // 延时1秒，恢复按钮可点击状态，避免用户连续点击导致的异常
-        QTimer::singleShot(1000, this, [=]()
+        QTimer::singleShot(500, this, [=]()
         {
             ui->Measure_Button->setEnabled(true);
         });
