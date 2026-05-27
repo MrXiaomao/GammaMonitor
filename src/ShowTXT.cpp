@@ -3,44 +3,44 @@
 #include <QFile>
 #include <QMessageBox>
 
-// ²ÉÓÃÎÄ±¾¿ò½øĞĞÏÔÊ¾£¬»¬¿éÉÏÏÂ»¬¶¯£¬
-// ¸ÃÎÄ±¾¿òÄ£¿éºóĞø¿ÉÓÃÓÚÏÔÊ¾ÆäËûÎÄ±¾£¬½Ó¿Ú£ºshowTXT(filewholePath)
+// é‡‡ç”¨æ–‡æœ¬æ¡†è¿›è¡Œæ˜¾ç¤ºï¼Œæ»‘å—ä¸Šä¸‹æ»‘åŠ¨ï¼Œ
+// è¯¥æ–‡æœ¬æ¡†æ¨¡å—åç»­å¯ç”¨äºæ˜¾ç¤ºå…¶ä»–æ–‡æœ¬ï¼Œæ¥å£ï¼šshowTXT(filewholePath)
 
 ShowTXT::ShowTXT(QString title, QString fileName, QWidget *parent)
 	: myFileName(fileName), QDialog(parent)
 {
 	ui.setupUi(this);
 
-	// Ìí¼Ó×î´ó»¯×îĞ¡»¯°´Å¥
+	// æ·»åŠ æœ€å¤§åŒ–æœ€å°åŒ–æŒ‰é’®
 	Qt::WindowFlags flag = windowFlags();
 	Qt::WindowFlags flags = flag | Qt::WindowMinMaxButtonsHint;
 	setWindowFlags(flags);
 
-    // 1¡¢ÅĞ¶ÏÎÄ¼şÊÇ·ñ´æÔÚ
+    // 1ã€åˆ¤æ–­æ–‡ä»¶æ˜¯å¦å­˜åœ¨
     QFile file(this->myFileName);
     QFileInfo fileInfo(file);
 	if (!fileInfo.isFile()){
-        QString information = "ÎÄ¼ş£º¡°" + this->myFileName + "¡±²»´æÔÚ";
+        QString information = "æ–‡ä»¶ï¼šâ€œ" + this->myFileName + "â€ä¸å­˜åœ¨";
         QMessageBox::warning(NULL, "warning", information, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 		return;
 	} 
 
-    //2¡¢ÒÔ¶ÁµÄ·½Ê½´ò¿ªÎÄ¼ş
+    //2ã€ä»¥è¯»çš„æ–¹å¼æ‰“å¼€æ–‡ä»¶
     bool res = file.open(QIODevice::ReadOnly);
     if (res == false)
     {
-        QString information = this->myFileName + "ÎÄ¼ş´ò¿ªÊ§°Ü";
+        QString information = this->myFileName + "æ–‡ä»¶æ‰“å¼€å¤±è´¥";
         QMessageBox::warning(NULL, "warning", information, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
         return;
     }
 
-    //3¡¢¶ÁÎÄ¼ş£ºÉèÖÃÎª¶Áµ½±à¼­ÇøÓò
-    // readAllÊÇÒÔĞĞµÄĞÎÊ½¶ÁÈ¡ÎÄ¼ş
+    //3ã€è¯»æ–‡ä»¶ï¼šè®¾ç½®ä¸ºè¯»åˆ°ç¼–è¾‘åŒºåŸŸ
+    // readAllæ˜¯ä»¥è¡Œçš„å½¢å¼è¯»å–æ–‡ä»¶
     QString txtInfo = this->myFileName + "\n\n" + QString(file.readAll());
     ui.textBrowser->setText(txtInfo);
     setWindowTitle(title);
 
-    //4¡¢¹Ø±ÕÎÄ¼ş
+    //4ã€å…³é—­æ–‡ä»¶
     file.close();
 }
 

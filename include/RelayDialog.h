@@ -9,7 +9,7 @@
 
 class CommandHelper;
 
-// ¼ÌµçÆ÷¿ØÖÆ£¨TCP ¾­ CommandHelper / TcpClient ¹ÜÀí£©
+// ç»§ç”µå™¨æ§åˆ¶ï¼ˆTCP ç» CommandHelper / TcpClient ç®¡ç†ï¼‰
 class RelayDialog : public QDialog
 {
     Q_OBJECT

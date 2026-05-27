@@ -8,6 +8,7 @@
 #include <QByteArray>
 #include <QMap>
 #include <QThread>
+#include <QTimer>
 #include "tcpclient.h"
 
 using ArmCoefMap = QMap<int, double>;
@@ -27,12 +28,12 @@ Q_DECLARE_METATYPE(ArmFrameData)
 
 struct CommandItem
 {
-    QString name;      // 指令名称（中文或英文描述）
-    QByteArray data;   // 实际发送的指令内容
+    QString name;           // 指令名称（中文或英文描述）
+    QByteArray cmdPayload;  // 实际发送的指令内容（避免与 Windows/第三方宏 data 冲突）
 
     CommandItem() {}
     CommandItem(const QString &n, const QByteArray &d)
-        : name(n), data(d) {}
+        : name(n), cmdPayload(d) {}
 };
 
 /// Framing + field decode on a dedicated thread (no QWidget).

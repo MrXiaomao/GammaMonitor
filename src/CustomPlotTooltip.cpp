@@ -1,7 +1,7 @@
 #include "CustomPlotTooltip.h"
 
-//ÎÒÃÇ½«ToolTipÒÆÈëoverlay²ã£¬Ô­ÒòÊÇÒòÎªËü¿ÉÄÜĞèÒªÆµ·±µÄË¢ĞÂ£¬ÕâÑùÎÒÃÇ¿ÉÒÔ²»ÖØĞÂ»æÖÆÍ¼±í£¬ÓÅ»¯ËÙ¶È¡£
-//Í¬Ê±½«positionµÄÎ»ÖÃÉèÖÃÎªÏñËØµÄ·½Ê½
+//æˆ‘ä»¬å°†ToolTipç§»å…¥overlayå±‚ï¼ŒåŸå› æ˜¯å› ä¸ºå®ƒå¯èƒ½éœ€è¦é¢‘ç¹çš„åˆ·æ–°ï¼Œè¿™æ ·æˆ‘ä»¬å¯ä»¥ä¸é‡æ–°ç»˜åˆ¶å›¾è¡¨ï¼Œä¼˜åŒ–é€Ÿåº¦ã€‚
+//åŒæ—¶å°†positionçš„ä½ç½®è®¾ç½®ä¸ºåƒç´ çš„æ–¹å¼
 QCPToolTip::QCPToolTip(QCustomPlot* parentPlot)
     : QCPAbstractItem(parentPlot),
     position(createPosition(QLatin1String("position"))),
@@ -64,20 +64,20 @@ void QCPToolTip::setPadding(const QMargins& paddings)
     mPadding = paddings;
 }
 
-//ÎÒÃÇÍ¨¹ıhandleTriggerEventÀ´½ÓÊÕÀ´×ÔQCustomPlotµÄÊó±êÒÆ¶¯ĞÅºÅ£¬×÷ÓÃÊÇÊ¹µÃToolTip¸úËæÊó±êÒÆ¶¯
+//æˆ‘ä»¬é€šè¿‡handleTriggerEventæ¥æ¥æ”¶æ¥è‡ªQCustomPlotçš„é¼ æ ‡ç§»åŠ¨ä¿¡å·ï¼Œä½œç”¨æ˜¯ä½¿å¾—ToolTipè·Ÿéšé¼ æ ‡ç§»åŠ¨
 void QCPToolTip::handleTriggerEvent(QMouseEvent* event)
 {
-    updatePosition(event->pos(), true);   // true ±íÊ¾ĞèÒªµ¥¶ÀË¢ĞÂ£¬½«µ÷ÓÃupdateº¯Êı
+    updatePosition(event->pos(), true);   // true è¡¨ç¤ºéœ€è¦å•ç‹¬åˆ·æ–°ï¼Œå°†è°ƒç”¨updateå‡½æ•°
 }
 
 void QCPToolTip::update()
 {
-    mPlotReplot = false;    // ±íÃ÷µ¥¶ÀË¢ĞÂ
+    mPlotReplot = false;    // è¡¨æ˜å•ç‹¬åˆ·æ–°
     layer()->replot();
-    mPlotReplot = true;    // µ¥¶ÀË¢ĞÂÍê±Ï
+    mPlotReplot = true;    // å•ç‹¬åˆ·æ–°å®Œæ¯•
 }
 
-// ²»ĞèÒªÊó±êµã»÷²âÊÔ£¬ÒòÎªToolTipÊÇ¸úËæÊó±êµÄ£¬Êó±êµã»÷²»µ½
+// ä¸éœ€è¦é¼ æ ‡ç‚¹å‡»æµ‹è¯•ï¼Œå› ä¸ºToolTipæ˜¯è·Ÿéšé¼ æ ‡çš„ï¼Œé¼ æ ‡ç‚¹å‡»ä¸åˆ°
 double QCPToolTip::selectTest(const QPointF& pos, bool onlySelectable, QVariant* details) const
 {
     Q_UNUSED(pos)
@@ -86,13 +86,13 @@ double QCPToolTip::selectTest(const QPointF& pos, bool onlySelectable, QVariant*
         return -1;
 }
 
-//ToolTipµÄÎ»ÖÃÖ÷ÒªÊÇ±éÀúµ±Ç°QCustomPlotµÄËùÓĞQCPGraph£¬ÕÒµ½Êó±êÏÂµÄ¶ÔÓ¦µÄÊı¾İµã
+//ToolTipçš„ä½ç½®ä¸»è¦æ˜¯éå†å½“å‰QCustomPlotçš„æ‰€æœ‰QCPGraphï¼Œæ‰¾åˆ°é¼ æ ‡ä¸‹çš„å¯¹åº”çš„æ•°æ®ç‚¹
 int QCPToolTip::pickClosest(double target, const QVector<double>& vector)
 {
     if (vector.size() < 2)
         return 0;
 
-    // ²éÕÒµÚÒ»¸ö´óÓÚ»òµÈÓÚtargetµÄÎ»ÖÃ
+    // æŸ¥æ‰¾ç¬¬ä¸€ä¸ªå¤§äºæˆ–ç­‰äºtargetçš„ä½ç½®
     auto it = std::lower_bound(vector.constBegin(), vector.constEnd(), target);
 
     if (it == vector.constEnd()) return vector.size() - 1;
@@ -107,10 +107,10 @@ void QCPToolTip::updatePosition(const QPointF& newPos, bool replot)
 
     for (int i = mParentPlot->graphCount() - 1; i >= 0; --i) {
         QCPGraph* graph = mParentPlot->graph(i);
-        if (!graph->realVisibility() || graph->scatterStyle().isNone())   // graph²»¿É¼û»òÕßscatter style Îª¿ÕµÄÊ±ºò£¬²»ÏÔÊ¾ToolTip
+        if (!graph->realVisibility() || graph->scatterStyle().isNone())   // graphä¸å¯è§æˆ–è€…scatter style ä¸ºç©ºçš„æ—¶å€™ï¼Œä¸æ˜¾ç¤ºToolTip
             continue;
 
-        double limitDistance = tolerance;   // limitDistance ÓÃÓÚÑ¡ÔñµÄ·¶Î§
+        double limitDistance = tolerance;   // limitDistance ç”¨äºé€‰æ‹©çš„èŒƒå›´
         double penWidth = graph->pen().widthF();
         QCPScatterStyle scatterStyle = graph->scatterStyle();
 
@@ -118,11 +118,11 @@ void QCPToolTip::updatePosition(const QPointF& newPos, bool replot)
         penWidth = scatterStyle.isPenDefined() ? scatterStyle.pen().widthF() : penWidth;
 
         QVariant details;
-        double currentDistance = graph->selectTest(newPos, false, &details);   // details»á·µ»Ø×î½Ó½üµÄÒ»¸öÊı¾İµã£¬selectTestÊÇ²»¾«È·µÄ£¬ËùÒÔºóÃæ»¹ÒªÅĞ¶Ï
+        double currentDistance = graph->selectTest(newPos, false, &details);   // detailsä¼šè¿”å›æœ€æ¥è¿‘çš„ä¸€ä¸ªæ•°æ®ç‚¹ï¼ŒselectTestæ˜¯ä¸ç²¾ç¡®çš„ï¼Œæ‰€ä»¥åé¢è¿˜è¦åˆ¤æ–­
 
         QCPDataSelection selection = details.value<QCPDataSelection>();
         if (currentDistance >= 0 && currentDistance < limitDistance + penWidth && !selection.isEmpty()) {
-            // È¡³öµ±Ç°keyºÍvalueÖµ£¬²¢ÇÒ×ª»»ÎªÏñËØÎ»ÖÃ
+            // å–å‡ºå½“å‰keyå’Œvalueå€¼ï¼Œå¹¶ä¸”è½¬æ¢ä¸ºåƒç´ ä½ç½®
             double key = graph->dataMainKey(selection.dataRange().begin());
             double value = graph->dataMainValue(selection.dataRange().begin());
 
@@ -131,19 +131,19 @@ void QCPToolTip::updatePosition(const QPointF& newPos, bool replot)
             QRectF rect(pos.x() - limitDistance * 0.5, pos.y() - limitDistance * 0.5, limitDistance, limitDistance);
             rect = rect.adjusted(-penWidth, -penWidth, penWidth, penWidth);
 
-            if (rect.contains(newPos)) {    // Í¨¹ı¾ØĞÎÅĞ¶Ï£¬Êó±êÎ»ÖÃÊÇ·ñÔÚÊı¾İµãÉÏ
-                // ½â¿ªÒÔÏÂ×¢ÊÍ£¬¿ÉÒÔÊ¹µÃÎÒÃÇµÄÎÄ×Ö¸úÖá±êÇ©µÄÎÄ×ÖÊÇÒ»ÑùµÄ£¨µ«¸úÖá±êÇ©Êµ¼ÊµÄÏÔÊ¾Ğ§¹û¿ÉÄÜÊÇ²»Ò»ÑùµÄ£¬ÕâÀïÒª×¢Òâ£¬ÀıÈç¶ÔÓÚ¿ÆÑ§¼ÆÊı·¨£¬Öá¿ÉÄÜ»áÊ¹ÓÃÃÀ»¯£©£¬Í¬Ê±Òª×¢Òâµ±Öá±êÇ©²»ÏÔÊ¾µÄÊ±ºòtickVectorLabels·µ»ØµÄÊÇ¿ÕµÄ£¬ËùÒÔÎÒÃÇÒª×öÒ»ÏÂÅĞ¶Ï
-                // ×¢ÒâÕâÀïµÄ·½Ê½ÊÇ²»¾«È·µÄ£¬ÊÊÓÃÓÚÎÄ×ÖÖáÕâÖÖÀàĞÍµÄ
+            if (rect.contains(newPos)) {    // é€šè¿‡çŸ©å½¢åˆ¤æ–­ï¼Œé¼ æ ‡ä½ç½®æ˜¯å¦åœ¨æ•°æ®ç‚¹ä¸Š
+                // è§£å¼€ä»¥ä¸‹æ³¨é‡Šï¼Œå¯ä»¥ä½¿å¾—æˆ‘ä»¬çš„æ–‡å­—è·Ÿè½´æ ‡ç­¾çš„æ–‡å­—æ˜¯ä¸€æ ·çš„ï¼ˆä½†è·Ÿè½´æ ‡ç­¾å®é™…çš„æ˜¾ç¤ºæ•ˆæœå¯èƒ½æ˜¯ä¸ä¸€æ ·çš„ï¼Œè¿™é‡Œè¦æ³¨æ„ï¼Œä¾‹å¦‚å¯¹äºç§‘å­¦è®¡æ•°æ³•ï¼Œè½´å¯èƒ½ä¼šä½¿ç”¨ç¾åŒ–ï¼‰ï¼ŒåŒæ—¶è¦æ³¨æ„å½“è½´æ ‡ç­¾ä¸æ˜¾ç¤ºçš„æ—¶å€™tickVectorLabelsè¿”å›çš„æ˜¯ç©ºçš„ï¼Œæ‰€ä»¥æˆ‘ä»¬è¦åšä¸€ä¸‹åˆ¤æ–­
+                // æ³¨æ„è¿™é‡Œçš„æ–¹å¼æ˜¯ä¸ç²¾ç¡®çš„ï¼Œé€‚ç”¨äºæ–‡å­—è½´è¿™ç§ç±»å‹çš„
                 int keyIndex = pickClosest(key, graph->keyAxis()->tickVector());
-                setText(QString("µ±Ç°: %1\nµ±Ç°Öµ: %2").arg(graph->keyAxis()->tickVectorLabels().at(keyIndex),
+                setText(QString("å½“å‰: %1\nå½“å‰å€¼: %2").arg(graph->keyAxis()->tickVectorLabels().at(keyIndex),
                     QString::number(value)));
 
-                //setText(QString("±¾ÔÂ·İ:%1\nµ±Ç°Öµ:%2").arg(QString::number(key), QString::number(value)));
+                //setText(QString("æœ¬æœˆä»½:%1\nå½“å‰å€¼:%2").arg(QString::number(key), QString::number(value)));
                 mHighlightGraph = graph;
                 mGraphDataPos = pos;
 
                 mParentPlot->setCursor(Qt::PointingHandCursor);
-                position->setPixelPosition(newPos);  // ¸üĞÂÎ»ÖÃ
+                position->setPixelPosition(newPos);  // æ›´æ–°ä½ç½®
                 setVisible(true);
 
                 if (replot) update();
@@ -159,19 +159,19 @@ void QCPToolTip::updatePosition(const QPointF& newPos, bool replot)
     }
 }
 
-//»æÖÆÔ­ÀíÊÇÔÚÊı¾İµãÉÏ·½ÖØĞÂ»æÖÆscatter style£¬²¢ÇÒÉÔÎ¢·Å´óÒ»µãscatter styleµÄ´óĞ¡£¬
-//Ôì³ÉÒ»ÖÖ¼ÙÏó£¬´ËÖÖ·½·¨ÊÊÓÃÓÚscatter styleÓĞÒ»¸ö±³¾°»­Ë¢
+//ç»˜åˆ¶åŸç†æ˜¯åœ¨æ•°æ®ç‚¹ä¸Šæ–¹é‡æ–°ç»˜åˆ¶scatter styleï¼Œå¹¶ä¸”ç¨å¾®æ”¾å¤§ä¸€ç‚¹scatter styleçš„å¤§å°ï¼Œ
+//é€ æˆä¸€ç§å‡è±¡ï¼Œæ­¤ç§æ–¹æ³•é€‚ç”¨äºscatter styleæœ‰ä¸€ä¸ªèƒŒæ™¯ç”»åˆ·
 void QCPToolTip::draw(QCPPainter* painter)
 {
-    if (mPlotReplot) {  // µ±Ç°ÊÇÓÉQCustomPlotµÄreplotº¯ÊıË¢ĞÂµÄ£¬ËùÒÔÒª¸üĞÂÎ»ÖÃ
-        updatePosition(position->pixelPosition(), false);  // ´«Èëfalse±íÃ÷²»Ë¢ĞÂ
-        if (!visible()) return;   // ÓÉÓÚÎ»ÖÃ¸üĞÂÖ®ºó£¬ToolTip¿ÉÄÜ»áÒş²ØµôÁË£¬ËùÒÔ´Ë´¦Ö±½Ó·µ»Ø
+    if (mPlotReplot) {  // å½“å‰æ˜¯ç”±QCustomPlotçš„replotå‡½æ•°åˆ·æ–°çš„ï¼Œæ‰€ä»¥è¦æ›´æ–°ä½ç½®
+        updatePosition(position->pixelPosition(), false);  // ä¼ å…¥falseè¡¨æ˜ä¸åˆ·æ–°
+        if (!visible()) return;   // ç”±äºä½ç½®æ›´æ–°ä¹‹åï¼ŒToolTipå¯èƒ½ä¼šéšè—æ‰äº†ï¼Œæ‰€ä»¥æ­¤å¤„ç›´æ¥è¿”å›
     }
 
     drawGraphScatterPlot(painter, mHighlightGraph, mGraphDataPos);
 
     QPointF pos = position->pixelPosition() + mOffset;
-    painter->translate(pos);  // ÒÆ¶¯painterµÄ»æÖÆÔ­µãÎ»ÖÃ
+    painter->translate(pos);  // ç§»åŠ¨painterçš„ç»˜åˆ¶åŸç‚¹ä½ç½®
 
     QFontMetrics fontMetrics(mFont);
     QRect textRect = fontMetrics.boundingRect(0, 0, 0, 0, Qt::TextDontClip | mTextAlignment, mText);
@@ -180,13 +180,13 @@ void QCPToolTip::draw(QCPPainter* painter)
     QRect textBoxRect = textRect.adjusted(-mPadding.left(), -mPadding.top(), mPadding.right(), mPadding.bottom());
     textBoxRect.moveTopLeft(QPoint());
 
-    // ÏŞÖÆToolTip²»³¬¹ıQCustomPlotµÄ·¶Î§
+    // é™åˆ¶ToolTipä¸è¶…è¿‡QCustomPlotçš„èŒƒå›´
     if (pos.x() + textBoxRect.width() >= mParentPlot->viewport().right())
         painter->translate(-mOffset.x() * 2 - textBoxRect.width(), 0);
     if (pos.y() + textBoxRect.height() * 2 >= mParentPlot->viewport().bottom())
         painter->translate(0, -mOffset.y() * 2 - textBoxRect.height());
 
-    // »æÖÆ±³¾°ºÍ±ß¿ò
+    // ç»˜åˆ¶èƒŒæ™¯å’Œè¾¹æ¡†
     if ((mBrush != Qt::NoBrush && mBrush.color().alpha() != 0) ||
         (mBorderPen != Qt::NoPen && mBorderPen.color().alpha() != 0)) {
         double clipPad = mBorderPen.widthF();
@@ -197,7 +197,7 @@ void QCPToolTip::draw(QCPPainter* painter)
         painter->drawRoundedRect(boundingRect, mRadius.x(), mRadius.y(), mSizeMode);
     }
 
-    // »æÖÆÎÄ×Ö
+    // ç»˜åˆ¶æ–‡å­—
     painter->setFont(mFont);
     painter->setPen(mTextColor);
     painter->setBrush(Qt::NoBrush);
@@ -208,13 +208,13 @@ void QCPToolTip::drawGraphScatterPlot(QCPPainter* painter, QCPGraph* graph, cons
 {
     if (!graph) return;
     QCPScatterStyle style = graph->scatterStyle();
-    style.setBrush(Qt::red);           //ÉèÖÃÔ²ĞÄÎªºìÉ«
+    style.setBrush(Qt::red);           //è®¾ç½®åœ†å¿ƒä¸ºçº¢è‰²
     if (style.isNone()) return;
 
-    if (graph->selectionDecorator())   // Èç¹ûÓĞselect decorator£¬ÔòÊ¹ÓÃĞŞÊÎÆ÷µÄ·ç¸ñ
+    if (graph->selectionDecorator())   // å¦‚æœæœ‰select decoratorï¼Œåˆ™ä½¿ç”¨ä¿®é¥°å™¨çš„é£æ ¼
         style = graph->selectionDecorator()->getFinalScatterStyle(style);
 
     style.applyTo(painter, graph->pen());
-    style.setSize(style.size() * 1.2); // ·Å´óÒ»µã
+    style.setSize(style.size() * 1.2); // æ”¾å¤§ä¸€ç‚¹
     style.drawShape(painter, pos);
 }

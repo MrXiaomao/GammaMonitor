@@ -29,12 +29,12 @@ public:
 
     void setVisible(bool visible);
 public:
-    QCustomPlot* plot;     //ÊµÀý»¯plot
-    QCPGraph* graph;       //»æÍ¼²ãÇúÏß
-    QCPItemTracer* tracer; //×·×Ùµã
-    //QCPItemText* label;   //ÏÔÊ¾ÎÄ±¾
-    QCPItemTip* label;    //ÏÔÊ¾ÎÄ±¾
-    QCPItemLine* arrow;    //¼ýÍ·
+    QCustomPlot* plot;     //å®žä¾‹åŒ–plot
+    QCPGraph* graph;       //ç»˜å›¾å±‚æ›²çº¿
+    QCPItemTracer* tracer; //è¿½è¸ªç‚¹
+    //QCPItemText* label;   //æ˜¾ç¤ºæ–‡æœ¬
+    QCPItemTip* label;    //æ˜¾ç¤ºæ–‡æœ¬
+    QCPItemLine* arrow;    //ç®­å¤´
 
     TracerType type;
     bool visible;

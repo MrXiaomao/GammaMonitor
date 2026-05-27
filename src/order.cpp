@@ -1,9 +1,9 @@
 #include "order.h"
 Order::Order(void)
 {
-	waitingTime = 500; //Íø¿ÚÊı¾İĞ´ÈëµÈ´ıÊ±¼ä£¬µÈ´ıARMÏìÓ¦Ö¸Áî¡£Ö÷ÒªÊÇ²¿·ÖÖ¸Áî£¬Ó²¼şĞèÒªÏìÓ¦Ò»¶ÎÊ±¼ä¡£ËùÒÔÕâÀï×ö³¤Ê±¼äÑÓÊ±¡£
+	waitingTime = 500; //ç½‘å£æ•°æ®å†™å…¥ç­‰å¾…æ—¶é—´ï¼Œç­‰å¾…ARMå“åº”æŒ‡ä»¤ã€‚ä¸»è¦æ˜¯éƒ¨åˆ†æŒ‡ä»¤ï¼Œç¡¬ä»¶éœ€è¦å“åº”ä¸€æ®µæ—¶é—´ã€‚æ‰€ä»¥è¿™é‡Œåšé•¿æ—¶é—´å»¶æ—¶ã€‚
 
-	// ==========================ËÄ×Ö½ÚÖ¸Áî=====================
+	// ==========================å››å­—èŠ‚æŒ‡ä»¤=====================
 	//
 	StartMeasure.resize(4);
 	StopMeasure.resize(4);
@@ -16,63 +16,63 @@ Order::Order(void)
 	DetecB_OFF.resize(4);
 	ExtDeviceOFF.resize(4);
 
-	//¿ªÊ¼¼ÆÊı
+	//å¼€å§‹è®¡æ•°
 	//04 AA 00 00
 	StartMeasure[0] = 0x04;
 	StartMeasure[1] = 0xAA;
 	StartMeasure[2] = 0x00;
 	StartMeasure[3] = 0x00;
 
-	//Í£Ö¹¼ÆÊı
+	//åœæ­¢è®¡æ•°
 	//04 BB 00 00
 	StopMeasure[0] = 0x04;
 	StopMeasure[1] = 0xBB;
 	StopMeasure[2] = 0x00;
 	StopMeasure[3] = 0x00;
 
-	//¿ªÆôA×éÌ½²âÆ÷SiPMÆ«Ñ¹
+	//å¼€å¯Aç»„æ¢æµ‹å™¨SiPMåå‹
 	//60 00 00 00
 	DetecA_ON[0] = 0x60;
 	DetecA_ON[1] = 0x00;
 	DetecA_ON[2] = 0x00;
 	DetecA_ON[3] = 0x00;
 
-	//¿ªÆôA×éÌ½²âÆ÷SiPMÆ«Ñ¹
+	//å¼€å¯Aç»„æ¢æµ‹å™¨SiPMåå‹
 	//60 01 00 00
 	DetecB_ON[0] = 0x60;
 	DetecB_ON[1] = 0x01;
 	DetecB_ON[2] = 0x00;
 	DetecB_ON[3] = 0x00;
 
-	//¿ªÆôÍâÉèµçÑ¹
+	//å¼€å¯å¤–è®¾ç”µå‹
 	//60 02 00 00
 	ExtDeviceON[0] = 0x60;
 	ExtDeviceON[1] = 0x02;
 	ExtDeviceON[2] = 0x00;
 	ExtDeviceON[3] = 0x00;
 
-	//¹Ø±ÕA×éÌ½²âÆ÷SiPMÆ«Ñ¹
+	//å…³é—­Aç»„æ¢æµ‹å™¨SiPMåå‹
 	//40 00 00 00
 	DetecA_OFF[0] = 0x40;
 	DetecA_OFF[1] = 0x00;
 	DetecA_OFF[2] = 0x00;
 	DetecA_OFF[3] = 0x00;
 
-	//¹Ø±ÕB×éÌ½²âÆ÷SiPMÆ«Ñ¹
+	//å…³é—­Bç»„æ¢æµ‹å™¨SiPMåå‹
 	//40 01 00 00
 	DetecB_OFF[0] = 0x40;
 	DetecB_OFF[1] = 0x01;
 	DetecB_OFF[2] = 0x00;
 	DetecB_OFF[3] = 0x00;
 
-	//¹Ø±ÕÍâÉèµçÑ¹
+	//å…³é—­å¤–è®¾ç”µå‹
 	//40 02 00 00
 	ExtDeviceOFF[0] = 0x40;
 	ExtDeviceOFF[1] = 0x02;
 	ExtDeviceOFF[2] = 0x00;
 	ExtDeviceOFF[3] = 0x00;
 
-	// =================================Áù×Ö½ÚÖ¸Áî=======================================
+	// =================================å…­å­—èŠ‚æŒ‡ä»¤=======================================
 	//
 	MonitorMessageON.resize(6);
 	MonitorMessageOFF.resize(6);
@@ -90,7 +90,7 @@ Order::Order(void)
 	Temp_MonitorOFF.resize(6);
 	InputVoltage_MonitorOFF.resize(6);
 
-	// ÈÃARMÆô¶¯·¢ËÍÉè±¸×´Ì¬ĞÅÏ¢£¨ÎÂ¶È¡¢ÊäÈëµçÔ´¡¢Ì½²âÆ÷A×éµçÑ¹¡¢Ì½²âÆ÷B×éµçÑ¹£©
+	// è®©ARMå¯åŠ¨å‘é€è®¾å¤‡çŠ¶æ€ä¿¡æ¯ï¼ˆæ¸©åº¦ã€è¾“å…¥ç”µæºã€æ¢æµ‹å™¨Aç»„ç”µå‹ã€æ¢æµ‹å™¨Bç»„ç”µå‹ï¼‰
 	//80 AA 00 00 00 00
 	MonitorMessageON[0] = 0x80;
 	MonitorMessageON[1] = 0xAA;
@@ -99,7 +99,7 @@ Order::Order(void)
 	MonitorMessageON[4] = 0x00;
 	MonitorMessageON[5] = 0x00;
 
-	// ÈÃARMÍ£Ö¹·¢ËÍÉè±¸×´Ì¬ĞÅÏ¢£¨ÎÂ¶È¡¢ÊäÈëµçÔ´¡¢Ì½²âÆ÷A×éµçÑ¹¡¢Ì½²âÆ÷B×éµçÑ¹£©
+	// è®©ARMåœæ­¢å‘é€è®¾å¤‡çŠ¶æ€ä¿¡æ¯ï¼ˆæ¸©åº¦ã€è¾“å…¥ç”µæºã€æ¢æµ‹å™¨Aç»„ç”µå‹ã€æ¢æµ‹å™¨Bç»„ç”µå‹ï¼‰
 	// 90 AA 00 00 00 00
 	MonitorMessageOFF[0] = 0x90;
 	MonitorMessageOFF[1] = 0xAA;
@@ -108,7 +108,7 @@ Order::Order(void)
 	MonitorMessageOFF[4] = 0x00;
 	MonitorMessageOFF[5] = 0x00;
 
-	// ±È½ÏÆ÷ãĞÖµÄ¬ÈÏÖµ,ÉèÖÃÁ½¸öÌ½²âÆ÷µÄ´¥·¢ãĞÖµÎª 42£¬¼´0.034V
+	// æ¯”è¾ƒå™¨é˜ˆå€¼é»˜è®¤å€¼,è®¾ç½®ä¸¤ä¸ªæ¢æµ‹å™¨çš„è§¦å‘é˜ˆå€¼ä¸º 42ï¼Œå³0.034V
 	//50 01 00 2A 00 2A
 	DetectorThread[0] = 0x50;
 	DetectorThread[1] = 0x01;
@@ -117,7 +117,7 @@ Order::Order(void)
 	DetectorThread[4] = 0x00;
 	DetectorThread[5] = 0x2A;
 
-	// ¹Ø±ÕÁ½×éÌ½²âÆ÷µÄ±È½ÏÆ÷
+	// å…³é—­ä¸¤ç»„æ¢æµ‹å™¨çš„æ¯”è¾ƒå™¨
 	DetectorThreadOFF[0] = 0x50;
 	DetectorThreadOFF[1] = 0x00;
 	DetectorThreadOFF[2] = 0x00;
@@ -125,7 +125,7 @@ Order::Order(void)
 	DetectorThreadOFF[4] = 0x00;
 	DetectorThreadOFF[5] = 0x00;
 
-	// ¿ªÆôA×éÆ«Ñ¹¼à²â
+	// å¼€å¯Aç»„åå‹ç›‘æµ‹
 	//80 01 00 00 00 00
 	VoltageA_MonitorON[0] = 0x80;
 	VoltageA_MonitorON[1] = 0x01;
@@ -134,7 +134,7 @@ Order::Order(void)
 	VoltageA_MonitorON[4] = 0x00;
 	VoltageA_MonitorON[5] = 0x00;
 
-	// ¿ªÆôB×éÆ«Ñ¹¼à²â
+	// å¼€å¯Bç»„åå‹ç›‘æµ‹
 	// 80 02 00 00 00 00
 	VoltageB_MonitorON[0] = 0x80;
 	VoltageB_MonitorON[1] = 0x02;
@@ -143,7 +143,7 @@ Order::Order(void)
 	VoltageB_MonitorON[4] = 0x00;
 	VoltageB_MonitorON[5] = 0x00;
 
-	// ¿ªÆôÎÂ¶È¼à²â 
+	// å¼€å¯æ¸©åº¦ç›‘æµ‹ 
 	// 80 03 00 00 00 00
 	Temp_MonitorON[0] = 0x80;
 	Temp_MonitorON[1] = 0x03;
@@ -152,7 +152,7 @@ Order::Order(void)
 	Temp_MonitorON[4] = 0x00;
 	Temp_MonitorON[5] = 0x00;
 
-	// ¿ªÆôÉè±¸ÊäÈëµçÑ¹¼à²â
+	// å¼€å¯è®¾å¤‡è¾“å…¥ç”µå‹ç›‘æµ‹
 	// 80 04 00 00 00 00
 	InputVoltage_MonitorON[0] = 0x80;
 	InputVoltage_MonitorON[1] = 0x04;
@@ -161,7 +161,7 @@ Order::Order(void)
 	InputVoltage_MonitorON[4] = 0x00;
 	InputVoltage_MonitorON[5] = 0x00;	
 
-	// ¹Ø±ÕÌ½²âÆ÷×éAÆ«Ñ¹¼à²â
+	// å…³é—­æ¢æµ‹å™¨ç»„Aåå‹ç›‘æµ‹
 	// 90 01 00 00 00 00
 	VoltageA_MonitorOFF[0] = 0x90;
 	VoltageA_MonitorOFF[1] = 0x01;
@@ -170,7 +170,7 @@ Order::Order(void)
 	VoltageA_MonitorOFF[4] = 0x00;
 	VoltageA_MonitorOFF[5] = 0x00;
 
-	// ¹Ø±ÕÌ½²âÆ÷×éBÆ«Ñ¹¼à²â
+	// å…³é—­æ¢æµ‹å™¨ç»„Båå‹ç›‘æµ‹
 	// 90 02 00 00 00 00
 	VoltageB_MonitorOFF[0] = 0x90;
 	VoltageB_MonitorOFF[1] = 0x02;
@@ -179,7 +179,7 @@ Order::Order(void)
 	VoltageB_MonitorOFF[4] = 0x00;
 	VoltageB_MonitorOFF[5] = 0x00;
 
-	// ¹Ø±ÕÎÂ¶È¼à²â
+	// å…³é—­æ¸©åº¦ç›‘æµ‹
 	// 90 03 00 00 00 00
 	Temp_MonitorOFF[0] = 0x90;
 	Temp_MonitorOFF[1] = 0x03;
@@ -188,7 +188,7 @@ Order::Order(void)
 	Temp_MonitorOFF[4] = 0x00;
 	Temp_MonitorOFF[5] = 0x00;
 
-	// ¹Ø±Õ5VµçÑ¹¼à²â
+	// å…³é—­5Vç”µå‹ç›‘æµ‹
 	// 90 04 00 00 00 00
 	InputVoltage_MonitorOFF[0] = 0x90;
 	InputVoltage_MonitorOFF[1] = 0x04;
@@ -197,10 +197,10 @@ Order::Order(void)
 	InputVoltage_MonitorOFF[4] = 0x00;
 	InputVoltage_MonitorOFF[5] = 0x00;
 
-	QByteArray VoltageB_MonitorOFF; // ¹Ø±ÕÌ½²âÆ÷×éBÆ«Ñ¹¼à²â
-	QByteArray Temp_MonitorOFF; // ¹Ø±ÕÎÂ¶È¼à²â
-	QByteArray InputVoltage_MonitorOFF; // ¹Ø±ÕÉè±¸ÊäÈëµçÑ¹¼à²â£¨5V£©
-	//¼ÌµçÆ÷¿ØÖÆ£¬ÕâÊÇASCIIÎÄ±¾£¬²»ÊÇÊ®Áù½øÖÆ
+	QByteArray VoltageB_MonitorOFF; // å…³é—­æ¢æµ‹å™¨ç»„Båå‹ç›‘æµ‹
+	QByteArray Temp_MonitorOFF; // å…³é—­æ¸©åº¦ç›‘æµ‹
+	QByteArray InputVoltage_MonitorOFF; // å…³é—­è®¾å¤‡è¾“å…¥ç”µå‹ç›‘æµ‹ï¼ˆ5Vï¼‰
+	//ç»§ç”µå™¨æ§åˆ¶ï¼Œè¿™æ˜¯ASCIIæ–‡æœ¬ï¼Œä¸æ˜¯åå…­è¿›åˆ¶
 	PowerCH1_ON = "21\0";
 	PowerCH1_OFF = "11\0";
 	PowerCH2_ON = "22\0";

@@ -10,9 +10,9 @@ class myTracerLine : public QObject
 public:
     enum LineType
     {
-        VerticalLine,//´¹Ö±Ïß
-        HorizonLine, //Ë®Æ½Ïß
-        Both//Í¬Ê±ÏÔÊ¾Ë®Æ½ºÍ´¹Ö±Ïß
+        VerticalLine,//å‚ç›´çº¿
+        HorizonLine, //æ°´å¹³çº¿
+        Both//åŒæ—¶æ˜¾ç¤ºæ°´å¹³å’Œå‚ç›´çº¿
     };
     explicit myTracerLine(QCustomPlot* _plot, LineType _type = VerticalLine, QObject* parent = Q_NULLPTR);
     ~myTracerLine();
@@ -28,11 +28,11 @@ public:
     }
 
 protected:
-    bool m_visible;//ÊÇ·ñ¿É¼û
-    LineType m_type;//ÀàĞÍ
-    QCustomPlot* m_plot;//Í¼±í
-    QCPItemStraightLine* m_lineV; //´¹Ö±Ïß
-    QCPItemStraightLine* m_lineH; //Ë®Æ½Ïß
+    bool m_visible;//æ˜¯å¦å¯è§
+    LineType m_type;//ç±»å‹
+    QCustomPlot* m_plot;//å›¾è¡¨
+    QCPItemStraightLine* m_lineV; //å‚ç›´çº¿
+    QCPItemStraightLine* m_lineH; //æ°´å¹³çº¿
 
 };
 

@@ -8,7 +8,7 @@ public:
     myThread(QObject* parent = nullptr);
 
 signals:
-    void task_signals(QCustomPlot* customplotOnThread);//使用的是主线程ui上的customPlot
+    void task_signals(QCustomPlot* customplotOnThread);//浣跨敤鐨勬槸涓荤嚎绋媢i涓婄殑customPlot
 
 public slots:
     void draw_slot(QCustomPlot* customPlot);

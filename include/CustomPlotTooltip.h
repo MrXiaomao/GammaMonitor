@@ -27,7 +27,7 @@ public:
     QCPItemPosition* const position;
 protected:
 
-    bool mPlotReplot;    // ±íÃ÷ÊÇÓÉQCustomPlotË¢ĞÂµÄ£¬ĞèÒª¸üĞÂÎ»ÖÃ
+    bool mPlotReplot;    // è¡¨æ˜æ˜¯ç”±QCustomPlotåˆ·æ–°çš„ï¼Œéœ€è¦æ›´æ–°ä½ç½®
     QString mText;
     Qt::Alignment mTextAlignment;
     QFont mFont;
@@ -38,7 +38,7 @@ protected:
     QPointF mRadius;
     Qt::SizeMode mSizeMode;
 
-    QPointF mOffset;     // Æ«ÒÆÊó±êµÄ¾àÀë
+    QPointF mOffset;     // åç§»é¼ æ ‡çš„è·ç¦»
     QMargins mPadding;
 
     QCPGraph* mHighlightGraph;

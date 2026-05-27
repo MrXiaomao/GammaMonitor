@@ -36,7 +36,7 @@ RelayDialog::~RelayDialog()
     // if (m_net && m_net->isRelayConnected()) {
     //     disconnect(m_net, nullptr, this, nullptr);
     //     m_net->disconnectRelay();
-    //     qInfo().noquote() << "[~RelayDialog]¼ÌµçÆ÷Á¬½ÓÒÑ¶Ï¿ª";
+    //     qInfo().noquote() << "[~RelayDialog]ç»§ç”µå™¨è¿žæŽ¥å·²æ–­å¼€";
     // }
 }
 
@@ -51,18 +51,18 @@ void RelayDialog::closeEvent(QCloseEvent* event)
     if (m_net && m_net->isRelayConnected()) {
         disconnect(m_net, nullptr, this, nullptr);
         m_net->disconnectRelay();
-        qInfo().noquote() << "¼ÌµçÆ÷Á¬½ÓÒÑ¶Ï¿ª";
+        qInfo().noquote() << "ç»§ç”µå™¨è¿žæŽ¥å·²æ–­å¼€";
     }
-    qInfo().noquote() << "¼ÌµçÆ÷¿ØÖÆ½çÃæÒÑ¹Ø±Õ";
+    qInfo().noquote() << "ç»§ç”µå™¨æŽ§åˆ¶ç•Œé¢å·²å…³é—­";
     event->accept();
 }
 
 void RelayDialog::on_connectRelayButton_clicked()
 {
-    if (ui.connectRelayButton->text() == "Á¬½Ó")
+    if (ui.connectRelayButton->text() == "è¿žæŽ¥")
     {
         ui.connectRelayButton->setEnabled(false);
-        ui.NetStatusLabel->setText("ÍøÂçÁ¬½ÓÖÐ¡£¡£¡£");
+        ui.NetStatusLabel->setText("ç½‘ç»œè¿žæŽ¥ä¸­ã€‚ã€‚ã€‚");
 
         const QString tcpIp = ui.IP_RelayEdit->getIP();
         const QString tcpPort = ui.Port_RelayEdit->text();
@@ -80,7 +80,7 @@ void RelayDialog::on_connectRelayButton_clicked()
         m_net->applySettings(mainWindow::ReadSetting());
         m_net->connectRelay();
     }
-    else if (ui.connectRelayButton->text() == "¶Ï¿ª")
+    else if (ui.connectRelayButton->text() == "æ–­å¼€")
     {
         if (timer) {
             if (timer->isActive())
@@ -98,7 +98,7 @@ void RelayDialog::on_connectRelayButton_clicked()
 
 void RelayDialog::slotNetError(QAbstractSocket::SocketError)
 {
-    QMessageBox::warning(this, tr("Warnning"), tr("¼ÌµçÆ÷ TCP Á¬½Ó´íÎó"));
+    QMessageBox::warning(this, tr("Warnning"), tr("ç»§ç”µå™¨ TCP è¿žæŽ¥é”™è¯¯"));
 
     ui.NetStatusLabel->setStyleSheet(
         "QLineEdit{"
@@ -109,8 +109,8 @@ void RelayDialog::slotNetError(QAbstractSocket::SocketError)
         "border: 2px solid rgb(255, 165, 0);"
         "}");
 
-    ui.NetStatusLabel->setText("ÎÞ·¨Á¬½Ó");
-    ui.connectRelayButton->setText("Á¬½Ó");
+    ui.NetStatusLabel->setText("æ— æ³•è¿žæŽ¥");
+    ui.connectRelayButton->setText("è¿žæŽ¥");
     ui.connectRelayButton->setEnabled(true);
     ui.controlRelayButton->setEnabled(false);
     ui.IP_RelayEdit->setEnabled(true);
@@ -134,9 +134,9 @@ void RelayDialog::onRelayConnectChanged(bool connected)
             "QLineEdit:hover{"
             "border: 2px solid rgb(255, 165, 0);"
             "}");
-        qInfo().noquote() << "¼ÌµçÆ÷¶Ï¿ªÁ¬½Ó";
-        ui.NetStatusLabel->setText("Î´Á¬½Ó");
-        ui.connectRelayButton->setText("Á¬½Ó");
+        qInfo().noquote() << "ç»§ç”µå™¨æ–­å¼€è¿žæŽ¥";
+        ui.NetStatusLabel->setText("æœªè¿žæŽ¥");
+        ui.connectRelayButton->setText("è¿žæŽ¥");
         ui.controlRelayButton->setEnabled(false);
         ui.connectRelayButton->setEnabled(true);
         ui.IP_RelayEdit->setEnabled(true);
@@ -144,7 +144,7 @@ void RelayDialog::onRelayConnectChanged(bool connected)
         return;
     }
 
-    qInfo().noquote() << "¼ÌµçÆ÷Á¬½Ó³É¹¦";
+    qInfo().noquote() << "ç»§ç”µå™¨è¿žæŽ¥æˆåŠŸ";
     ui.NetStatusLabel->setStyleSheet(
         "QLineEdit{"
         "color:rgba(0,0,0);"
@@ -153,9 +153,9 @@ void RelayDialog::onRelayConnectChanged(bool connected)
         "QLineEdit:hover{"
         "border: 2px solid rgb(0, 150, 136);"
         "}");
-    ui.NetStatusLabel->setText("Á¬½Ó³É¹¦");
+    ui.NetStatusLabel->setText("è¿žæŽ¥æˆåŠŸ");
 
-    ui.connectRelayButton->setText("¶Ï¿ª");
+    ui.connectRelayButton->setText("æ–­å¼€");
     ui.controlRelayButton->setEnabled(true);
     ui.connectRelayButton->setEnabled(true);
     ui.IP_RelayEdit->setEnabled(false);
@@ -174,8 +174,8 @@ void RelayDialog::on_controlRelayButton_clicked()
         return;
     }
 
-    const bool turnOff = (ui.controlRelayButton->text() == "¹Ø±Õ");
-    const bool turnOn = (ui.controlRelayButton->text() == "´ò¿ª");
+    const bool turnOff = (ui.controlRelayButton->text() == "å…³é—­");
+    const bool turnOn = (ui.controlRelayButton->text() == "æ‰“å¼€");
     if (!turnOff && !turnOn)
         return;
 
@@ -183,7 +183,7 @@ void RelayDialog::on_controlRelayButton_clicked()
     const QByteArray secondCmd = turnOff ? QByteArray(tcp_order.PowerCH2_OFF) : QByteArray(tcp_order.PowerCH2_ON);
     const int relayCommandIntervalMs = 50;
 
-    qInfo().noquote() << (turnOff ? "·¢ËÍ¹Ø±ÕÌ½²âÆ÷µçÔ´Ö¸Áî" : "·¢ËÍ´ò¿ªÌ½²âÆ÷µçÔ´Ö¸Áî");
+    qInfo().noquote() << (turnOff ? "å‘é€å…³é—­æŽ¢æµ‹å™¨ç”µæºæŒ‡ä»¤" : "å‘é€æ‰“å¼€æŽ¢æµ‹å™¨ç”µæºæŒ‡ä»¤");
 
     if (timer && timer->isActive())
         timer->stop();
@@ -220,12 +220,12 @@ void RelayDialog::onTimeOut()
 void RelayDialog::onRelayBytes(const QByteArray& data)
 {
     if (data == "00000000") {
-        ui.label_5->setText("ÒÑ´ò¿ª");
-        ui.controlRelayButton->setText("¹Ø±Õ");
+        ui.label_5->setText("å·²æ‰“å¼€");
+        ui.controlRelayButton->setText("å…³é—­");
     }
     if (data == "11000000") {
-        ui.label_5->setText("ÒÑ¹Ø±Õ");
-        ui.controlRelayButton->setText("´ò¿ª");
+        ui.label_5->setText("å·²å…³é—­");
+        ui.controlRelayButton->setText("æ‰“å¼€");
     }
 }
 

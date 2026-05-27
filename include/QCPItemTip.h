@@ -49,7 +49,7 @@ public:
 	QMargins padding() const { return mPadding; }
 
 	// setters;
-	void setRectColor(const QColor& color = QColor("#228b22")); //ÉèÖÃÎÄ±¾¿òÑÕÉ«
+	void setRectColor(const QColor& color = QColor("#228b22")); //è®¾ç½®æ–‡æœ¬æ¡†é¢œè‰²
 	void setColor(const QColor& color);
 	void setSelectedColor(const QColor& color);
 	void setPen(const QPen& pen);
@@ -82,7 +82,7 @@ protected:
 	enum AnchorIndex { aiTopLeft, aiTop, aiTopRight, aiRight, aiBottomRight, aiBottom, aiBottomLeft, aiLeft };
 
 	// property members:
-	QColor mColor, mSelectedColor,mRectColor;  //mRectColorÎÄ±¾¿òÑÕÉ«
+	QColor mColor, mSelectedColor,mRectColor;  //mRectColoræ–‡æœ¬æ¡†é¢œè‰²
 	QPen mPen, mSelectedPen;
 	QBrush mBrush, mSelectedBrush;
 	QFont mFont, mSelectedFont;

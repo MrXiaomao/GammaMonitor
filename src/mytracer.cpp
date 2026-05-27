@@ -5,15 +5,15 @@ myTracer::myTracer(QCustomPlot* _plot, QCPGraph* _graph, TracerType _type) :
 {
     if (plot) {
         tracer = new QCPItemTracer(plot);
-        //tracer->setStyle(QCPItemTracer::tsCircle);//×·×Ù¹â±êÑùÊ½£¬ÕâÊÇÐ¡Ê®×Ö£¬»¹ÓÐ´óÊ®×Ö¡¢Ô°µÈ
+        //tracer->setStyle(QCPItemTracer::tsCircle);//è¿½è¸ªå…‰æ ‡æ ·å¼ï¼Œè¿™æ˜¯å°åå­—ï¼Œè¿˜æœ‰å¤§åå­—ã€å›­ç­‰
         //tracer->setPen(QPen(Qt::red));
-        tracer->setPen(graph->pen());   //ÉèÖÃtracerÑÕÉ«
+        tracer->setPen(graph->pen());   //è®¾ç½®traceré¢œè‰²
         tracer->setBrush(graph->pen().color());
         tracer->setSize(10);
 
         //label = new QCPItemText(plot);
         label = new QCPItemTip(plot);
-        label->setRectColor(QColor("#00ffff")); //ÎÄ±¾¿òÑÕÉ«
+        label->setRectColor(QColor("#00ffff")); //æ–‡æœ¬æ¡†é¢œè‰²
         label->setLayer("overlay");
         label->setClipAxisRect(false);
         label->setPadding(QMargins(5, 5, 5, 5));
@@ -22,7 +22,7 @@ myTracer::myTracer(QCustomPlot* _plot, QCPGraph* _graph, TracerType _type) :
 
         arrow = new QCPItemLine(plot);
         arrow->setLayer("overlay");
-        arrow->setPen(graph->pen());//ÉèÖÃ¼ýÍ·ÑÕÉ«
+        arrow->setPen(graph->pen());//è®¾ç½®ç®­å¤´é¢œè‰²
         arrow->setClipAxisRect(false);
         arrow->setHead(QCPLineEnding::esSpikeArrow);
 
@@ -38,7 +38,7 @@ myTracer::myTracer(QCustomPlot* _plot, QCPGraph* _graph, TracerType _type) :
 
             arrow->end->setParentAnchor(tracer->position);
             arrow->start->setParentAnchor(arrow->end);
-            arrow->start->setCoords(20, 0);//Æ«ÒÆÁ¿
+            arrow->start->setCoords(20, 0);//åç§»é‡
             break;
         }
 
@@ -52,7 +52,7 @@ myTracer::myTracer(QCustomPlot* _plot, QCPGraph* _graph, TracerType _type) :
 
             arrow->end->setParentAnchor(tracer->position);
             arrow->start->setParentAnchor(label->position);
-            arrow->start->setCoords(-20, 0);//Æ«ÒÆÁ¿
+            arrow->start->setCoords(-20, 0);//åç§»é‡
             break;
         }
 
@@ -66,8 +66,8 @@ myTracer::myTracer(QCustomPlot* _plot, QCPGraph* _graph, TracerType _type) :
 
             arrow->end->setParentAnchor(tracer->position);
             //arrow->start->setParentAnchor(arrow->end);
-            arrow->start->setParentAnchor(label->top);  //ÉèÖÃ¸ÃÖ±ÏßµÄÆðµãÎªÎÄ×Ö¿òµÄÉÏÃªµã
-            //arrow->start->setCoords(25, 0); //Æ«ÒÆÁ¿
+            arrow->start->setParentAnchor(label->top);  //è®¾ç½®è¯¥ç›´çº¿çš„èµ·ç‚¹ä¸ºæ–‡å­—æ¡†çš„ä¸Šé”šç‚¹
+            //arrow->start->setCoords(25, 0); //åç§»é‡
             break;
         }
         default:
@@ -122,7 +122,7 @@ void myTracer::updatePosition(double xValue, double yValue) {
     }
     switch (type) {
     case XAxisTracer: {
-        tracer->position->setCoords(xValue, 0);  //0:ÉÏxÖá£¬1:ÏÂxÖá
+        tracer->position->setCoords(xValue, 0);  //0:ä¸Šxè½´ï¼Œ1:ä¸‹xè½´
         label->position->setCoords(0, -25);
         //arrow->start->setCoords(0,15);
         //arrow->end->setCoords(0,0);
@@ -136,7 +136,7 @@ void myTracer::updatePosition(double xValue, double yValue) {
     }
     case DataTracer: {
         tracer->position->setCoords(xValue, yValue);
-        label->position->setType(QCPItemPosition::ptAbsolute);//Î»ÖÃÀàÐÍ
+        label->position->setType(QCPItemPosition::ptAbsolute);//ä½ç½®ç±»åž‹
         label->position->setCoords(-70, 25);
         /*
     ptAbsolute        ///< Static positioning in pixels, starting from the top left corner of the viewport/widget.

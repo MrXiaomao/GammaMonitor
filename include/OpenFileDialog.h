@@ -8,16 +8,16 @@
 
 //enum class TracerFlag
 //{
-//	CrossTracer, //Ê®×Ö¹â±ê×·×Ù
-//	CurveTracer, //ÇúÏß×·×Ù 
-//	NoTracer     //ÎŞ×·×Ù
+//	CrossTracer, //åå­—å…‰æ ‡è¿½è¸ª
+//	CurveTracer, //æ›²çº¿è¿½è¸ª 
+//	NoTracer     //æ— è¿½è¸ª
 //};
 enum KeyboardType {
-	leftMove, // ¼üÅÌ×óÒÆ
-	rightMove // ¼üÅÌÓÒÒÆ
+	leftMove, // é”®ç›˜å·¦ç§»
+	rightMove // é”®ç›˜å³ç§»
 };
 
-// ¶ÁÈ¡ÎÄ¼ş£¬»æÖÆÇúÏß
+// è¯»å–æ–‡ä»¶ï¼Œç»˜åˆ¶æ›²çº¿
 class OpenFileDialog : public QDialog
 {
 	Q_OBJECT
@@ -25,54 +25,54 @@ class OpenFileDialog : public QDialog
 public:
 	OpenFileDialog(QString fileName, QWidget *parent = Q_NULLPTR);
 	~OpenFileDialog();
-	void ReadFile(); // ¶ÁÈ¡ÎÄ¼ş
-	void QPlot_init(QCustomPlot* customPlot);// »­²¼³õÊ¼»¯
-	void ShowPlot(); // »æÍ¼£¬»æÖÆ4ÌõÇúÏß
-	void DoCrossTracer(QMouseEvent* event); // Ê®×Ö¼ÜÈ¡Öµ
-	void DoCurveTracer(QMouseEvent* event); // ÇúÏßÈ¡Öµ
-	void DoCurveTracer(KeyboardType type); // ÇúÏßÈ¡Öµ,ÏìÓ¦¼üÅÌ×óÓÒ¼üÒÆ¶¯
+	void ReadFile(); // è¯»å–æ–‡ä»¶
+	void QPlot_init(QCustomPlot* customPlot);// ç”»å¸ƒåˆå§‹åŒ–
+	void ShowPlot(); // ç»˜å›¾ï¼Œç»˜åˆ¶4æ¡æ›²çº¿
+	void DoCrossTracer(QMouseEvent* event); // åå­—æ¶å–å€¼
+	void DoCurveTracer(QMouseEvent* event); // æ›²çº¿å–å€¼
+	void DoCurveTracer(KeyboardType type); // æ›²çº¿å–å€¼,å“åº”é”®ç›˜å·¦å³é”®ç§»åŠ¨
 
-	void UpdateAxisRange(); // Ë¢ĞÂ×ø±êÖá·¶Î§µÄÏÔÊ¾ÖµÓëÍ¼Ïñ¶ÔÓ¦
-	void setAxisRange(); // ¸ù¾İ½çÃæÊäÈë¿òÉèÖÃ×ø±êÖá·¶Î§
+	void UpdateAxisRange(); // åˆ·æ–°åæ ‡è½´èŒƒå›´çš„æ˜¾ç¤ºå€¼ä¸å›¾åƒå¯¹åº”
+	void setAxisRange(); // æ ¹æ®ç•Œé¢è¾“å…¥æ¡†è®¾ç½®åæ ‡è½´èŒƒå›´
 	void saveFilePath(QString fileFullName);
 
 private:
 	Ui::OpenFileDialog ui;
 	QString myFileName;
-	QVector<double> counter1; //´æ·ÅËÄ¸öÌ½²âÆ÷µÄ¼ÆÊı¡£
+	QVector<double> counter1; //å­˜æ”¾å››ä¸ªæ¢æµ‹å™¨çš„è®¡æ•°ã€‚
 	QVector<double> counter2;
 	QVector<double> counter3;
 	QVector<double> counter4;
 
-	// »æÍ¼¿Ø¼şµÄÖ¸Õë
+	// ç»˜å›¾æ§ä»¶çš„æŒ‡é’ˆ
 	QCustomPlot* pPlot;
 
-	// »æÍ¼¿Ø¼şÖĞÇúÏßµÄÖ¸Õë
+	// ç»˜å›¾æ§ä»¶ä¸­æ›²çº¿çš„æŒ‡é’ˆ
 	QCPGraph* pGraph1;
 	QCPGraph* pGraph2;
 	QCPGraph* pGraph3;
 	QCPGraph* pGraph4;
 
-	bool showLine[4]; // ÊÇ·ñ»æÖÆÇúÏß
+	bool showLine[4]; // æ˜¯å¦ç»˜åˆ¶æ›²çº¿
 
-	// ÇúÏß¹â±ê
+	// æ›²çº¿å…‰æ ‡
 	TracerFlag mTracer;
-	myTracer* tracerCross; // Ê®×Ö¹â±ê
+	myTracer* tracerCross; // åå­—å…‰æ ‡
 	myTracer* tracerX[4];
-	myTracerLine* lineTracer; // Ö±Ïß¹â±ê
-	int lastPos; // ¼ÇÂ¼¹â±êÉÏÒ»´ÎµÄÖµ
+	myTracerLine* lineTracer; // ç›´çº¿å…‰æ ‡
+	int lastPos; // è®°å½•å…‰æ ‡ä¸Šä¸€æ¬¡çš„å€¼
 
 public slots:
 	bool eventFilter(QObject* watched, QEvent* event);
-	void DoubleClick(); //Êó±êË«»÷»¹Ô­
-	void myMoveMouse(); // Êó±êÍÏ¶¯
+	void DoubleClick(); //é¼ æ ‡åŒå‡»è¿˜åŸ
+	void myMoveMouse(); // é¼ æ ‡æ‹–åŠ¨
 
 private slots:
-	bool on_pbn_save_clicked(); // µ¼³öÍ¼Ïñ
-	void on_GetData_comboBox_currentIndexChanged(const QString& arg1); //ÊÇ·ñ¹â±ê£¬È¡ÖµÀàĞÍ
-	void SLOT_mouseTracetoCoord(QMouseEvent* event); //Êó±ê°´ÏÂ´¥·¢µÄ²Ûº¯Êı
-	void on_checkBox1_stateChanged(int arg1); //¸´Ñ¡¿ò1
-	void on_checkBox2_stateChanged(int arg1); //¸´Ñ¡¿ò2
-	void on_checkBox3_stateChanged(int arg1); //¸´Ñ¡¿ò3
-	void on_checkBox4_stateChanged(int arg1); //¸´Ñ¡¿ò4
+	bool on_pbn_save_clicked(); // å¯¼å‡ºå›¾åƒ
+	void on_GetData_comboBox_currentIndexChanged(const QString& arg1); //æ˜¯å¦å…‰æ ‡ï¼Œå–å€¼ç±»å‹
+	void SLOT_mouseTracetoCoord(QMouseEvent* event); //é¼ æ ‡æŒ‰ä¸‹è§¦å‘çš„æ§½å‡½æ•°
+	void on_checkBox1_stateChanged(int arg1); //å¤é€‰æ¡†1
+	void on_checkBox2_stateChanged(int arg1); //å¤é€‰æ¡†2
+	void on_checkBox3_stateChanged(int arg1); //å¤é€‰æ¡†3
+	void on_checkBox4_stateChanged(int arg1); //å¤é€‰æ¡†4
 };

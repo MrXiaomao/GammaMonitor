@@ -3,7 +3,7 @@
  * @Date: 2026-05-10 19:34:32
  * @LastEditors: Maoxiaoqing
  * @LastEditTime: 2026-05-12 13:52:40
- * @Description: ÇëÌîĞ´¼ò½é
+ * @Description: è¯·å¡«å†™ç®€ä»‹
  */
 
 #pragma once
@@ -13,7 +13,7 @@
 #include <QTcpSocket>
 #include "order.h"
 
-// ¿ØÖÆ¼ÌµçÆ÷µÄ´°¿Ú
+// æ§åˆ¶ç»§ç”µå™¨çš„çª—å£
 class ResetNetwork : public QDialog
 {
 	Q_OBJECT
@@ -27,17 +27,17 @@ private slots:
 	void slotNetError(QAbstractSocket::SocketError);
 	void connectUpdata();
 	void disconnectUpdata();
-	void on_bt_connectDet_clicked(); // ¿ØÖÆÌ½²âÆ÷µÄÍøÂçÁ¬½Ó
-	void on_changeSetting_clicked(); // ĞŞ¸ÄÅäÖÃ
+	void on_bt_connectDet_clicked(); // æ§åˆ¶æ¢æµ‹å™¨çš„ç½‘ç»œè¿æ¥
+	void on_changeSetting_clicked(); // ä¿®æ”¹é…ç½®
 	void closeEvent(QCloseEvent* event);
 
 private:
 	Ui::ResetNetwork ui;
 
-	void WaitingSocketWrite(int time = 30000); // µÈ´ıQTcpSocketĞ´ÈëÊı¾İ
-	QTcpSocket* tcpSocket;// Ö±½Ó½¨Á¢TCPÌ×½Ó×ÖÀà
-	QString tcpIp;// ´æ´¢IPµØÖ·
-	QString tcpGateway; // ´æ´¢Íø¹Ø
-	QString tcpPort;// ´æ´¢¶Ë¿ÚµØÖ·
-	Order tcp_order; // PC¶Ë·¢ËÍµÄÖ¸Áî
+	void WaitingSocketWrite(int time = 30000); // ç­‰å¾…QTcpSocketå†™å…¥æ•°æ®
+	QTcpSocket* tcpSocket;// ç›´æ¥å»ºç«‹TCPå¥—æ¥å­—ç±»
+	QString tcpIp;// å­˜å‚¨IPåœ°å€
+	QString tcpGateway; // å­˜å‚¨ç½‘å…³
+	QString tcpPort;// å­˜å‚¨ç«¯å£åœ°å€
+	Order tcp_order; // PCç«¯å‘é€çš„æŒ‡ä»¤
 };

@@ -9,19 +9,19 @@ OpenFileDialog::OpenFileDialog(QString fileName, QWidget *parent)
 	ui.setupUi(this);
     setWindowTitle(fileName);
 
-    ///Ìí¼Ó×î´ó»¯×îĞ¡»¯°´Å¥
+    ///æ·»åŠ æœ€å¤§åŒ–æœ€å°åŒ–æŒ‰é’®
     Qt::WindowFlags flag = windowFlags();
     Qt::WindowFlags flags = flag | Qt::WindowMinMaxButtonsHint;
     setWindowFlags(flags);
       
-    // ÏŞ¶¨ÊäÈëÎª¸¡µãÊı
-    QDoubleValidator* doubleValidator = new QDoubleValidator();//QDoubleValidator ÏŞ¶¨ÊäÈë¸¡µãÊı £¬QIntValidator ¨C Ö»ÈÃÓÃ»§ÊäÈëÕûÊı
+    // é™å®šè¾“å…¥ä¸ºæµ®ç‚¹æ•°
+    QDoubleValidator* doubleValidator = new QDoubleValidator();//QDoubleValidator é™å®šè¾“å…¥æµ®ç‚¹æ•° ï¼ŒQIntValidator â€“ åªè®©ç”¨æˆ·è¾“å…¥æ•´æ•°
     ui.XAxis_left_Edit->setValidator(doubleValidator);
     ui.XAxis_right_Edit->setValidator(doubleValidator);
     ui.YAxis_left_Edit->setValidator(doubleValidator);
     ui.YAxis_right_Edit->setValidator(doubleValidator); 
 
-    // ¸ø¿Ø¼ş°²×°ÊÂ¼ş¹ıÂËÆ÷
+    // ç»™æ§ä»¶å®‰è£…äº‹ä»¶è¿‡æ»¤å™¨
     ui.XAxis_left_Edit->installEventFilter(this);  
     ui.XAxis_right_Edit->installEventFilter(this); 
     ui.YAxis_left_Edit->installEventFilter(this);  
@@ -30,9 +30,9 @@ OpenFileDialog::OpenFileDialog(QString fileName, QWidget *parent)
     
     showLine[0] = true;
 
-    pPlot = ui.customPlot; // ¸øcustomPlot»æÍ¼¿Ø¼ş£¬ÉèÖÃ¸ö±ğÃû£¬·½±ãÊéĞ´
+    pPlot = ui.customPlot; // ç»™customPlotç»˜å›¾æ§ä»¶ï¼Œè®¾ç½®ä¸ªåˆ«åï¼Œæ–¹ä¾¿ä¹¦å†™
 
-    // ÇúÏß¹â±êÏà¹Ø±äÁ¿
+    // æ›²çº¿å…‰æ ‡ç›¸å…³å˜é‡
     mTracer = TracerFlag::NoTracer;
     tracerCross = Q_NULLPTR;
     lineTracer = Q_NULLPTR;
@@ -41,20 +41,20 @@ OpenFileDialog::OpenFileDialog(QString fileName, QWidget *parent)
     }
     lastPos = 0;
 
-    // ¶ÁÈ¡ÎÄ¼şÊı¾İ
+    // è¯»å–æ–‡ä»¶æ•°æ®
 	ReadFile();
-	// ³õÊ¼»¯Í¼±í
+	// åˆå§‹åŒ–å›¾è¡¨
 	QPlot_init(pPlot);
-    // »æÖÆÍ¼Æ¬
+    // ç»˜åˆ¶å›¾ç‰‡
     ShowPlot();
 }
 
 OpenFileDialog::~OpenFileDialog()
 {
-	delete this; // ¸Ã´°¿ÚÎª·ÇÄ£Ì¬¿ò
+	delete this; // è¯¥çª—å£ä¸ºéæ¨¡æ€æ¡†
 }
 
-// ¶ÁÈ¡Êı¾İ
+// è¯»å–æ•°æ®
 void OpenFileDialog::ReadFile() {
 	QFile file(myFileName);
 	file.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -78,65 +78,65 @@ void OpenFileDialog::ReadFile() {
 	}
 }
 
-// »æÍ¼Í¼±í³õÊ¼»¯
+// ç»˜å›¾å›¾è¡¨åˆå§‹åŒ–
 void OpenFileDialog::QPlot_init(QCustomPlot* customPlot)
 {
-    // Í¼±íÌí¼ÓÁ½ÌõÇúÏß
+    // å›¾è¡¨æ·»åŠ ä¸¤æ¡æ›²çº¿
     pGraph1 = customPlot->addGraph();
     pGraph2 = customPlot->addGraph();
     pGraph3 = customPlot->addGraph();
     pGraph4 = customPlot->addGraph();
 
-    ui.checkBox1->setCheckState(Qt::Checked);  //ÉèÖÃ¸´Ñ¡¿ò³õÊ¼×´Ì¬ Unchecked
+    ui.checkBox1->setCheckState(Qt::Checked);  //è®¾ç½®å¤é€‰æ¡†åˆå§‹çŠ¶æ€ Unchecked
     ui.checkBox2->setCheckState(Qt::Checked);
     ui.checkBox3->setCheckState(Qt::Checked);
     ui.checkBox4->setCheckState(Qt::Checked);
-    //ui->rescaleAxesCheckBox->setCheckState(Qt::Checked); // ×ø±êÖá×ÔÊÊÓ¦
-    //ui->refreshPlotCheckBox->setCheckState(Qt::Checked); // Í¼ÏñË¢ĞÂ
+    //ui->rescaleAxesCheckBox->setCheckState(Qt::Checked); // åæ ‡è½´è‡ªé€‚åº”
+    //ui->refreshPlotCheckBox->setCheckState(Qt::Checked); // å›¾åƒåˆ·æ–°
 
-    // ÉèÖÃÇúÏßÑÕÉ«
+    // è®¾ç½®æ›²çº¿é¢œè‰²
     pGraph1->setPen(QPen(Qt::red));
     pGraph2->setPen(QPen(Qt::darkRed));
     pGraph3->setPen(QPen(Qt::green));
     pGraph4->setPen(QPen(Qt::blue));
 
-    // ÉèÖÃ×ø±êÖáÃû³Æ
-    customPlot->xAxis->setLabel("Ê±¼ä/s");
-    customPlot->yAxis->setLabel("¼ÆÊıÂÊ/cps");
+    // è®¾ç½®åæ ‡è½´åç§°
+    customPlot->xAxis->setLabel("æ—¶é—´/s");
+    customPlot->yAxis->setLabel("è®¡æ•°ç‡/cps");
 
-    // ÉèÖÃy×ø±êÖáÏÔÊ¾·¶Î§
+    // è®¾ç½®yåæ ‡è½´æ˜¾ç¤ºèŒƒå›´
     customPlot->xAxis->setRange(0, 120);
 
-    // ÏÔÊ¾Í¼±íµÄÍ¼Àı
-    customPlot->legend->setBrush(QColor(255, 255, 255, 0));//legend±³¾°É«ÉèÎª°×É«µ«±³¾°Í¸Ã÷£¬ÔÊĞíÍ¼ÏñÔÚlegendÇøÓò¿É¼û
+    // æ˜¾ç¤ºå›¾è¡¨çš„å›¾ä¾‹
+    customPlot->legend->setBrush(QColor(255, 255, 255, 0));//legendèƒŒæ™¯è‰²è®¾ä¸ºç™½è‰²ä½†èƒŒæ™¯é€æ˜ï¼Œå…è®¸å›¾åƒåœ¨legendåŒºåŸŸå¯è§
     customPlot->legend->setVisible(true);
 
-    // Ìí¼ÓÇúÏßÃû³Æ
-    pGraph1->setName("Ì½²âÆ÷1");
-    pGraph2->setName("Ì½²âÆ÷2");
-    pGraph3->setName("Ì½²âÆ÷3");
-    pGraph4->setName("Ì½²âÆ÷4");
+    // æ·»åŠ æ›²çº¿åç§°
+    pGraph1->setName("æ¢æµ‹å™¨1");
+    pGraph2->setName("æ¢æµ‹å™¨2");
+    pGraph3->setName("æ¢æµ‹å™¨3");
+    pGraph4->setName("æ¢æµ‹å™¨4");
 
-    // ÉèÖÃ²¨ĞÎÇúÏßµÄ¸´Ñ¡¿ò×ÖÌåÑÕÉ«
-    ui.checkBox1->setStyleSheet("QCheckBox{color:red}");//Éè¶¨Ç°¾°ÑÕÉ«,¾ÍÊÇ×ÖÌåÑÕÉ«
+    // è®¾ç½®æ³¢å½¢æ›²çº¿çš„å¤é€‰æ¡†å­—ä½“é¢œè‰²
+    ui.checkBox1->setStyleSheet("QCheckBox{color:red}");//è®¾å®šå‰æ™¯é¢œè‰²,å°±æ˜¯å­—ä½“é¢œè‰²
     ui.checkBox2->setStyleSheet("QCheckBox{color:darkRed}");
     ui.checkBox3->setStyleSheet("QCheckBox{color:green}");
     ui.checkBox4->setStyleSheet("QCheckBox{color:blue}");
 
-    // ÔÊĞíÓÃ»§ÓÃÊó±êÍÏ¶¯Öá·¶Î§£¬ÓÃÊó±ê¹öÂÖËõ·Å£¬µã»÷Ñ¡ÔñÍ¼ĞÎ:
+    // å…è®¸ç”¨æˆ·ç”¨é¼ æ ‡æ‹–åŠ¨è½´èŒƒå›´ï¼Œç”¨é¼ æ ‡æ»šè½®ç¼©æ”¾ï¼Œç‚¹å‡»é€‰æ‹©å›¾å½¢:
     customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-    //iRangeDrag ×ó¼üµã»÷¿ÉÍÏ¶¯; iRangeZoom ·¶Î§¿ÉÍ¨¹ıÊó±ê¹öÂÖËõ·Å; iSelectPlottables ÏßÌõ¿ÉÑ¡ÖĞ
+    //iRangeDrag å·¦é”®ç‚¹å‡»å¯æ‹–åŠ¨; iRangeZoom èŒƒå›´å¯é€šè¿‡é¼ æ ‡æ»šè½®ç¼©æ”¾; iSelectPlottables çº¿æ¡å¯é€‰ä¸­
 
-    // Êó±êË«»÷¸´Ô­
-    connect(ui.customPlot, SIGNAL(mouseDoubleClick(QMouseEvent*)), this, SLOT(DoubleClick())); //¶ÁÈ¡ĞÅÏ¢µÄÁ¬½Ó
+    // é¼ æ ‡åŒå‡»å¤åŸ
+    connect(ui.customPlot, SIGNAL(mouseDoubleClick(QMouseEvent*)), this, SLOT(DoubleClick())); //è¯»å–ä¿¡æ¯çš„è¿æ¥
 
-    // Êó±êÍÏ¶¯£¬»ñÈ¡×ø±êÖá·¶Î§
+    // é¼ æ ‡æ‹–åŠ¨ï¼Œè·å–åæ ‡è½´èŒƒå›´
     connect(ui.customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(myMoveMouse()));
     /*connect(ui.customPlot, &QCustomPlot::mouseDoubleClick, this, [=] {
         //ui.customPlot->xAxis->setRange(-100, 1000);
         //ui.customPlot->yAxis->setRange(-100, 100);
-        pGraph1->rescaleAxes(); // ÈÃ·¶Î§×ÔĞĞËõ·Å£¬Ê¹Í¼0ÍêÈ«ÊÊºÏÓÚ¿É¼ûÇøÓò.ÕâÀï²»ÄÜ´ø²ÎÊıtrue
-        pGraph2->rescaleAxes(true); // Í¼1Ò²ÊÇÒ»Ñù×Ô¶¯µ÷Õû·¶Î§£¬µ«Ö»ÊÇ·Å´ó»ò²»±ä·¶Î§
+        pGraph1->rescaleAxes(); // è®©èŒƒå›´è‡ªè¡Œç¼©æ”¾ï¼Œä½¿å›¾0å®Œå…¨é€‚åˆäºå¯è§åŒºåŸŸ.è¿™é‡Œä¸èƒ½å¸¦å‚æ•°true
+        pGraph2->rescaleAxes(true); // å›¾1ä¹Ÿæ˜¯ä¸€æ ·è‡ªåŠ¨è°ƒæ•´èŒƒå›´ï¼Œä½†åªæ˜¯æ”¾å¤§æˆ–ä¸å˜èŒƒå›´
         pGraph3->rescaleAxes(true);
         pGraph4->rescaleAxes(true);
         ui.customPlot->replot();
@@ -156,10 +156,10 @@ void OpenFileDialog::ShowPlot()
     pGraph3->addData(time, counter3);
     pGraph4->addData(time, counter4);
 
-    // ×Ô¶¯µ÷½Ú×ø±êÖá
+    // è‡ªåŠ¨è°ƒèŠ‚åæ ‡è½´
     //if (RescaleAxesFlag) {
-    pGraph1->rescaleAxes(); // ÈÃ·¶Î§×ÔĞĞËõ·Å£¬Ê¹Í¼0ÍêÈ«ÊÊºÏÓÚ¿É¼ûÇøÓò.ÕâÀï²»ÄÜ´ø²ÎÊıtrue
-    pGraph2->rescaleAxes(true); // Í¼1Ò²ÊÇÒ»Ñù×Ô¶¯µ÷Õû·¶Î§£¬µ«Ö»ÊÇ·Å´ó»ò²»±ä·¶Î§
+    pGraph1->rescaleAxes(); // è®©èŒƒå›´è‡ªè¡Œç¼©æ”¾ï¼Œä½¿å›¾0å®Œå…¨é€‚åˆäºå¯è§åŒºåŸŸ.è¿™é‡Œä¸èƒ½å¸¦å‚æ•°true
+    pGraph2->rescaleAxes(true); // å›¾1ä¹Ÿæ˜¯ä¸€æ ·è‡ªåŠ¨è°ƒæ•´èŒƒå›´ï¼Œä½†åªæ˜¯æ”¾å¤§æˆ–ä¸å˜èŒƒå›´
     pGraph3->rescaleAxes(true);
     pGraph4->rescaleAxes(true);
     //}
@@ -168,8 +168,8 @@ void OpenFileDialog::ShowPlot()
     UpdateAxisRange();
 }
 
-// ÏìÓ¦±à¼­¿ò¶¯×÷£¬µ±¹â±êÀë¿ª±à¼­¿òÊ±£¬Í¼Ïñ¸úËæÏìÓ¦£¬ÖØĞÂ»æÖÆ
-// ÊÂ¼ş¹ıÂËÆ÷
+// å“åº”ç¼–è¾‘æ¡†åŠ¨ä½œï¼Œå½“å…‰æ ‡ç¦»å¼€ç¼–è¾‘æ¡†æ—¶ï¼Œå›¾åƒè·Ÿéšå“åº”ï¼Œé‡æ–°ç»˜åˆ¶
+// äº‹ä»¶è¿‡æ»¤å™¨
 // Qt::Key_Left = 0x01000012,
 // Qt::Key_Up = 0x01000013,
 // Qt::Key_Right = 0x01000014,
@@ -183,7 +183,7 @@ bool OpenFileDialog::eventFilter(QObject* watched, QEvent* event)
             QKeyEvent* myKey = static_cast<QKeyEvent*>(event);
             int keyValue = myKey->key();
             if (keyValue == Qt::Key_Return || keyValue == Qt::Key_Enter
-                || keyValue == Qt::Key_Tab){ // °´¼üEnter°´ÏÂ,Qt::Key_EnterÊÇĞ¡¼üÅÌ£¨Êı×Ö¼üÅÌ£©µÄEnter£¬Qt::Key_ReturnÊÇ´ó¼üÅÌÇøµÄEnter
+                || keyValue == Qt::Key_Tab){ // æŒ‰é”®EnteræŒ‰ä¸‹,Qt::Key_Enteræ˜¯å°é”®ç›˜ï¼ˆæ•°å­—é”®ç›˜ï¼‰çš„Enterï¼ŒQt::Key_Returnæ˜¯å¤§é”®ç›˜åŒºçš„Enter
                 setAxisRange();
             }
         }
@@ -191,14 +191,14 @@ bool OpenFileDialog::eventFilter(QObject* watched, QEvent* event)
             setAxisRange();
         }
     }
-    if (mTracer == TracerFlag::CurveTracer) { //Èô´æÔÚÇúÏß¹â±êÔòÏìÓ¦¼üÅÌÂ¼Èë¶¯×÷
+    if (mTracer == TracerFlag::CurveTracer) { //è‹¥å­˜åœ¨æ›²çº¿å…‰æ ‡åˆ™å“åº”é”®ç›˜å½•å…¥åŠ¨ä½œ
         if (watched == ui.customPlot && event->type() == QEvent::KeyPress) {
             if ( ((QKeyEvent*)event)->key() == Qt::Key_Left || 
-                ((QKeyEvent*)event)->key() == Qt::Key_Down) { //°´¼ü¼üÅÌ×ó·½Ïò¼ü°´ÏÂ
+                ((QKeyEvent*)event)->key() == Qt::Key_Down) { //æŒ‰é”®é”®ç›˜å·¦æ–¹å‘é”®æŒ‰ä¸‹
                 DoCurveTracer(leftMove);
             }
             else if (((QKeyEvent*)event)->key() == Qt::Key_Right || 
-                ((QKeyEvent*)event)->key() == Qt::Key_Up) { //°´¼ü¼üÅÌÓÒ·½Ïò¼ü°´ÏÂ
+                ((QKeyEvent*)event)->key() == Qt::Key_Up) { //æŒ‰é”®é”®ç›˜å³æ–¹å‘é”®æŒ‰ä¸‹
                 DoCurveTracer(rightMove);
             }
         }
@@ -206,7 +206,7 @@ bool OpenFileDialog::eventFilter(QObject* watched, QEvent* event)
     return QDialog::eventFilter(watched, event);
 }
 
-// ¸ù¾İ½çÃæÊäÈë¿òÉèÖÃ×ø±êÖáµÄ·¶Î§
+// æ ¹æ®ç•Œé¢è¾“å…¥æ¡†è®¾ç½®åæ ‡è½´çš„èŒƒå›´
 void OpenFileDialog::setAxisRange() {
     double xMin = ui.XAxis_left_Edit->text().toDouble();
     double xMax = ui.XAxis_right_Edit->text().toDouble();
@@ -214,13 +214,13 @@ void OpenFileDialog::setAxisRange() {
     double yMax = ui.YAxis_right_Edit->text().toDouble();
 
     if (xMin > xMax) {
-        QMessageBox::information(this, "×ø±êÖá·¶Î§ÉèÖÃÊ§°Ü", "ÇëÈ·±£ÊäÈëµÄ×ó±ß½çĞ¡ÓÚÓÒ±ß½ç");
-        UpdateAxisRange(); //±ä»ØÔ­À´µÄ×ø±êÖá·¶Î§
+        QMessageBox::information(this, "åæ ‡è½´èŒƒå›´è®¾ç½®å¤±è´¥", "è¯·ç¡®ä¿è¾“å…¥çš„å·¦è¾¹ç•Œå°äºå³è¾¹ç•Œ");
+        UpdateAxisRange(); //å˜å›åŸæ¥çš„åæ ‡è½´èŒƒå›´
         return;
     }
     if (yMin > yMax) {
-        QMessageBox::information(this, "×ø±êÖá·¶Î§ÉèÖÃÊ§°Ü", "ÇëÈ·±£ÊäÈëµÄ×ó±ß½çĞ¡ÓÚÓÒ±ß½ç");
-        UpdateAxisRange(); //±ä»ØÔ­À´µÄ×ø±êÖá·¶Î§
+        QMessageBox::information(this, "åæ ‡è½´èŒƒå›´è®¾ç½®å¤±è´¥", "è¯·ç¡®ä¿è¾“å…¥çš„å·¦è¾¹ç•Œå°äºå³è¾¹ç•Œ");
+        UpdateAxisRange(); //å˜å›åŸæ¥çš„åæ ‡è½´èŒƒå›´
         return;
     }
 
@@ -229,10 +229,10 @@ void OpenFileDialog::setAxisRange() {
     pPlot->replot(QCustomPlot::rpQueuedReplot);
 }
 
-// Êó±ê×ó¼üË«»÷Ê±ÖØ»æ£¬ÖØĞÂµ÷Õû×ø±êÖá·¶Î§
+// é¼ æ ‡å·¦é”®åŒå‡»æ—¶é‡ç»˜ï¼Œé‡æ–°è°ƒæ•´åæ ‡è½´èŒƒå›´
 void OpenFileDialog::DoubleClick() {
-    pGraph1->rescaleAxes(); // ÈÃ·¶Î§×ÔĞĞËõ·Å£¬Ê¹Í¼0ÍêÈ«ÊÊºÏÓÚ¿É¼ûÇøÓò.ÕâÀï²»ÄÜ´ø²ÎÊıtrue
-    pGraph2->rescaleAxes(true); // Í¼1Ò²ÊÇÒ»Ñù×Ô¶¯µ÷Õû·¶Î§£¬µ«Ö»ÊÇ·Å´ó»ò²»±ä·¶Î§
+    pGraph1->rescaleAxes(); // è®©èŒƒå›´è‡ªè¡Œç¼©æ”¾ï¼Œä½¿å›¾0å®Œå…¨é€‚åˆäºå¯è§åŒºåŸŸ.è¿™é‡Œä¸èƒ½å¸¦å‚æ•°true
+    pGraph2->rescaleAxes(true); // å›¾1ä¹Ÿæ˜¯ä¸€æ ·è‡ªåŠ¨è°ƒæ•´èŒƒå›´ï¼Œä½†åªæ˜¯æ”¾å¤§æˆ–ä¸å˜èŒƒå›´
     pGraph3->rescaleAxes(true);
     pGraph4->rescaleAxes(true);
     ui.customPlot->replot();
@@ -240,87 +240,87 @@ void OpenFileDialog::DoubleClick() {
     UpdateAxisRange();
 }
 
-// Êó±êÍÏ¶¯»­ÃæÊ±£¬¸úËæ±ä»¯×ø±êÖá·¶Î§
+// é¼ æ ‡æ‹–åŠ¨ç”»é¢æ—¶ï¼Œè·Ÿéšå˜åŒ–åæ ‡è½´èŒƒå›´
 void OpenFileDialog::myMoveMouse() {
     UpdateAxisRange();
 } 
 
-// Ë¢ĞÂ×ø±êÖá·¶Î§µÄÏÔÊ¾ÖµÓëÍ¼Ïñ¶ÔÓ¦
+// åˆ·æ–°åæ ‡è½´èŒƒå›´çš„æ˜¾ç¤ºå€¼ä¸å›¾åƒå¯¹åº”
 void OpenFileDialog::UpdateAxisRange() {
-    // »ñÈ¡µ±Ç°×ø±êÖá·¶Î§
+    // è·å–å½“å‰åæ ‡è½´èŒƒå›´
     double left = ui.customPlot->xAxis->range().lower;
     double right = ui.customPlot->xAxis->range().upper;
     double down = ui.customPlot->yAxis->range().lower;
     double up = ui.customPlot->yAxis->range().upper;
-    // ½«µ±Ç°×ø±êÖá·¶Î§ÉèÖÃµ½ÎÄ±¾¿ò
+    // å°†å½“å‰åæ ‡è½´èŒƒå›´è®¾ç½®åˆ°æ–‡æœ¬æ¡†
     ui.XAxis_left_Edit->setText(QString::number(left, 'f', 1));
     ui.XAxis_right_Edit->setText(QString::number(right, 'f', 1));
     ui.YAxis_left_Edit->setText(QString::number(down, 'f', 1));
     ui.YAxis_right_Edit->setText(QString::number(up, 'f', 1));
 }
 
-// »æÖÆÍ¼ĞÎ±£´æµ¼³ö
+// ç»˜åˆ¶å›¾å½¢ä¿å­˜å¯¼å‡º
 bool OpenFileDialog::on_pbn_save_clicked()
 {
     QJsonObject jsonSetting = mainWindow::ReadSetting();
     QString saveDir = jsonSetting["SavePictureDir"].toString(); //"SaveDir": "/home"
     QString wholePath = saveDir + "//Picture.bmp";
 
-    QString fileName = QFileDialog::getSaveFileName(this, "Í¼ÏñÁí´æÎª", wholePath, "BMP(*.bmp);; PNG(*.png);; JPG(*.jpg);; PDF(*.pdf)");
-    //QString fileName = QFileDialog::getSaveFileName(this, "Í¼ÏñÁí´æÎª", "test.bmp", "PNG(*.png);; JPG(*.jpg);; BMP(*.bmp);; PDF(*.pdf)");
+    QString fileName = QFileDialog::getSaveFileName(this, "å›¾åƒå¦å­˜ä¸º", wholePath, "BMP(*.bmp);; PNG(*.png);; JPG(*.jpg);; PDF(*.pdf)");
+    //QString fileName = QFileDialog::getSaveFileName(this, "å›¾åƒå¦å­˜ä¸º", "test.bmp", "PNG(*.png);; JPG(*.jpg);; BMP(*.bmp);; PDF(*.pdf)");
     if (fileName == "") {
-        QMessageBox::information(this, "fail", "±£´æÊ§°Ü");
+        QMessageBox::information(this, "fail", "ä¿å­˜å¤±è´¥");
         return false;
     }
     else if (fileName.endsWith(".png")) {
         saveFilePath(fileName);
-        QMessageBox::information(this, "success", "³É¹¦±£´æÎªpngÎÄ¼ş");
+        QMessageBox::information(this, "success", "æˆåŠŸä¿å­˜ä¸ºpngæ–‡ä»¶");
         return ui.customPlot->savePng(fileName, ui.customPlot->width(), ui.customPlot->height());
     }
     else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
         saveFilePath(fileName);
-        QMessageBox::information(this, "success", "³É¹¦±£´æÎªjpgÎÄ¼ş");
+        QMessageBox::information(this, "success", "æˆåŠŸä¿å­˜ä¸ºjpgæ–‡ä»¶");
         return ui.customPlot->saveJpg(fileName, ui.customPlot->width(), ui.customPlot->height());
     }
     else if (fileName.endsWith(".bmp")) {
         saveFilePath(fileName);
-        QMessageBox::information(this, "success", "³É¹¦±£´æÎªbmpÎÄ¼ş");
+        QMessageBox::information(this, "success", "æˆåŠŸä¿å­˜ä¸ºbmpæ–‡ä»¶");
         return ui.customPlot->saveBmp(fileName, ui.customPlot->width(), ui.customPlot->height());
     }
     else if (fileName.endsWith(".pdf")) {
         saveFilePath(fileName);
-        QMessageBox::information(this, "success", "³É¹¦±£´æÎªpdfÎÄ¼ş");
+        QMessageBox::information(this, "success", "æˆåŠŸä¿å­˜ä¸ºpdfæ–‡ä»¶");
         return ui.customPlot->savePdf(fileName, ui.customPlot->width(), ui.customPlot->height());
     }
     else {
-        //·ñÔò×·¼Óºó×ºÃûÎª.png±£´æÎÄ¼ş
-        QMessageBox::information(this, "success", "±£´æ³É¹¦,ÒÑÄ¬ÈÏ±£´æÎªpngÎÄ¼ş");
+        //å¦åˆ™è¿½åŠ åç¼€åä¸º.pngä¿å­˜æ–‡ä»¶
+        QMessageBox::information(this, "success", "ä¿å­˜æˆåŠŸ,å·²é»˜è®¤ä¿å­˜ä¸ºpngæ–‡ä»¶");
         return ui.customPlot->savePng(fileName.append(".png"), ui.customPlot->width(), ui.customPlot->height());
     }
 }
 
-// ±£´æ±¾´Î±£´æÍ¼Æ¬µÄÂ·¾¶
+// ä¿å­˜æœ¬æ¬¡ä¿å­˜å›¾ç‰‡çš„è·¯å¾„
 void OpenFileDialog::saveFilePath(QString fileFullName) {
     QFileInfo fileinfo = QFileInfo(fileFullName);
-    //QString file_name = fileinfo.fileName();//ÎÄ¼şÃû³Æ
-    //QString file_suffix = fileinfo.suffix();//ÎÄ¼şºó×º¸ñÊ½
-    QString file_path = fileinfo.absolutePath();//ÎÄ¼ş¾ø¶ÔÂ·¾¶
+    //QString file_name = fileinfo.fileName();//æ–‡ä»¶åç§°
+    //QString file_suffix = fileinfo.suffix();//æ–‡ä»¶åç¼€æ ¼å¼
+    QString file_path = fileinfo.absolutePath();//æ–‡ä»¶ç»å¯¹è·¯å¾„
 
     QJsonObject jsonSetting = mainWindow::ReadSetting();
     jsonSetting["SavePictureDir"] = file_path;
     mainWindow::WriteSetting(jsonSetting);
 }
 
-// Ñ¡ÔñÇúÏß¹â±êÀàĞÍ£ºÎŞ/ÈÎÒâµãÊ®×Ö¹â±ê/ÇúÏßÈ¡Öµ¹â±ê
-// Èôµ±Ç°¶ÔÏócom_index_stringÖµ·¢Éú¸Ä±äÔò´¥·¢´Ëº¯Êı
+// é€‰æ‹©æ›²çº¿å…‰æ ‡ç±»å‹ï¼šæ— /ä»»æ„ç‚¹åå­—å…‰æ ‡/æ›²çº¿å–å€¼å…‰æ ‡
+// è‹¥å½“å‰å¯¹è±¡com_index_stringå€¼å‘ç”Ÿæ”¹å˜åˆ™è§¦å‘æ­¤å‡½æ•°
 void OpenFileDialog::on_GetData_comboBox_currentIndexChanged(const QString& arg1)
 {
-    //½«µ±Ç°Ñ¡ÏîÃû¸³Öµ¸ø±äÁ¿str£¬Êä³öµ±Ç°Ñ¡ÏîÃû
+    //å°†å½“å‰é€‰é¡¹åèµ‹å€¼ç»™å˜é‡strï¼Œè¾“å‡ºå½“å‰é€‰é¡¹å
     QString str = ui.GetData_comboBox->currentText();
     qDebug() << "Text:" << str;
-    if (str == "ÎŞ") {
+    if (str == "æ— ") {
         mTracer = TracerFlag::NoTracer;
-        // É¾³ı¸¡±êÏà¹Ø±äÁ¿£¬Ö¸ÕëÖÃ¿Õ
+        // åˆ é™¤æµ®æ ‡ç›¸å…³å˜é‡ï¼ŒæŒ‡é’ˆç½®ç©º
         if (tracerCross != Q_NULLPTR) {
             delete tracerCross;
             tracerCross = Q_NULLPTR;
@@ -337,7 +337,7 @@ void OpenFileDialog::on_GetData_comboBox_currentIndexChanged(const QString& arg1
         }
         disconnect(pPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(SLOT_mouseTracetoCoord(QMouseEvent*)));
     }
-    if (str == "Ê®×Ö¹â±ê") {
+    if (str == "åå­—å…‰æ ‡") {
         mTracer = TracerFlag::CrossTracer;
         tracerCross = new myTracer(pPlot, pGraph1, DataTracer);
         if (lineTracer != Q_NULLPTR) {
@@ -350,10 +350,10 @@ void OpenFileDialog::on_GetData_comboBox_currentIndexChanged(const QString& arg1
                 tracerX[i] = Q_NULLPTR;
             }
         }
-        lineTracer = new myTracerLine(pPlot, myTracerLine::Both);//»­Ê®×Ö½»²æÏß
+        lineTracer = new myTracerLine(pPlot, myTracerLine::Both);//ç”»åå­—äº¤å‰çº¿
         connect(pPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(SLOT_mouseTracetoCoord(QMouseEvent*)));
     }
-    if (str == "ÇúÏßÈ¡Öµ") {
+    if (str == "æ›²çº¿å–å€¼") {
         mTracer = TracerFlag::CurveTracer;
         if (tracerCross != Q_NULLPTR) {
             delete tracerCross;
@@ -363,11 +363,11 @@ void OpenFileDialog::on_GetData_comboBox_currentIndexChanged(const QString& arg1
             delete lineTracer;
             lineTracer = Q_NULLPTR;
         }
-        ////ÉèÖÃ×·×ÙÇúÏß
+        ////è®¾ç½®è¿½è¸ªæ›²çº¿
         //for (int i = 0; i < 4; i++) {
         //    plottracer[i] = new QCPItemTracer(pPlot1);
         //    plottracer[i]->setGraph(pPlot1->graph(i));
-        //    //ÉèÖÃÊ®×Ö¸¡±êÑùÊ½
+        //    //è®¾ç½®åå­—æµ®æ ‡æ ·å¼
         //    QPen pen = pPlot1->graph(i)->pen();
         //    pen.setStyle(Qt::SolidLine);//
         //    plottracer[i]->setPen(pen);
@@ -375,42 +375,42 @@ void OpenFileDialog::on_GetData_comboBox_currentIndexChanged(const QString& arg1
         for (int i = 0; i < 4; i++) {
             tracerX[i] = new myTracer(pPlot, pPlot->graph(i), DataTracer);
         }
-        lineTracer = new myTracerLine(pPlot, myTracerLine::VerticalLine);//»­´¹Ö±Ïß
+        lineTracer = new myTracerLine(pPlot, myTracerLine::VerticalLine);//ç”»å‚ç›´çº¿
         connect(pPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(SLOT_mouseTracetoCoord(QMouseEvent*)));
     }
 
     pPlot->replot();
 }
 
-// ÇúÏßÈ¡Öµ,Êó±êµã»÷È¡Öµ
+// æ›²çº¿å–å€¼,é¼ æ ‡ç‚¹å‡»å–å€¼
 void OpenFileDialog::DoCurveTracer(QMouseEvent* event)
 {
-    //Ö±Ïß·¶Î§ÏŞÖÆ
+    //ç›´çº¿èŒƒå›´é™åˆ¶
     double xLow = pPlot->xAxis->range().lower;
     double yLow = pPlot->yAxis->range().lower;
     double xUp = pPlot->xAxis->range().upper;
     double yUp = pPlot->yAxis->range().upper;
 
-    //»ñÈ¡×ø±ê,´°ÌåÊó±êµÄÎ»ÖÃ£¬²»ÊÇÇúÏßxÖáµÄÖµ
+    //è·å–åæ ‡,çª—ä½“é¼ æ ‡çš„ä½ç½®ï¼Œä¸æ˜¯æ›²çº¿xè½´çš„å€¼
     int x_pos = event->pos().x();
 
-    //½«Êó±ê×ø±êÖµ»»³ÉÇúÏßxÖáµÄÖµ
+    //å°†é¼ æ ‡åæ ‡å€¼æ¢æˆæ›²çº¿xè½´çš„å€¼
     int x_value = round(pPlot->xAxis->pixelToCoord(x_pos));
 
     for (int i = pPlot->graphCount() - 1; i >= 0; --i)
     {
         if (showLine[i]) {
-            // »ñÈ¡xÖáÖµ¶ÔÓ¦µÄÇúÏßÖĞµÄyÖáÖµ
+            // è·å–xè½´å€¼å¯¹åº”çš„æ›²çº¿ä¸­çš„yè½´å€¼
             float y_value = pPlot->graph(i)->data()->at(x_value)->value;
-            //¶¨Òå±êÇ©¸ñÊ½
+            //å®šä¹‰æ ‡ç­¾æ ¼å¼
             QString tip;
-            if (x_value > xLow && x_value<xUp && y_value>yLow && y_value < yUp) {   // Ö±Ïß¡¢ÓÎ±ê·¶Î§ÏŞÖÆ
-                lastPos = x_value; //¼ÇÂ¼±¾´ÎµÄÓÎ±êÈ¡ÖµÎ»ÖÃ
-                lineTracer->updatePosition(x_value, y_value); //Ö»ĞèÒª»æÖÆÒ»´ÎÖ±Ïß
+            if (x_value > xLow && x_value<xUp && y_value>yLow && y_value < yUp) {   // ç›´çº¿ã€æ¸¸æ ‡èŒƒå›´é™åˆ¶
+                lastPos = x_value; //è®°å½•æœ¬æ¬¡çš„æ¸¸æ ‡å–å€¼ä½ç½®
+                lineTracer->updatePosition(x_value, y_value); //åªéœ€è¦ç»˜åˆ¶ä¸€æ¬¡ç›´çº¿
                 tracerX[i]->updatePosition(x_value, y_value);
                 lineTracer->setVisible(true);
                 tracerX[i]->setVisible(true);
-                //¶¨Òå±êÇ©¸ñÊ½
+                //å®šä¹‰æ ‡ç­¾æ ¼å¼
                 QString tip;
                 tip = QString::number(x_value) + "," + QString::number(y_value);
                 tracerX[i]->setText(tip);
@@ -423,39 +423,39 @@ void OpenFileDialog::DoCurveTracer(QMouseEvent* event)
         else{
             tracerX[i]->setVisible(false);
         }
-        //¸üĞÂÇúÏß
+        //æ›´æ–°æ›²çº¿
         pPlot->replot(QCustomPlot::rpQueuedReplot);
     }
 }
 
-// ÇúÏßÈ¡ÖµÏìÓ¦¼üÅÌ×óÓÒ¼üÒÆ¶¯
+// æ›²çº¿å–å€¼å“åº”é”®ç›˜å·¦å³é”®ç§»åŠ¨
 void OpenFileDialog::DoCurveTracer(KeyboardType type){
-    // È·¶¨Æ«ÒÆÁ¿
+    // ç¡®å®šåç§»é‡
     int offset = 0;
     if (type == leftMove) offset = -1;
     if (type == rightMove) offset = 1;
 
-    // Ö±Ïß·¶Î§ÏŞÖÆ
+    // ç›´çº¿èŒƒå›´é™åˆ¶
     double xLow = pPlot->xAxis->range().lower;
     double yLow = pPlot->yAxis->range().lower;
     double xUp = pPlot->xAxis->range().upper;
     double yUp = pPlot->yAxis->range().upper;
 
-    // ¼ÇÂ¼ÉÏ´ÎµÄÓÎ±êÎ»ÖÃ£¬²¢Ôö¼ÓÒ»¸öÆ«ÒÆÁ¿
+    // è®°å½•ä¸Šæ¬¡çš„æ¸¸æ ‡ä½ç½®ï¼Œå¹¶å¢åŠ ä¸€ä¸ªåç§»é‡
     int x_value = lastPos + offset;
     for (int i = pPlot->graphCount() - 1; i >= 0; --i)
     {
-        // »ñÈ¡xÖáÖµ¶ÔÓ¦µÄÇúÏßÖĞµÄyÖáÖµ
+        // è·å–xè½´å€¼å¯¹åº”çš„æ›²çº¿ä¸­çš„yè½´å€¼
         float y_value = pPlot->graph(i)->data()->at(x_value)->value;
-        //¶¨Òå±êÇ©¸ñÊ½
+        //å®šä¹‰æ ‡ç­¾æ ¼å¼
         QString tip;
-        if (x_value > xLow && x_value<xUp && y_value>yLow && y_value < yUp) {   // Ö±Ïß¡¢ÓÎ±ê·¶Î§ÏŞÖÆ
-            lastPos = x_value; // ¼ÇÂ¼ĞÂµÄ¹â±êÎ»ÖÃ
-            lineTracer->updatePosition(x_value, y_value); //Ö»ĞèÒª»æÖÆÒ»´ÎÖ±Ïß
+        if (x_value > xLow && x_value<xUp && y_value>yLow && y_value < yUp) {   // ç›´çº¿ã€æ¸¸æ ‡èŒƒå›´é™åˆ¶
+            lastPos = x_value; // è®°å½•æ–°çš„å…‰æ ‡ä½ç½®
+            lineTracer->updatePosition(x_value, y_value); //åªéœ€è¦ç»˜åˆ¶ä¸€æ¬¡ç›´çº¿
             tracerX[i]->updatePosition(x_value, y_value);
             lineTracer->setVisible(true);
             tracerX[i]->setVisible(true);
-            //¶¨Òå±êÇ©¸ñÊ½
+            //å®šä¹‰æ ‡ç­¾æ ¼å¼
             QString tip;
             tip = QString::number(x_value) + "," + QString::number(y_value);
             tracerX[i]->setText(tip);
@@ -465,14 +465,14 @@ void OpenFileDialog::DoCurveTracer(KeyboardType type){
             tracerX[i]->setVisible(false);
         }
 
-        //¸üĞÂÇúÏß
+        //æ›´æ–°æ›²çº¿
         pPlot->replot(QCustomPlot::rpQueuedReplot);
     }
 }
 
-// Ê®×Ö¼ÜÈ¡Öµ
+// åå­—æ¶å–å€¼
 void OpenFileDialog::DoCrossTracer(QMouseEvent* event){
-    //Ö±Ïß·¶Î§ÏŞÖÆ
+    //ç›´çº¿èŒƒå›´é™åˆ¶
     double xLow = pPlot->xAxis->range().lower;
     double yLow = pPlot->yAxis->range().lower;
     double xUp = pPlot->xAxis->range().upper;
@@ -481,12 +481,12 @@ void OpenFileDialog::DoCrossTracer(QMouseEvent* event){
     double x = pPlot->xAxis->pixelToCoord(event->pos().x());
     double y2 = pPlot->yAxis->pixelToCoord(event->pos().y());
 
-    if (x > xLow && x<xUp && y2>yLow && y2 < yUp) {   //Ö±Ïß¡¢ÓÎ±ê·¶Î§ÏŞÖÆ
+    if (x > xLow && x<xUp && y2>yLow && y2 < yUp) {   //ç›´çº¿ã€æ¸¸æ ‡èŒƒå›´é™åˆ¶
         lineTracer->updatePosition(x, y2);
         tracerCross->updatePosition(x, y2);
         lineTracer->setVisible(true);
         tracerCross->setVisible(true);
-        //¶¨Òå±êÇ©¸ñÊ½
+        //å®šä¹‰æ ‡ç­¾æ ¼å¼
         QString tip;
         tip = QString::number(x, 'f', 2) + "," + QString::number(y2, 'f', 2);
         tracerCross->setText(tip);
@@ -496,11 +496,11 @@ void OpenFileDialog::DoCrossTracer(QMouseEvent* event){
         tracerCross->setVisible(false);
     }
 
-    //¸üĞÂÇúÏß
+    //æ›´æ–°æ›²çº¿
     pPlot->replot(QCustomPlot::rpQueuedReplot);
 }
 
-// Êó±ê×ó¼üµã»÷Í¼ÏñÈ¡Öµ
+// é¼ æ ‡å·¦é”®ç‚¹å‡»å›¾åƒå–å€¼
 void OpenFileDialog::SLOT_mouseTracetoCoord(QMouseEvent* event)
 {
     switch (mTracer) {
@@ -519,12 +519,12 @@ void OpenFileDialog::SLOT_mouseTracetoCoord(QMouseEvent* event)
     }
 }
 
-/// Òş²ØÇúÏßÓĞÁ½ÖÖ·½·¨£º1.ÉèÖÃÎªÍ¸Ã÷É«£¬µ«Ò²»áÓ°ÏìÍ¼ÀıÖĞµÄÑÕÉ«    2.ÉèÖÃ¿É¼ûĞÔÊôĞÔ
-// 1. setPenÉèÖÃÎªÍ¸Ã÷É«µÄ·½·¨£¬Òş²ØÇúÏß£¬µ«Ò²»áÓ°ÏìÍ¼ÀıÖĞµÄÑÕÉ«¡£²»½¨ÒéÊ¹ÓÃ¡£
-// 2. setVisibleÉèÖÃ¿É¼ûĞÔÊôĞÔ£¬Òş²ØÇúÏß£¬²»»á¶ÔÍ¼ÀıÓĞÈÎºÎÓ°Ïì¡£ÍÆ¼öÊ¹ÓÃ¡£
-// ¸´Ñ¡¿ò1
+/// éšè—æ›²çº¿æœ‰ä¸¤ç§æ–¹æ³•ï¼š1.è®¾ç½®ä¸ºé€æ˜è‰²ï¼Œä½†ä¹Ÿä¼šå½±å“å›¾ä¾‹ä¸­çš„é¢œè‰²    2.è®¾ç½®å¯è§æ€§å±æ€§
+// 1. setPenè®¾ç½®ä¸ºé€æ˜è‰²çš„æ–¹æ³•ï¼Œéšè—æ›²çº¿ï¼Œä½†ä¹Ÿä¼šå½±å“å›¾ä¾‹ä¸­çš„é¢œè‰²ã€‚ä¸å»ºè®®ä½¿ç”¨ã€‚
+// 2. setVisibleè®¾ç½®å¯è§æ€§å±æ€§ï¼Œéšè—æ›²çº¿ï¼Œä¸ä¼šå¯¹å›¾ä¾‹æœ‰ä»»ä½•å½±å“ã€‚æ¨èä½¿ç”¨ã€‚
+// å¤é€‰æ¡†1
 
-// ÊÇ·ñ»æÖÆÇúÏß1
+// æ˜¯å¦ç»˜åˆ¶æ›²çº¿1
 void OpenFileDialog::on_checkBox1_stateChanged(int arg1)
 {
     if (arg1 == Qt::Checked) {
@@ -538,7 +538,7 @@ void OpenFileDialog::on_checkBox1_stateChanged(int arg1)
     pPlot->replot();
 }
 
-// ÊÇ·ñ»æÖÆÇúÏß2
+// æ˜¯å¦ç»˜åˆ¶æ›²çº¿2
 void OpenFileDialog::on_checkBox2_stateChanged(int arg1)
 {
     if (arg1) {
@@ -552,7 +552,7 @@ void OpenFileDialog::on_checkBox2_stateChanged(int arg1)
     pPlot->replot();
 }
 
-// ÊÇ·ñ»æÖÆÇúÏß3
+// æ˜¯å¦ç»˜åˆ¶æ›²çº¿3
 void OpenFileDialog::on_checkBox3_stateChanged(int arg1)
 {
     if (arg1) {
@@ -566,14 +566,14 @@ void OpenFileDialog::on_checkBox3_stateChanged(int arg1)
     pPlot->replot();
 }
 
-// ÊÇ·ñ»æÖÆÇúÏß4
+// æ˜¯å¦ç»˜åˆ¶æ›²çº¿4
 void OpenFileDialog::on_checkBox4_stateChanged(int arg1)
 {
-    if (arg1 == Qt::Checked) { //Ñ¡ÖĞ
+    if (arg1 == Qt::Checked) { //é€‰ä¸­
         pGraph4->setVisible(true);
         showLine[3] = true;
     }
-    else { //Î´Ñ¡ÖĞ
+    else { //æœªé€‰ä¸­
         pGraph4->setVisible(false);//void QCPLayerable::setVisible(bool on)
         showLine[3] = false;
     }

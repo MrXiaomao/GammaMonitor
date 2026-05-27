@@ -4,7 +4,7 @@ myThread::myThread(QObject* parent):QObject(parent)
 
 }
 
-// »æÍ¼
+// ç»˜å›¾
 void myThread::draw_slot(QCustomPlot* customPlot)
 {
 }

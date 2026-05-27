@@ -29,7 +29,7 @@ void myTracerLine::initLine()
 
         if (VerticalLine == m_type || Both == m_type)
         {
-            m_lineV = new QCPItemStraightLine(m_plot);//´¹Ö±Ïß
+            m_lineV = new QCPItemStraightLine(m_plot);//åž‚ç›´çº¿
             m_lineV->setLayer("overlay");
             m_lineV->setPen(linesPen);
             m_lineV->setClipToAxisRect(true);
@@ -40,7 +40,7 @@ void myTracerLine::initLine()
         if (HorizonLine == m_type || Both == m_type)
         {
 
-            m_lineH = new QCPItemStraightLine(m_plot);//Ë®Æ½Ïß
+            m_lineH = new QCPItemStraightLine(m_plot);//æ°´å¹³çº¿
             m_lineH->setLayer("overlay");
             m_lineH->setPen(linesPen);
             m_lineH->setClipToAxisRect(true);

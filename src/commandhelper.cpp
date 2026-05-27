@@ -324,9 +324,9 @@ void CommandHelper::sendNextArmCommand()
 
     CommandItem cmdItem = m_cmdArmItems.first();
     m_cmdArmItems.removeFirst();
-    m_clientArm->send(cmdItem.data);
+    m_clientArm->send(cmdItem.cmdPayload);
 
-    qDebug().noquote() << QString("Send HEX: %1[%2]").arg(QString(cmdItem.data.toHex(' '))).arg(cmdItem.name);
+    qDebug().noquote() << QString("Send HEX: %1[%2]").arg(QString(cmdItem.cmdPayload.toHex(' '))).arg(cmdItem.name);
     
     // 关键：下一条指令延后发送
     // if(m_cmdArmItems.isEmpty()) {

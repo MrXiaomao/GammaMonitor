@@ -54,7 +54,7 @@ QCPItemTip::~QCPItemTip()
 {
 }
 
-//ÉèÖÃÎÄ±¾¿òÑÕÉ«
+//è®¾ç½®æ–‡æœ¬æ¡†é¢œè‰²
 void QCPItemTip::setRectColor(const QColor& color)
 {
     mRectColor = color;

@@ -1,8 +1,8 @@
-// ¹¦ÄÜ£º¢Ù´æ·ÅPC¶Ë¶ÔARMÓ²¼ş·¢ËÍµÄÖ¸Áî£»
-//       ¢Ú´æ·Å¼ÌµçÆ÷Ö¸Áî
+// åŠŸèƒ½ï¼šâ‘ å­˜æ”¾PCç«¯å¯¹ARMç¡¬ä»¶å‘é€çš„æŒ‡ä»¤ï¼›
+//       â‘¡å­˜æ”¾ç»§ç”µå™¨æŒ‡ä»¤
 // 
-// ¿ª·¢ÈËÔ±£ºÃ«äìÇì 1207402640@qq.com
-// ¿ª·¢Ê±¼ä£º2023Äê2ÔÂ18ÈÕ20:16:42
+// å¼€å‘äººå‘˜ï¼šæ¯›æ½‡åº† 1207402640@qq.com
+// å¼€å‘æ—¶é—´ï¼š2023å¹´2æœˆ18æ—¥20:16:42
 #pragma once
 #include "QByteArray"
 class Order
@@ -11,42 +11,42 @@ public:
 	Order(void);
 	~Order(void);
 
-	int waitingTime; //Íø¿ÚÊı¾İĞ´ÈëµÈ´ıÊ±¼ä£¬µÈ´ıARMÏìÓ¦Ö¸Áî¡£
-	// ===================ËÄ×Ö½ÚÖ¸Áî===================
-	QByteArray StartMeasure; // ¿ªÊ¼¼ÆÊı
-	QByteArray StopMeasure; // Í£Ö¹¼ÆÊı
+	int waitingTime; //ç½‘å£æ•°æ®å†™å…¥ç­‰å¾…æ—¶é—´ï¼Œç­‰å¾…ARMå“åº”æŒ‡ä»¤ã€‚
+	// ===================å››å­—èŠ‚æŒ‡ä»¤===================
+	QByteArray StartMeasure; // å¼€å§‹è®¡æ•°
+	QByteArray StopMeasure; // åœæ­¢è®¡æ•°
 
-	QByteArray DetecA_ON; // ¿ªÆôÌ½²âÆ÷×éAÆ«Ñ¹
-	QByteArray DetecB_ON; // ¿ªÆôÌ½²âÆ÷×éBÆ«Ñ¹
-	QByteArray ExtDeviceON; // ¿ªÆôÍâÉè¹©µç
+	QByteArray DetecA_ON; // å¼€å¯æ¢æµ‹å™¨ç»„Aåå‹
+	QByteArray DetecB_ON; // å¼€å¯æ¢æµ‹å™¨ç»„Båå‹
+	QByteArray ExtDeviceON; // å¼€å¯å¤–è®¾ä¾›ç”µ
 
-	QByteArray DetecA_OFF; // ¹Ø±ÕÌ½²âÆ÷×éAÆ«Ñ¹
-	QByteArray DetecB_OFF; // ¹Ø±ÕÌ½²âÆ÷×éBÆ«Ñ¹
-	QByteArray ExtDeviceOFF; // ¹Ø±ÕÍâ½ÓÉè±¸¹©µç
+	QByteArray DetecA_OFF; // å…³é—­æ¢æµ‹å™¨ç»„Aåå‹
+	QByteArray DetecB_OFF; // å…³é—­æ¢æµ‹å™¨ç»„Båå‹
+	QByteArray ExtDeviceOFF; // å…³é—­å¤–æ¥è®¾å¤‡ä¾›ç”µ
 
-	// ===================Áù×Ö½ÚÖ¸Áî===================
-	QByteArray MonitorMessageON; // ÈÃARM¿ªÊ¼·¢ËÍÉè±¸×´Ì¬ĞÅÏ¢£¨Ò²¾ÍÊÇÎÂ¶È¡¢ÊäÈëµçÔ´¡¢Ì½²âÆ÷A×éµçÑ¹¡¢Ì½²âÆ÷B×éµçÑ¹ËÄÖÖÊı¾İ£©
-	QByteArray MonitorMessageOFF; // ÈÃARMÍ£Ö¹·¢ËÍÉè±¸×´Ì¬ĞÅÏ¢
+	// ===================å…­å­—èŠ‚æŒ‡ä»¤===================
+	QByteArray MonitorMessageON; // è®©ARMå¼€å§‹å‘é€è®¾å¤‡çŠ¶æ€ä¿¡æ¯ï¼ˆä¹Ÿå°±æ˜¯æ¸©åº¦ã€è¾“å…¥ç”µæºã€æ¢æµ‹å™¨Aç»„ç”µå‹ã€æ¢æµ‹å™¨Bç»„ç”µå‹å››ç§æ•°æ®ï¼‰
+	QByteArray MonitorMessageOFF; // è®©ARMåœæ­¢å‘é€è®¾å¤‡çŠ¶æ€ä¿¡æ¯
 
-	QByteArray DetectorThread; // ¿ªÆô²¢ÉèÖÃÁ½×éÌ½²âÆ÷µÄ±È½ÏÆ÷ãĞÖµ
-	QByteArray DetectorThreadOFF; // ¹Ø±ÕÁ½×éÌ½²âÆ÷µÄ±È½ÏÆ÷
+	QByteArray DetectorThread; // å¼€å¯å¹¶è®¾ç½®ä¸¤ç»„æ¢æµ‹å™¨çš„æ¯”è¾ƒå™¨é˜ˆå€¼
+	QByteArray DetectorThreadOFF; // å…³é—­ä¸¤ç»„æ¢æµ‹å™¨çš„æ¯”è¾ƒå™¨
 
-	QByteArray VoltageA_MonitorON; // ¿ªÆôÌ½²âÆ÷×éAÆ«Ñ¹¼à²â
-	QByteArray VoltageB_MonitorON; // ¿ªÆôÌ½²âÆ÷×éBÆ«Ñ¹¼à²â
-	QByteArray Temp_MonitorON; // ¿ªÆôÎÂ¶È¼à²â
-	QByteArray InputVoltage_MonitorON; // ¿ªÆôÉè±¸ÊäÈëµçÑ¹¼à²â£¨5V£©
+	QByteArray VoltageA_MonitorON; // å¼€å¯æ¢æµ‹å™¨ç»„Aåå‹ç›‘æµ‹
+	QByteArray VoltageB_MonitorON; // å¼€å¯æ¢æµ‹å™¨ç»„Båå‹ç›‘æµ‹
+	QByteArray Temp_MonitorON; // å¼€å¯æ¸©åº¦ç›‘æµ‹
+	QByteArray InputVoltage_MonitorON; // å¼€å¯è®¾å¤‡è¾“å…¥ç”µå‹ç›‘æµ‹ï¼ˆ5Vï¼‰
 
-	QByteArray VoltageA_MonitorOFF; // ¹Ø±ÕÌ½²âÆ÷×éAÆ«Ñ¹¼à²â
-	QByteArray VoltageB_MonitorOFF; // ¹Ø±ÕÌ½²âÆ÷×éBÆ«Ñ¹¼à²â
-	QByteArray Temp_MonitorOFF; // ¹Ø±ÕÎÂ¶È¼à²â
-	QByteArray InputVoltage_MonitorOFF; // ¹Ø±ÕÉè±¸ÊäÈëµçÑ¹¼à²â£¨5V£©
+	QByteArray VoltageA_MonitorOFF; // å…³é—­æ¢æµ‹å™¨ç»„Aåå‹ç›‘æµ‹
+	QByteArray VoltageB_MonitorOFF; // å…³é—­æ¢æµ‹å™¨ç»„Båå‹ç›‘æµ‹
+	QByteArray Temp_MonitorOFF; // å…³é—­æ¸©åº¦ç›‘æµ‹
+	QByteArray InputVoltage_MonitorOFF; // å…³é—­è®¾å¤‡è¾“å…¥ç”µå‹ç›‘æµ‹ï¼ˆ5Vï¼‰
 
-	// ===================¼ÌµçÆ÷Ö¸Áî=================
-	char* PowerCH1_ON; // ¼ÌµçÆ÷Í¨µÀ1ÎüºÏ£¨Í¨µÀ1¶ÔÓ¦Õı¼«£©
-	char* PowerCH1_OFF; // ¼ÌµçÆ÷Í¨µÀ1ÊÍ·Å
-	char* PowerCH2_ON; // ¼ÌµçÆ÷Í¨µÀ2ÎüºÏ£¨Í¨µÀ2¶ÔÓ¦¸º¼«/µØÏß£©
-	char* PowerCH2_OFF; // ¼ÌµçÆ÷Í¨µÀ2ÊÍ·Å
-	char* PowerStatus; // ²éÑ¯¼ÌµçÆ÷ÎüºÏ×´Ì¬
+	// ===================ç»§ç”µå™¨æŒ‡ä»¤=================
+	char* PowerCH1_ON; // ç»§ç”µå™¨é€šé“1å¸åˆï¼ˆé€šé“1å¯¹åº”æ­£æï¼‰
+	char* PowerCH1_OFF; // ç»§ç”µå™¨é€šé“1é‡Šæ”¾
+	char* PowerCH2_ON; // ç»§ç”µå™¨é€šé“2å¸åˆï¼ˆé€šé“2å¯¹åº”è´Ÿæ/åœ°çº¿ï¼‰
+	char* PowerCH2_OFF; // ç»§ç”µå™¨é€šé“2é‡Šæ”¾
+	char* PowerStatus; // æŸ¥è¯¢ç»§ç”µå™¨å¸åˆçŠ¶æ€
 
 private:
 };
